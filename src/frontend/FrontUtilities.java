@@ -3,14 +3,16 @@ package frontend;
 import java.awt.Color;
 
 import javax.swing.JComponent;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 
 /**
  * Constants class to package up strings used in multiple classes
  * 
  * @author dgattey
  */
-public abstract class Utilities {
+public abstract class FrontUtilities {
 	
 	public static final String	APP_NAME			= "Carly";
 	public static final String	GUI					= "gui";
@@ -19,9 +21,54 @@ public abstract class Utilities {
 	
 	// GUI Constants
 	public static final Color	COLOR_BACKGROUND	= Color.DARK_GRAY;
-	public static final Color	COLOR_COMPONENT_FG	= Color.WHITE;
-	public static final Color	COLOR_COMPONENT_BG	= Color.ORANGE;
+	public static final Color	COLOR_FOREGROUND	= Color.WHITE;
+	public static final Color	COLOR_BORDER		= Color.ORANGE;
 	public static final String	APP_FONT_NAME		= "Arial";
+	
+	/**
+	 * Adds a full border to the panel
+	 * 
+	 * @param panel the panel that needs the border
+	 */
+	public static void addBorderFull(final JComponent panel) {
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(1, 1, 1, 1, COLOR_BORDER)));
+	}
+	
+	/**
+	 * Adds a left border to the panel
+	 * 
+	 * @param panel the panel that needs the border
+	 */
+	public static void addBorderLeft(final JComponent panel) {
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 1, 0, 0, COLOR_BORDER)));
+	}
+	
+	/**
+	 * Adds a right border to the panel
+	 * 
+	 * @param panel the panel that needs the border
+	 */
+	public static void addBorderRight(final JComponent panel) {
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 0, 0, 1, COLOR_BORDER)));
+	}
+	
+	/**
+	 * Adds a top border to the panel
+	 * 
+	 * @param panel the panel that needs the border
+	 */
+	public static void addBorderTop(final JComponent panel) {
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(1, 0, 0, 0, COLOR_BORDER)));
+	}
+	
+	/**
+	 * Adds a bottom border to the panel
+	 * 
+	 * @param panel the panel that needs the border
+	 */
+	public static void addBorderBottom(final JComponent panel) {
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 0, 1, 0, COLOR_BORDER)));
+	}
 	
 	/**
 	 * Sets background and foreground color of this panel
@@ -29,8 +76,18 @@ public abstract class Utilities {
 	 * @param panel the panel to apply it to
 	 */
 	public static void themeComponent(final JComponent panel) {
-		panel.setForeground(COLOR_COMPONENT_FG);
-		panel.setBackground(COLOR_COMPONENT_BG);
+		panel.setForeground(COLOR_FOREGROUND);
+		panel.setBackground(COLOR_BACKGROUND);
+	}
+	
+	/**
+	 * Sets background and foreground color of this panel inverse of normal
+	 * 
+	 * @param panel the panel to apply it to
+	 */
+	public static void themeComponentInverse(final JComponent panel) {
+		panel.setForeground(Color.WHITE);
+		panel.setBackground(new Color(125, 125, 120));
 	}
 	
 	/**

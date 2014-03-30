@@ -3,13 +3,11 @@ package frontend.view;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
-import frontend.Utilities;
+import frontend.FrontUtilities;
 
 /**
  * Represents a JFrame class that is the frontend interface
@@ -19,9 +17,8 @@ import frontend.Utilities;
 public class MainView extends JFrame {
 	
 	// Child views
-	private final LineView		lineView;
+	private final CalendarView	calendar;
 	private final TaskView		taskView;
-	private final WeekView		weekView;
 	private final ToolbarView	toolbar;
 	
 	// Constants
@@ -31,31 +28,22 @@ public class MainView extends JFrame {
 	 * Constructor sets window properties and adds newly created views
 	 */
 	public MainView() {
-		super(Utilities.APP_NAME);
+		super(FrontUtilities.APP_NAME);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		setMinimumSize(new Dimension(600, 400));
-		setResizable(false);
+		setMinimumSize(new Dimension(600, 550));
+		setResizable(true);
 		
 		// Make child views and add them
-		lineView = new LineView();
-		taskView = new TaskView();
-		weekView = new WeekView();
+		calendar = new CalendarView();
 		toolbar = new ToolbarView();
-		
-		// Center of the view
-		final JPanel center = new JPanel();
-		center.setLayout(new BoxLayout(center, BoxLayout.Y_AXIS));
-		center.add(lineView);
-		center.add(Box.createVerticalStrut(10));
-		center.add(weekView);
-		Utilities.themeComponent(center);
-		Utilities.padComponent(center, 10, 10);
+		taskView = new TaskView();
 		
 		// Whole view
 		final JPanel mainPanel = new JPanel();
-		add(center, BorderLayout.CENTER);
+		add(calendar, BorderLayout.CENTER);
 		add(taskView, BorderLayout.EAST);
 		add(toolbar, BorderLayout.NORTH);
-		Utilities.themeComponent(mainPanel);
+		FrontUtilities.padComponent(calendar, 10, 10);
+		FrontUtilities.themeComponent(mainPanel);
 	}
 }

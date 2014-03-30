@@ -1,9 +1,10 @@
 package frontend.view;
 
-import java.awt.Color;
 import java.awt.Dimension;
 
 import javax.swing.JPanel;
+
+import frontend.FrontUtilities;
 
 /**
  * Represents the toolbar at top of the screen
@@ -15,8 +16,8 @@ public class ToolbarView extends JPanel {
 	private static final long	serialVersionUID	= -2158045975284361590L;
 	
 	public ToolbarView() {
-		setForeground(Color.RED);
-		setBackground(Color.RED);
+		FrontUtilities.themeComponent(this);
+		FrontUtilities.addBorderBottom(this);
 	}
 	
 	@Override

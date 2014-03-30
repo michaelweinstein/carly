@@ -1,9 +1,10 @@
 package frontend.view;
 
-import java.awt.Color;
 import java.awt.Dimension;
 
 import javax.swing.JPanel;
+
+import frontend.FrontUtilities;
 
 /**
  * Represents a continuous line of calendar data
@@ -15,8 +16,7 @@ public class LineView extends JPanel {
 	private static final long	serialVersionUID	= 8788849553807412908L;
 	
 	public LineView() {
-		setForeground(Color.BLUE);
-		setBackground(Color.BLUE);
+		FrontUtilities.themeComponent(this);
 	}
 	
 	@Override
