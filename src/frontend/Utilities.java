@@ -15,7 +15,7 @@ import javax.swing.border.MatteBorder;
  * 
  * @author dgattey
  */
-public abstract class FrontUtilities {
+public abstract class Utilities {
 	
 	public static final String	APP_NAME			= "Carly";
 	public static final String	GUI					= "gui";
@@ -94,8 +94,10 @@ public abstract class FrontUtilities {
 	}
 	
 	/**
-	 * @param label
-	 * @param fontSize
+	 * Sets the font of a label to be bold of the given size
+	 * 
+	 * @param label the label
+	 * @param fontSize the new font size to use
 	 */
 	public static void setFont(final JLabel label, final int fontSize) {
 		label.setFont(new Font(APP_FONT_NAME, Font.BOLD, fontSize));

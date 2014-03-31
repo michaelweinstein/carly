@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
-import frontend.FrontUtilities;
+import frontend.Utilities;
 
 /**
  * REPL class for the command line interface - app runner
@@ -48,7 +48,7 @@ public class REPLApp extends App {
 				}
 				
 				// Other error, so just print and continue
-				FrontUtilities.printError("<REPL> " + e.getMessage());
+				Utilities.printError("<REPL> " + e.getMessage());
 			}
 		}
 		reader.close();

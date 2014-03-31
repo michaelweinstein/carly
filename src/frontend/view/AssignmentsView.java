@@ -9,7 +9,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import frontend.FrontUtilities;
+import frontend.Utilities;
 
 /**
  * Represents all current tasks and their collective data
@@ -28,18 +28,18 @@ public class AssignmentsView extends JPanel {
 	 */
 	public AssignmentsView() {
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		FrontUtilities.themeComponent(this);
-		FrontUtilities.addBorderLeft(this);
+		Utilities.themeComponent(this);
+		Utilities.addBorderLeft(this);
 		
 		// Make title and scroll pane and add to view
 		scroller = new JScrollPane();
 		scroller.setBorder(null);
-		FrontUtilities.themeComponent(scroller);
-		FrontUtilities.themeComponent(scroller.getViewport());
+		Utilities.themeComponent(scroller);
+		Utilities.themeComponent(scroller.getViewport());
 		
 		final JLabel title = new JLabel("All Assignments");
-		title.setFont(new Font(FrontUtilities.APP_FONT_NAME, Font.BOLD, 20));
-		FrontUtilities.themeComponent(title);
+		title.setFont(new Font(Utilities.APP_FONT_NAME, Font.BOLD, 20));
+		Utilities.themeComponent(title);
 		
 		add(Box.createVerticalStrut(20));
 		add(title);

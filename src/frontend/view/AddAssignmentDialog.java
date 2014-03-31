@@ -18,7 +18,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 
-import frontend.FrontUtilities;
+import frontend.Utilities;
 
 /**
  * Class for the dialog box that pops up when adding a new assignment
@@ -31,16 +31,15 @@ public class AddAssignmentDialog extends JDialog {
 	private JButton				cancelButton;
 	private JButton				addButton;
 	private JTextField			titleField;
-	private JTextField			dateField;
-	private JSpinner			timeSpinner;
+	private JSpinner			dateTimeField;
 	
 	/**
 	 * Constructor creates all relevant data
 	 */
 	public AddAssignmentDialog() {
-		FrontUtilities.themeComponent(this);
-		FrontUtilities.themeComponent(getRootPane());
-		FrontUtilities.padComponent(getRootPane(), 15, 15);
+		Utilities.themeComponent(this);
+		Utilities.themeComponent(getRootPane());
+		Utilities.padComponent(getRootPane(), 15, 15);
 		setMinimumSize(getMinimumSize()); // Silly but required
 		
 		final JLabel dialogTitle = createDialogTitle();
@@ -77,7 +76,7 @@ public class AddAssignmentDialog extends JDialog {
 		buttons.add(Box.createHorizontalGlue());
 		buttons.add(cancelButton);
 		buttons.add(addButton);
-		FrontUtilities.themeComponent(buttons);
+		Utilities.themeComponent(buttons);
 		return buttons;
 	}
 	
@@ -90,12 +89,12 @@ public class AddAssignmentDialog extends JDialog {
 		final JPanel pane = new JPanel();
 		final GridBagConstraints c = new GridBagConstraints();
 		pane.setLayout(new GridBagLayout());
-		FrontUtilities.themeComponent(pane);
+		Utilities.themeComponent(pane);
 		
 		// Title label
 		final JLabel titleLabel = new JLabel("Title: ");
-		FrontUtilities.themeComponent(titleLabel);
-		FrontUtilities.setFont(titleLabel, 14);
+		Utilities.themeComponent(titleLabel);
+		Utilities.setFont(titleLabel, 14);
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridx = 0;
 		c.gridy = 0;
@@ -111,8 +110,8 @@ public class AddAssignmentDialog extends JDialog {
 		
 		// Time and Date label
 		final JLabel timeDateLabel = new JLabel("Due Date: ");
-		FrontUtilities.themeComponent(timeDateLabel);
-		FrontUtilities.setFont(timeDateLabel, 14);
+		Utilities.themeComponent(timeDateLabel);
+		Utilities.setFont(timeDateLabel, 14);
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridx = 0;
 		c.gridy = 1;
@@ -120,16 +119,17 @@ public class AddAssignmentDialog extends JDialog {
 		pane.add(timeDateLabel, c);
 		
 		// Date and time spinner
-		timeSpinner = new JSpinner(new SpinnerDateModel());
-		final JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, "MMMM dd, yyyy 'at' hh:mm a");
-		timeSpinner.setEditor(timeEditor);
-		timeSpinner.setValue(new Date()); // will only show the current time
-		c.weightx = 0.5;
+		dateTimeField = new JSpinner(new SpinnerDateModel());
+		final JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(dateTimeField, "MMMM dd, yyyy 'at' hh:mm a");
+		dateTimeField.setEditor(timeEditor);
+		dateTimeField.setValue(new Date());
 		c.gridx = 1;
 		c.gridy = 1;
 		c.gridwidth = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
-		pane.add(timeSpinner);
+		pane.add(dateTimeField);
+		
+		Utilities.padComponent(pane, 20, 0);
 		
 		return pane;
 	}
@@ -141,12 +141,12 @@ public class AddAssignmentDialog extends JDialog {
 	 */
 	private static JLabel createDialogTitle() {
 		final JLabel dialogTitle = new JLabel("Add New Assignment");
-		FrontUtilities.setFont(dialogTitle, 22);
+		Utilities.setFont(dialogTitle, 22);
 		dialogTitle.setOpaque(true);
-		FrontUtilities.padComponent(dialogTitle, 0, 0, 10, 0);
-		FrontUtilities.addBorderBottom(dialogTitle);
-		FrontUtilities.padComponentWithBorder(dialogTitle, 0, 10);
-		FrontUtilities.themeComponent(dialogTitle);
+		Utilities.padComponent(dialogTitle, 0, 0, 10, 0);
+		Utilities.addBorderBottom(dialogTitle);
+		Utilities.padComponentWithBorder(dialogTitle, 0, 10);
+		Utilities.themeComponent(dialogTitle);
 		return dialogTitle;
 	}
 	

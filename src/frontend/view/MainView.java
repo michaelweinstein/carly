@@ -7,7 +7,7 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
-import frontend.FrontUtilities;
+import frontend.Utilities;
 
 /**
  * Represents a JFrame class that is the frontend interface
@@ -28,7 +28,7 @@ public class MainView extends JFrame {
 	 * Constructor sets window properties and adds newly created views
 	 */
 	public MainView() {
-		super(FrontUtilities.APP_NAME);
+		super(Utilities.APP_NAME);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(600, 550));
 		setResizable(true);
@@ -43,8 +43,8 @@ public class MainView extends JFrame {
 		add(calendar, BorderLayout.CENTER);
 		add(assignmentsView, BorderLayout.EAST);
 		add(toolbar, BorderLayout.NORTH);
-		FrontUtilities.padComponent(calendar, 10, 10);
-		FrontUtilities.themeComponent(mainPanel);
+		Utilities.padComponent(calendar, 10, 10);
+		Utilities.themeComponent(mainPanel);
 	}
 	
 	public void showOverlay(final JPanel overlay) {

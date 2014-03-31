@@ -10,7 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import frontend.FrontUtilities;
+import frontend.Utilities;
 
 /**
  * Represents the toolbar at top of the screen
@@ -22,9 +22,9 @@ public class ToolbarView extends JPanel {
 	private static final long	serialVersionUID	= -2158045975284361590L;
 	
 	public ToolbarView() {
-		FrontUtilities.themeComponent(this);
-		FrontUtilities.addBorderBottom(this);
-		FrontUtilities.padComponentWithBorder(this, 0, 20);
+		Utilities.themeComponent(this);
+		Utilities.addBorderBottom(this);
+		Utilities.padComponentWithBorder(this, 0, 20);
 		
 		// Assignment adding
 		final AddAssignmentDialog dialog = new AddAssignmentDialog();
@@ -39,9 +39,9 @@ public class ToolbarView extends JPanel {
 		});
 		
 		// Title
-		final JLabel title = new JLabel(FrontUtilities.APP_NAME);
-		title.setFont(new Font(FrontUtilities.APP_FONT_NAME, Font.BOLD, 24));
-		FrontUtilities.themeComponent(title);
+		final JLabel title = new JLabel(Utilities.APP_NAME);
+		title.setFont(new Font(Utilities.APP_FONT_NAME, Font.BOLD, 24));
+		Utilities.themeComponent(title);
 		
 		// Addition of all things
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));

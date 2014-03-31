@@ -4,7 +4,7 @@ import java.awt.Dimension;
 
 import javax.swing.JPanel;
 
-import frontend.FrontUtilities;
+import frontend.Utilities;
 
 /**
  * Represents a continuous line of calendar data
@@ -16,7 +16,7 @@ public class LineView extends JPanel {
 	private static final long	serialVersionUID	= 8788849553807412908L;
 	
 	public LineView() {
-		FrontUtilities.themeComponent(this);
+		Utilities.themeComponent(this);
 	}
 	
 	@Override
