@@ -1,8 +1,11 @@
 package frontend;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Font;
 
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
@@ -31,7 +34,7 @@ public abstract class FrontUtilities {
 	 * @param panel the panel that needs the border
 	 */
 	public static void addBorderFull(final JComponent panel) {
-		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(1, 1, 1, 1, COLOR_BORDER)));
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(2, 2, 2, 2, COLOR_BORDER)));
 	}
 	
 	/**
@@ -40,7 +43,7 @@ public abstract class FrontUtilities {
 	 * @param panel the panel that needs the border
 	 */
 	public static void addBorderLeft(final JComponent panel) {
-		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 1, 0, 0, COLOR_BORDER)));
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 2, 0, 0, COLOR_BORDER)));
 	}
 	
 	/**
@@ -49,7 +52,7 @@ public abstract class FrontUtilities {
 	 * @param panel the panel that needs the border
 	 */
 	public static void addBorderRight(final JComponent panel) {
-		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 0, 0, 1, COLOR_BORDER)));
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 0, 0, 2, COLOR_BORDER)));
 	}
 	
 	/**
@@ -58,7 +61,7 @@ public abstract class FrontUtilities {
 	 * @param panel the panel that needs the border
 	 */
 	public static void addBorderTop(final JComponent panel) {
-		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(1, 0, 0, 0, COLOR_BORDER)));
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(2, 0, 0, 0, COLOR_BORDER)));
 	}
 	
 	/**
@@ -67,7 +70,7 @@ public abstract class FrontUtilities {
 	 * @param panel the panel that needs the border
 	 */
 	public static void addBorderBottom(final JComponent panel) {
-		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 0, 1, 0, COLOR_BORDER)));
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 0, 2, 0, COLOR_BORDER)));
 	}
 	
 	/**
@@ -75,7 +78,7 @@ public abstract class FrontUtilities {
 	 * 
 	 * @param panel the panel to apply it to
 	 */
-	public static void themeComponent(final JComponent panel) {
+	public static void themeComponent(final Component panel) {
 		panel.setForeground(COLOR_FOREGROUND);
 		panel.setBackground(COLOR_BACKGROUND);
 	}
@@ -85,9 +88,17 @@ public abstract class FrontUtilities {
 	 * 
 	 * @param panel the panel to apply it to
 	 */
-	public static void themeComponentInverse(final JComponent panel) {
+	public static void themeComponentInverse(final Component panel) {
 		panel.setForeground(Color.WHITE);
-		panel.setBackground(new Color(125, 125, 120));
+		panel.setBackground(new Color(140, 140, 140));
+	}
+	
+	/**
+	 * @param label
+	 * @param fontSize
+	 */
+	public static void setFont(final JLabel label, final int fontSize) {
+		label.setFont(new Font(APP_FONT_NAME, Font.BOLD, fontSize));
 	}
 	
 	/**
@@ -102,6 +113,17 @@ public abstract class FrontUtilities {
 	}
 	
 	/**
+	 * Sets the padding of this panel to be x on either side and y on top and bottom
+	 * 
+	 * @param panel the panel
+	 * @param x the horizontal padding
+	 * @param y the vertical padding
+	 */
+	public static void padComponentWithBorder(final JComponent panel, final int x, final int y) {
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new EmptyBorder(y, x, y, x)));
+	}
+	
+	/**
 	 * Sets the padding of this panel to the given numbers
 	 * 
 	 * @param panel the panel
@@ -113,6 +135,20 @@ public abstract class FrontUtilities {
 	public static void padComponent(final JComponent panel, final int top, final int left, final int bottom,
 			final int right) {
 		panel.setBorder(new EmptyBorder(top, left, bottom, right));
+	}
+	
+	/**
+	 * Sets the padding of this panel to the given numbers
+	 * 
+	 * @param panel the panel
+	 * @param top top padding
+	 * @param left left padding
+	 * @param bottom bottom padding
+	 * @param right right padding
+	 */
+	public static void padComponentWithBorder(final JComponent panel, final int top, final int left, final int bottom,
+			final int right) {
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new EmptyBorder(top, left, bottom, right)));
 	}
 	
 	/**

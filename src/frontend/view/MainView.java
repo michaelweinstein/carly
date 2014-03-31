@@ -17,12 +17,12 @@ import frontend.FrontUtilities;
 public class MainView extends JFrame {
 	
 	// Child views
-	private final CalendarView	calendar;
-	private final TaskView		taskView;
-	private final ToolbarView	toolbar;
+	private final CalendarView		calendar;
+	private final AssignmentsView	assignmentsView;
+	private final ToolbarView		toolbar;
 	
 	// Constants
-	private static final long	serialVersionUID	= -5684060306972975687L;
+	private static final long		serialVersionUID	= -5684060306972975687L;
 	
 	/**
 	 * Constructor sets window properties and adds newly created views
@@ -36,14 +36,18 @@ public class MainView extends JFrame {
 		// Make child views and add them
 		calendar = new CalendarView();
 		toolbar = new ToolbarView();
-		taskView = new TaskView();
+		assignmentsView = new AssignmentsView();
 		
 		// Whole view
 		final JPanel mainPanel = new JPanel();
 		add(calendar, BorderLayout.CENTER);
-		add(taskView, BorderLayout.EAST);
+		add(assignmentsView, BorderLayout.EAST);
 		add(toolbar, BorderLayout.NORTH);
 		FrontUtilities.padComponent(calendar, 10, 10);
 		FrontUtilities.themeComponent(mainPanel);
+	}
+	
+	public void showOverlay(final JPanel overlay) {
+		
 	}
 }

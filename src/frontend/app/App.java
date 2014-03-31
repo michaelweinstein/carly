@@ -1,5 +1,7 @@
 package frontend.app;
 
+import hub.HubController;
+
 /**
  * Abstract class to implement an App object, used for running the GUI or REPL (command line interface)
  * 
@@ -7,7 +9,8 @@ package frontend.app;
  */
 public abstract class App {
 	
-	protected final boolean	debug;
+	protected final HubController	hub;
+	protected final boolean			debug;
 	
 	/**
 	 * Sets debug flag for later
@@ -16,6 +19,7 @@ public abstract class App {
 	 */
 	public App(final boolean debug) {
 		this.debug = debug;
+		hub = new HubController();
 	}
 	
 	/**

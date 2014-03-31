@@ -1,5 +1,7 @@
 package frontend.app;
 
+import javax.swing.SwingUtilities;
+
 import frontend.view.ViewController;
 
 /**
@@ -26,7 +28,14 @@ public class GUIApp extends App {
 	 */
 	@Override
 	public void start() {
-		viewController.create();
+		SwingUtilities.invokeLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				
+				viewController.create();
+			}
+		});
 	}
 	
 	/**

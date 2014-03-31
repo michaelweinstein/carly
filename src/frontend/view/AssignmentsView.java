@@ -16,7 +16,7 @@ import frontend.FrontUtilities;
  * 
  * @author dgattey
  */
-public class TaskView extends JPanel {
+public class AssignmentsView extends JPanel {
 	
 	private final JScrollPane	scroller;
 	
@@ -26,7 +26,7 @@ public class TaskView extends JPanel {
 	/**
 	 * Constructor sets colors and puts the scroll view in place
 	 */
-	public TaskView() {
+	public AssignmentsView() {
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		FrontUtilities.themeComponent(this);
 		FrontUtilities.addBorderLeft(this);
@@ -37,8 +37,8 @@ public class TaskView extends JPanel {
 		FrontUtilities.themeComponent(scroller);
 		FrontUtilities.themeComponent(scroller.getViewport());
 		
-		final JLabel title = new JLabel("All Tasks");
-		title.setFont(new Font(FrontUtilities.APP_FONT_NAME, Font.BOLD, 22));
+		final JLabel title = new JLabel("All Assignments");
+		title.setFont(new Font(FrontUtilities.APP_FONT_NAME, Font.BOLD, 20));
 		FrontUtilities.themeComponent(title);
 		
 		add(Box.createVerticalStrut(20));
