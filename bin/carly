@@ -1,2 +1,2 @@
 #! /bin/bash
-    java -cp /Users/dgattey/Documents/*Dylan/Dropbox/College/workspace/cs032/carly/derived/carly.jar frontend.Main "$@"
+    java -cp derived/carly.jar frontend.Main "$@"
