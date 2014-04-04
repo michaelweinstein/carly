@@ -15,7 +15,7 @@ import javax.swing.border.MatteBorder;
  * 
  * @author dgattey
  */
-public abstract class Utilities {
+public abstract class Utils {
 	
 	public static final String	APP_NAME			= "Carly";
 	public static final String	GUI					= "gui";

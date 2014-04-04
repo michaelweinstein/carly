@@ -3,7 +3,6 @@
   <basename property="project" file="${basedir}"/>
 
   <property name="app.src" location="src"/>
-  <property name="app.junit_tests" location="junit_tests"/>
 
   <property name="app.derived" location="derived"/>
   <property name="derived.classes" location="${app.derived}/classes"/>
@@ -21,11 +20,6 @@
   <target name="compile">
     <mkdir dir="${derived.classes}"/>
     <javac srcdir="${app.src}" destdir="${derived.classes}" debug="true" includeantruntime="true">
-      <classpath refid="class.path"/>
-      <compilerarg value="-Xlint:all"/>
-      <compilerarg value="-Werror"/>
-    </javac>
-    <javac srcdir="${app.junit_tests}" destdir="${derived.classes}" debug="true" includeantruntime="true">
       <classpath refid="class.path"/>
       <compilerarg value="-Xlint:all"/>
       <compilerarg value="-Werror"/>

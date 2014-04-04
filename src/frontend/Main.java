@@ -24,8 +24,8 @@ public class Main {
 	 */
 	public static ArgParser createFlagParser() {
 		final Map<String, Class<?>> possibleFlags = new HashMap<>();
-		possibleFlags.put(Utilities.GUI, null);
-		possibleFlags.put(Utilities.DEBUG, null);
+		possibleFlags.put(Utils.GUI, null);
+		possibleFlags.put(Utils.DEBUG, null);
 		return new ArgParser(possibleFlags, 0);
 	}
 	
@@ -41,14 +41,14 @@ public class Main {
 		try {
 			parser.parse(args);
 		} catch (final IllegalArgumentException e) {
-			Utilities.printError(e.getMessage());
-			System.out.println(Utilities.USAGE);
+			Utils.printError(e.getMessage());
+			System.out.println(Utils.USAGE);
 			return;
 		}
 		
 		// Create an App, subtype dependent on the GUI command line flag
-		final boolean debug = parser.existsFlag(Utilities.DEBUG);
-		a = (parser.existsFlag(Utilities.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
+		final boolean debug = parser.existsFlag(Utils.DEBUG);
+		a = (parser.existsFlag(Utils.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
 		a.start();
 	}
 }

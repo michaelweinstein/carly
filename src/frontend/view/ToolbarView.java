@@ -7,10 +7,11 @@ import java.awt.event.ActionListener;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import frontend.Utilities;
+import frontend.Utils;
 
 /**
  * Represents the toolbar at top of the screen
@@ -22,12 +23,12 @@ public class ToolbarView extends JPanel {
 	private static final long	serialVersionUID	= -2158045975284361590L;
 	
 	public ToolbarView() {
-		Utilities.themeComponent(this);
-		Utilities.addBorderBottom(this);
-		Utilities.padComponentWithBorder(this, 0, 20);
+		Utils.themeComponent(this);
+		Utils.addBorderBottom(this);
+		Utils.padComponentWithBorder(this, 0, 20);
 		
 		// Assignment adding
-		final AddAssignmentDialog dialog = new AddAssignmentDialog();
+		final JDialog dialog = new AddAssignmentDialog();
 		final JButton addAssignmentButton = new JButton("New Assignment");
 		addAssignmentButton.addActionListener(new ActionListener() {
 			
@@ -38,10 +39,22 @@ public class ToolbarView extends JPanel {
 			}
 		});
 		
+		// Settings showing
+		final JDialog settings = new SettingsView();
+		final JButton settingsButton = new JButton("Settings");
+		settingsButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				settings.pack();
+				settings.setVisible(true);
+			}
+		});
+		
 		// Title
-		final JLabel title = new JLabel(Utilities.APP_NAME);
-		title.setFont(new Font(Utilities.APP_FONT_NAME, Font.BOLD, 24));
-		Utilities.themeComponent(title);
+		final JLabel title = new JLabel(Utils.APP_NAME);
+		title.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 24));
+		Utils.themeComponent(title);
 		
 		// Addition of all things
 		setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
@@ -49,6 +62,8 @@ public class ToolbarView extends JPanel {
 		add(title);
 		add(Box.createGlue());
 		add(addAssignmentButton);
-		add(Box.createHorizontalStrut(20));
+		add(Box.createHorizontalStrut(10));
+		add(settingsButton);
+		add(Box.createHorizontalStrut(10));
 	}
 }

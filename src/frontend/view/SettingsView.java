@@ -2,42 +2,48 @@ package frontend.view;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
-import frontend.Utilities;
+import frontend.Utils;
 
-public class SettingsView extends JPanel {
-
-	private static final long serialVersionUID = 836555231204678487L;
-
+public class SettingsView extends JDialog {
+	
+	private static final long	serialVersionUID	= 836555231204678487L;
+	
 	public SettingsView() {
 		super();
+		
+		final JPanel mainPane = new JPanel();
 		// Set theme of page
-		this.setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		Utilities.themeComponent(this);
-		Utilities.padComponent(this, 50, 50);
+		mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
+		Utils.themeComponent(mainPane);
+		Utils.padComponent(mainPane, 50, 50);
 		
 		// Make a scroll pane
-		JScrollPane scroller = new JScrollPane();
+		final JScrollPane scroller = new JScrollPane();
 		scroller.setBorder(null);
-		Utilities.themeComponent(scroller);
-		Utilities.themeComponent(scroller.getViewport());
+		Utils.themeComponent(scroller);
+		Utils.themeComponent(scroller.getViewport());
 		
 		// Make title of Settings
-		JLabel title = new JLabel("Settings");
-		Utilities.setFont(title, 30);
-		Utilities.themeComponent(title);
+		final JLabel title = new JLabel("Settings");
+		Utils.setFont(title, 30);
+		Utils.themeComponent(title);
 		
-		//Add title label
-		this.add(Box.createVerticalStrut(20));
-		this.add(title);
+		// Add title label
+		mainPane.add(Box.createVerticalStrut(20));
+		mainPane.add(title);
+		
 		// Add templateWizard
-		this.add(Box.createVerticalStrut(10));
-		this.add(new TemplateWizardView(this));
+		mainPane.add(Box.createVerticalStrut(10));
+		mainPane.add(new TemplateWizardView(this));
+		
+		this.add(mainPane);
 		// Add scroll pane
-//		this.add(Box.createVerticalStrut(15));
-//		this.add(scroller);
+		// this.add(Box.createVerticalStrut(15));
+		// this.add(scroller);
 	}
 }
