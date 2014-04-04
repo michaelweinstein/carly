@@ -30,15 +30,12 @@ public class SettingsView extends JPanel {
 		Utilities.setFont(title, 30);
 		Utilities.themeComponent(title);
 		
-		// TemplateWizard panel
-		TemplateWizardView templateWizard = new TemplateWizardView(this);
-		
 		//Add title label
 		this.add(Box.createVerticalStrut(20));
 		this.add(title);
 		// Add templateWizard
 		this.add(Box.createVerticalStrut(10));
-		this.add(templateWizard);
+		this.add(new TemplateWizardView(this));
 		// Add scroll pane
 //		this.add(Box.createVerticalStrut(15));
 //		this.add(scroller);
