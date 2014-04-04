@@ -36,7 +36,7 @@ public interface ITask {
 	public double getPercentOfTotal();
 	
 	/**
-	 * Gives the percent the user has completed (scale from 0 to 1 representing 0% to 1%)
+	 * Gives the percent the user has completed (scale from 0 to 1 representing 0% to 1%) of this task
 	 * 
 	 * @return a double representing the percent completed
 	 */
