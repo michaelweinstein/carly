@@ -38,7 +38,8 @@
 .texlipse
 
 ##Folders
-derived/
 bin/
+bin/*
+derived/
 derived/*.jar
 
