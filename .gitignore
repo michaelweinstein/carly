@@ -1,7 +1,6 @@
 *.class
 
 # Package Files #
-*.jar
 *.war
 *.ear
 
@@ -19,6 +18,7 @@
  local.properties
  .settings/
  .loadpath
+ .classpath
 
 ## External tool builders
  .externalToolBuilders/
@@ -39,5 +39,8 @@
 .texlipse
 
 ##Folders
+bin/
+bin/*
 derived/
+derived/*.jar
 

@@ -25,8 +25,8 @@ public class Main {
 	 */
 	public static ArgParser createFlagParser() {
 		final Map<String, Class<?>> possibleFlags = new HashMap<>();
-		possibleFlags.put(Utilities.GUI, null);
-		possibleFlags.put(Utilities.DEBUG, null);
+		possibleFlags.put(Utils.GUI, null);
+		possibleFlags.put(Utils.DEBUG, null);
 		return new ArgParser(possibleFlags, 0);
 	}
 	
@@ -36,7 +36,7 @@ public class Main {
 	 * @param args command line args for the CLP to use to generate tokens
 	 */
 	public static void main(final String[] args) {
-//		final ArgParser parser = createFlagParser();
+		final ArgParser parser = createFlagParser();
 //		
 //		// Check the arguments for validity and create objects as needed
 //		try {
@@ -51,7 +51,22 @@ public class Main {
 //		final boolean debug = parser.existsFlag(Utilities.DEBUG);
 //		a = (parser.existsFlag(Utilities.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
 //		a.start();
+		 
+		// Check the arguments for validity and create objects as needed
+		try {
+			parser.parse(args);
+		} catch (final IllegalArgumentException e) {
+			Utils.printError(e.getMessage());
+			System.out.println(Utils.USAGE);
+			return;
+		}
 		
-		StorageService.setUp(); 
+		// Create an App, subtype dependent on the GUI command line flag
+		final boolean debug = parser.existsFlag(Utils.DEBUG);
+		a = (parser.existsFlag(Utils.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
+		a.start();
+		
+		//DEBUG
+		StorageService.setUp();
 	}
 }

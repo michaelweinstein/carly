@@ -18,7 +18,7 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 
-import frontend.Utilities;
+import frontend.Utils;
 
 /**
  * Class for the dialog box that pops up when adding a new assignment
@@ -37,9 +37,9 @@ public class AddAssignmentDialog extends JDialog {
 	 * Constructor creates all relevant data
 	 */
 	public AddAssignmentDialog() {
-		Utilities.themeComponent(this);
-		Utilities.themeComponent(getRootPane());
-		Utilities.padComponent(getRootPane(), 15, 15);
+		Utils.themeComponent(this);
+		Utils.themeComponent(getRootPane());
+		Utils.padComponent(getRootPane(), 15, 15);
 		setMinimumSize(getMinimumSize()); // Silly but required
 		
 		final JLabel dialogTitle = createDialogTitle();
@@ -76,7 +76,7 @@ public class AddAssignmentDialog extends JDialog {
 		buttons.add(Box.createHorizontalGlue());
 		buttons.add(cancelButton);
 		buttons.add(addButton);
-		Utilities.themeComponent(buttons);
+		Utils.themeComponent(buttons);
 		return buttons;
 	}
 	
@@ -89,12 +89,12 @@ public class AddAssignmentDialog extends JDialog {
 		final JPanel pane = new JPanel();
 		final GridBagConstraints c = new GridBagConstraints();
 		pane.setLayout(new GridBagLayout());
-		Utilities.themeComponent(pane);
+		Utils.themeComponent(pane);
 		
 		// Title label
 		final JLabel titleLabel = new JLabel("Title: ");
-		Utilities.themeComponent(titleLabel);
-		Utilities.setFont(titleLabel, 14);
+		Utils.themeComponent(titleLabel);
+		Utils.setFont(titleLabel, 14);
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridx = 0;
 		c.gridy = 0;
@@ -110,8 +110,8 @@ public class AddAssignmentDialog extends JDialog {
 		
 		// Time and Date label
 		final JLabel timeDateLabel = new JLabel("Due Date: ");
-		Utilities.themeComponent(timeDateLabel);
-		Utilities.setFont(timeDateLabel, 14);
+		Utils.themeComponent(timeDateLabel);
+		Utils.setFont(timeDateLabel, 14);
 		c.fill = GridBagConstraints.HORIZONTAL;
 		c.gridx = 0;
 		c.gridy = 1;
@@ -129,7 +129,7 @@ public class AddAssignmentDialog extends JDialog {
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		pane.add(dateTimeField);
 		
-		Utilities.padComponent(pane, 20, 0);
+		Utils.padComponent(pane, 20, 0);
 		
 		return pane;
 	}
@@ -141,12 +141,12 @@ public class AddAssignmentDialog extends JDialog {
 	 */
 	private static JLabel createDialogTitle() {
 		final JLabel dialogTitle = new JLabel("Add New Assignment");
-		Utilities.setFont(dialogTitle, 22);
+		Utils.setFont(dialogTitle, 22);
 		dialogTitle.setOpaque(true);
-		Utilities.padComponent(dialogTitle, 0, 0, 10, 0);
-		Utilities.addBorderBottom(dialogTitle);
-		Utilities.padComponentWithBorder(dialogTitle, 0, 10);
-		Utilities.themeComponent(dialogTitle);
+		Utils.padComponent(dialogTitle, 0, 0, 10, 0);
+		Utils.addBorderBottom(dialogTitle);
+		Utils.padComponentWithBorder(dialogTitle, 0, 10);
+		Utils.themeComponent(dialogTitle);
 		return dialogTitle;
 	}
 	

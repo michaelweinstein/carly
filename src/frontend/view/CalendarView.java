@@ -6,7 +6,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JPanel;
 
-import frontend.Utilities;
+import frontend.Utils;
 
 /**
  * Represents the panel holding the line and week views for the calendar
@@ -25,7 +25,7 @@ public class CalendarView extends JPanel {
 		weekView = new WeekView();
 		
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		Utilities.themeComponentInverse(this);
+		Utils.themeComponentInverse(this);
 		
 		add(lineView);
 		add(Box.createVerticalStrut(10));

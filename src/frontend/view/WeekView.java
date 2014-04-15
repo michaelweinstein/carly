@@ -4,7 +4,7 @@ import java.awt.Dimension;
 
 import javax.swing.JPanel;
 
-import frontend.Utilities;
+import frontend.Utils;
 
 /**
  * Represents a week in the calendar with events throughout the day, every day
@@ -16,7 +16,7 @@ public class WeekView extends JPanel {
 	private static final long	serialVersionUID	= -4485951680510823881L;
 	
 	public WeekView() {
-		Utilities.themeComponent(this);
+		Utils.themeComponent(this);
 	}
 	
 	@Override
