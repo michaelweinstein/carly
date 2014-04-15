@@ -110,6 +110,8 @@ public class TimeAllocator {
 		}
 		
 		
+		//Assign the value of this field so it may be accessed by the "getter"
+		//function in this class
 		m_localChangesToBlocks = allBlocks;
 		
 	}

@@ -3,6 +3,7 @@ package frontend;
 import java.util.HashMap;
 import java.util.Map;
 
+import backend.StorageService;
 import frontend.app.App;
 import frontend.app.GUIApp;
 import frontend.app.REPLApp;
@@ -36,7 +37,21 @@ public class Main {
 	 */
 	public static void main(final String[] args) {
 		final ArgParser parser = createFlagParser();
-		
+//		
+//		// Check the arguments for validity and create objects as needed
+//		try {
+//			parser.parse(args);
+//		} catch (final IllegalArgumentException e) {
+//			Utilities.printError(e.getMessage());
+//			System.out.println(Utilities.USAGE);
+//			return;
+//		}
+//		
+//		// Create an App, subtype dependent on the GUI command line flag
+//		final boolean debug = parser.existsFlag(Utilities.DEBUG);
+//		a = (parser.existsFlag(Utilities.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
+//		a.start();
+		 
 		// Check the arguments for validity and create objects as needed
 		try {
 			parser.parse(args);
@@ -50,5 +65,8 @@ public class Main {
 		final boolean debug = parser.existsFlag(Utils.DEBUG);
 		a = (parser.existsFlag(Utils.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
 		a.start();
+		
+		//DEBUG
+		StorageService.setUp();
 	}
 }
