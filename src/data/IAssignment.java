@@ -25,6 +25,14 @@ public interface IAssignment {
 	public int getExpectedHours();
 	
 	/**
+	 * Mutator for number of hours a user
+	 * expects this Assignment to take.
+	 * 
+	 * @param h, int approximate hours
+	 */
+	public void setExpectedHours(int h);
+	
+	/**
 	 * Gives the tasks associated with this assignment
 	 * 
 	 * @return a list of task objects

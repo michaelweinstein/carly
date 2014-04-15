@@ -10,6 +10,28 @@ import java.util.List;
 public interface ITemplate {
 	
 	/**
+	 * Returns UID of this ITemplate
+	 * 
+	 * @return UID as String
+	 */
+	public String getID();
+	
+	/**
+	 * Returns name of Template, visible to user
+	 * 
+	 * @return name as String
+	 */
+	public String getName();
+	
+	/**
+	 * Returns optimal contiguous hours user
+	 * should work on steps in a template
+	 * 
+	 * @return preferred consecutive hours as double
+	 */
+	public double getPreferredConsecutiveHours();
+	
+	/**
 	 * Adds a new step to the template
 	 * 
 	 * @param stepToAdd the new step
