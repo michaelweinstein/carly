@@ -40,4 +40,11 @@ public interface ITemplate {
 	 */
 	public ITemplateStep getStepByName(String stepName);
 	
+	/**
+	 * 
+	 * @return the number of hours the user prefers to spend on an assignment with
+	 * this given template
+	 */
+	public double getPreferredConsecutiveHours();
+	
 }

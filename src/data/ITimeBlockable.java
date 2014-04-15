@@ -7,7 +7,7 @@ import java.util.Date;
  * 
  * @author dgattey
  */
-public interface ITimeBlockable {
+public interface ITimeBlockable extends Comparable<ITimeBlockable> {
 	
 	/**
 	 * The start date of the block
@@ -22,6 +22,10 @@ public interface ITimeBlockable {
 	 * @param d the date representing the end
 	 */
 	public void setEnd(Date d);
+	
+	public Date getStart();
+	public Date getEnd();
+	
 	
 	/**
 	 * Set the task of this time block
