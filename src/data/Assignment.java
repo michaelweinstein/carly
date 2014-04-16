@@ -174,4 +174,47 @@ public class Assignment implements IAssignment {
 	public ITemplate getTemplate() {
 		return _template;
 	}	
+	
+	/* Holy trinity */
+	/**
+	 * Returns true if the Assignment's
+	 * UIDs are equal, or instances are
+	 * identical in memory. Returns false
+	 * if Object is not an instance of
+	 * Assignment at all.
+	 * 
+	 * @param o to check if equal to this
+	 * @return true if UIDs are equal
+	 */
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o instanceof Assignment) {
+			Assignment a = (Assignment) o;
+			return getID().equals(a.getID());
+		}
+		else return false;
+	}
+	/**
+	 * Returns the hash code representation
+	 * of this Assignment's UID. Turns string
+	 * back into original UUID and gets hash.
+	 * 
+	 * @return int hash code of UUID from _uniqueID string
+	 */
+	@Override
+	public int hashCode() {
+		UUID uid = UUID.fromString(getID());
+		return uid.hashCode();
+	}
+	/**
+	 * Returns the name of this Assignment
+	 * and it's unique identifier.
+	 * 
+	 * @return AssignmentName, UID
+	 */
+	@Override
+	public String toString() {
+		return new String(getName() + ", " + getID());
+	}
 }
