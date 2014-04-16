@@ -53,7 +53,9 @@ public class TimeAllocator {
 		
 		//TODO: Do a check right away where I iterate over all available time to see if
 		//		I can even insert an assignment with the requested number of hours.
-		
+		//CAREFUL - certain blocks are unmovable... therefore, I'm not sure that I
+		//can ever guarantee that an assignment can fit.  HOWEVER, I will be able to
+		//declare that an assignment *can't* fit.
 		
 		//Clear the old sets of blocks 
 		m_toDelete.clear();
@@ -76,15 +78,11 @@ public class TimeAllocator {
 		numSubtasks = taskList.size();
 		numHoursPerBlock = DEFAULT_HRS_PER_BLOCK;
 		
-		//TODO: does getTemplate() return null or something else if an arbitrary assignment doesn't
-		//have a template associated to it?
+		//TODO: Will the null case ever happen?
 		ITemplate template = m_asgn.getTemplate();
 		if(template != null)
 			numHoursPerBlock = template.getPreferredConsecutiveHours();
-		
-		
-		//TODO: Pass the necessary parameters and uncomment this function call
-		//insertBlocksUniformly();
+
 		
 		//Try the best case assumption - that blocks are able to be split uniformly across the days
 		//that a user is working on an assignment
@@ -92,6 +90,13 @@ public class TimeAllocator {
 		
 		
 		
+		//TODO: BIG CHANGE!! Items of different tasks must go in sequential order.  Therefore,
+		//		this loop should change so that is a two-layered loop: one layer goes over the
+		//		set of tasks to insert, and the inner layer goes over the number of blocks for
+		//		that task.
+		//		--After a given Task is completely inserted, then the "start" date should be
+		//		reset to the end of the last time block of that Task type to ensure
+		//		chronological correctness.
 		while(numBlocksLeft > 0) {
 			//1. Use find fit function for the next block (BEST-fit search, NOT FIRST FIT)
 			AssignmentBlock block = findFit(allBlocks, numHoursPerBlock, start, end);
@@ -109,6 +114,22 @@ public class TimeAllocator {
 			--numBlocksLeft;
 		}
 		
+		
+		//TODO: Compact existing blocks so that they fit better
+		while(numBlocksLeft != 0) {
+			//compact(block_i);
+			//TODO: Try to re-insert blocks now that the set has been compacted.
+			//reinsert();
+		}
+		
+		
+		//TODO: Then, decompact all AssignmentBlocks so that a user may have a break
+		//		from his/her work time.  This decompact() function will consider several
+		//		heuristics including (1) putting assignments in their preferred time-of-day
+		//		(2) spacing them out to have breaks, (3) variety between different types of
+		//		assignments if there are several AssignmentBlocks in a row
+		
+		//decompact();
 		
 		//Assign the value of this field so it may be accessed by the "getter"
 		//function in this class
@@ -241,15 +262,7 @@ public class TimeAllocator {
 		return ind;
 	}
 	
-	
-	//Return true upon success, return false upon failure
-//	private boolean insertBlocksUniformly() {
-//		
-//		
-//		
-//		return true;
-//	}
-	
+		
 	
 	private long convertHoursToMillis(double hrs) {
 		return (long) (hrs * 60 * 60 * 1000);
