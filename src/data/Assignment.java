@@ -8,9 +8,7 @@ import java.util.UUID;
 
 
 public class Assignment implements IAssignment {
-	// Constant for initialized value of _expectedHours
-	private static int DEFAULT_EXPECTED_HOURS = 3;
-	
+
 	private final String _uniqueId;
 	private String _name;
 	private Date _deadline;
@@ -26,8 +24,8 @@ public class Assignment implements IAssignment {
 		_name = name;
 		_deadline = dueDate;
 		_template = template;
-		_expectedHours = DEFAULT_EXPECTED_HOURS;
-		_uniqueId = generateId();
+		_expectedHours = DataUtil.DEFAULT_ASSIGNMENT_EXPECTED_HOURS;
+		_uniqueId = DataUtil.generateID();
 
 		_tasks = createTasksFromTemplate(template);
 	}
@@ -39,7 +37,7 @@ public class Assignment implements IAssignment {
 		_deadline = dueDate;
 		_template = template;
 		_expectedHours = expectedHours;
-		_uniqueId = generateId();
+		_uniqueId = DataUtil.generateID();
 		
 		_tasks = createTasksFromTemplate(template);
 	}
@@ -64,8 +62,9 @@ public class Assignment implements IAssignment {
 				// Task name in the form of Assignment:Step
 				String taskName = _name + ":" + step.getName();
 				
-				// TODO Should we store actual amount of time in Task?
-				double approxLength = step.getPercentOfTotal()*_expectedHours;
+				// TODO Should we store actual amount of time in Task 
+					// so we don't have to calculate every time?
+//				double lengthOfTask = step.getPercentOfTotal()*_expectedHours;
 				
 				// Create new Task with info from TemplateStep
 				ITask task = new Task(taskName, step.getPercentOfTotal(), _uniqueId);
@@ -79,16 +78,6 @@ public class Assignment implements IAssignment {
 		}
 		// If Template is null, return empty list of tasks
 		else return new ArrayList<ITask>();
-	}
-	
-	
-	/**
-	 * Creates and stores unique identifier
-	 * for this object using java.util.UUID.
-	 * It should be called in the constructor.
-	 */
-	private String generateId() {
-		return UUID.randomUUID().toString();
 	}
 	
 	/* Editing _tasks */
@@ -176,6 +165,7 @@ public class Assignment implements IAssignment {
 	}	
 	
 	/* Holy trinity */
+	
 	/**
 	 * Returns true if the Assignment's
 	 * UIDs are equal, or instances are
@@ -195,6 +185,7 @@ public class Assignment implements IAssignment {
 		}
 		else return false;
 	}
+	
 	/**
 	 * Returns the hash code representation
 	 * of this Assignment's UID. Turns string
@@ -207,6 +198,7 @@ public class Assignment implements IAssignment {
 		UUID uid = UUID.fromString(getID());
 		return uid.hashCode();
 	}
+	
 	/**
 	 * Returns the name of this Assignment
 	 * and it's unique identifier.

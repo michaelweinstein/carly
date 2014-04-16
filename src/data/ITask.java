@@ -47,7 +47,7 @@ public interface ITask {
 	public double getPercentOfTotal();
 	
 	
-	//TODO
+	//TODO Should we store actual length instead of percent length, which is already in TemplateStep?
 	/**
 	 * Returns number of hours expected
 	 * to finish this Task.

@@ -1,17 +1,9 @@
 package data;
 
 
-import java.util.UUID;
 
 
 public class Task implements ITask {
-	
-	/* constants */
-	
-	// Default value to which _timeOfDay is initialized
-	private static final TimeOfDay DEFAULT_TIME_OF_DAY = TimeOfDay.EVENING;
-	// Default value of _suggestedBlockLength
-	private static final double DEFAULT_BLOCK_LENGTH = 3;
 	
 	/* global vars */
 	
@@ -35,7 +27,7 @@ public class Task implements ITask {
 		/* _assignmentId is not set until Task is added to assignment */	
 		_assignmentId = null;
 		// Set UID of this Task
-		_uniqueId = generateId();
+		_uniqueId = DataUtil.generateID();
 		/* Sets _percentComplete, _timeOfDay, _suggestedBlockLength*/
 		setInitialValues();
 	}
@@ -46,7 +38,7 @@ public class Task implements ITask {
 		_name = name;
 		_percentOfTotal = percentTotal;
 		_assignmentId = assignmentUID;
-		_uniqueId = generateId();
+		_uniqueId = DataUtil.generateID();
 		setInitialValues();
 	}
 	
@@ -55,23 +47,15 @@ public class Task implements ITask {
 	/**
 	 * Method called in constructors to 
 	 * initial values of vars not set
-	 * in constructor.
+	 * in constructor. Percent complete obviously
+	 * set to 0%, and other vars set to DataUtil 
+	 * default value constants.
 	 * _percentComplete, _timeOfDay, _suggestedBlockLength
 	 */
 	private void setInitialValues() {
 		_percentComplete = 0;
-		_timeOfDay = DEFAULT_TIME_OF_DAY;
-		_suggestedBlockLength = DEFAULT_BLOCK_LENGTH;
-	}
-	
-	/**
-	 * Generates unique identifier for this Task 
-	 * using java.util.UUID
-	 * 
-	 * @return UID String
-	 */
-	private String generateId() {
-		return UUID.randomUUID().toString();
+		_timeOfDay = DataUtil.DEFAULT_TIME_OF_DAY;
+		_suggestedBlockLength = DataUtil.DEFAULT_CONSECUTIVE_HOURS;
 	}
 	
 	/* ITask Mutators (Some comments in interface ITask) */
