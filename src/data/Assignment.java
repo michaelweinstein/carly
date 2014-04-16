@@ -28,7 +28,7 @@ public class Assignment implements IAssignment {
 		_template = template;
 		_expectedHours = DEFAULT_EXPECTED_HOURS;
 		_uniqueId = generateId();
-		
+
 		_tasks = createTasksFromTemplate(template);
 	}
 	/**
@@ -40,7 +40,7 @@ public class Assignment implements IAssignment {
 		_template = template;
 		_expectedHours = expectedHours;
 		_uniqueId = generateId();
-		
+		// WOOOOH ternary operator!
 		_tasks = createTasksFromTemplate(template);
 	}
 	
@@ -55,26 +55,30 @@ public class Assignment implements IAssignment {
 	 * @param ITemplate stored in _template
 	 */
 	private List<ITask> createTasksFromTemplate(final ITemplate template) {
-		List<ITemplateStep> steps = template.getAllSteps();
-		// Create List to store new Tasks with same length of template steps list
-		List<ITask> tasks = new ArrayList<ITask>(steps.size());
-		// For each TemplateStep, create new Task
-		for (ITemplateStep step: steps) {
-			// Task name in the form of Assignment:Step
-			String taskName = _name + ":" + step.getName();
-			
-			// TODO Should we store actual amount of time in Task?
-			double approxLength = step.getPercentOfTotal()*_expectedHours;
-			
-			// Create new Task with info from TemplateStep
-			ITask task = new Task(taskName, step.getPercentOfTotal(), _uniqueId);
-			// Set preferred time of day in Task according to this TemplateStep
-			task.setPreferredTimeOfDay(step.getBestTimeToWork());
-			task.setSuggestedBlockLength(template.getPreferredConsecutiveHours());
-			// Add task 
-			tasks.add(task);
+		if (template != null) {
+			List<ITemplateStep> steps = template.getAllSteps();
+			// Create List to store new Tasks with same length of template steps list
+			List<ITask> tasks = new ArrayList<ITask>(steps.size());
+			// For each TemplateStep, create new Task
+			for (ITemplateStep step: steps) {
+				// Task name in the form of Assignment:Step
+				String taskName = _name + ":" + step.getName();
+				
+				// TODO Should we store actual amount of time in Task?
+				double approxLength = step.getPercentOfTotal()*_expectedHours;
+				
+				// Create new Task with info from TemplateStep
+				ITask task = new Task(taskName, step.getPercentOfTotal(), _uniqueId);
+				// Set preferred time of day in Task according to this TemplateStep
+				task.setPreferredTimeOfDay(step.getBestTimeToWork());
+				task.setSuggestedBlockLength(template.getPreferredConsecutiveHours());
+				// Add task 
+				tasks.add(task);
+			}
+			return tasks;
 		}
-		return tasks;
+		// If Template is null, return empty list of tasks
+		else return new ArrayList<ITask>();
 	}
 	
 	
