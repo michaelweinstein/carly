@@ -40,7 +40,7 @@ public class Assignment implements IAssignment {
 		_template = template;
 		_expectedHours = expectedHours;
 		_uniqueId = generateId();
-		// WOOOOH ternary operator!
+		
 		_tasks = createTasksFromTemplate(template);
 	}
 	
