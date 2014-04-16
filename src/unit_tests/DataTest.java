@@ -3,11 +3,16 @@ package unit_tests;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Date;
+import java.util.List;
 
 import org.junit.Test;
 
 import data.Assignment;
 import data.IAssignment;
+import data.ITask;
+import data.ITemplateStep;
+import data.Template;
+import data.TemplateStep;
 
 /**
  * Unit tests for key data structure classes, i.e.
@@ -26,12 +31,31 @@ public class DataTest {
 		 * Creates a simple Template with
 		 * TemplateSteps and tests data access.
 		 */
-		
-		//TODO
+		String name = "Test Template";
+		Template t = new Template(name);		
+		/* Basic data access test */
+		assertTrue(t.getName().equals(name));		
+		/* No steps added yet */
+		List<ITemplateStep> steps = t.getAllSteps();
+		assertTrue(steps.isEmpty());
+		assertTrue(t.getStepByName("I don't exist") == null);		
+		TemplateStep s1 = new TemplateStep("Step 1", .25, 0);
+		t.addStep(s1);
+		TemplateStep s2 = new TemplateStep("Step 2", .25, 1);
+		t.addStep(s2);
+		TemplateStep s3 = new TemplateStep("Step 3", .5, 2);
+		t.addStep(s3);		
+		/* Steps added */	
+		steps = t.getAllSteps();
+		assertTrue(steps.size() == 3);
+		assertTrue(t.getStepByName("Step 1").equals(s1));
+		assertTrue(t.getStepByName("Step 2").equals(s2));
+		assertTrue(t.removeStep(t.getStepByName("Step 3")).equals(s3));
+		assertTrue(steps.size() == 2);
 	}
 	
 	@Test
-	public void simpleAssignmentAndTasks() 
+	public void assignmentWithoutTemplate() 
 	{
 		/**
 		 * Tests Assignment methods for adding
@@ -50,8 +74,20 @@ public class DataTest {
 		 * based on that template. Mostly tests 
 		 * private method Assignment.createTasksFromTemplate
 		 */
+		Template t = createBasicTemplate();
+		Assignment asgn = new Assignment("With Template", getCurrentDate(), t);
 		
-		//TODO 
+		/* Test createTasksFromTemplate ran successfully */
+		List<ITask> tasks = asgn.getTasks();
+		assertTrue(tasks.size() == t.getAllSteps().size());
+		
+		/* Test information in Task */
+		ITask task = tasks.get(1);
+		assertTrue(task.getName().equals("With Template:Step 2"));
+		assertTrue(task.getAssignmentID().equals(asgn.getID()));
+		assertTrue(task.getPercentComplete() == 0);
+		assertTrue(task.getPercentOfTotal() == t.getStepByName("Step 2").getPercentOfTotal());
+		assertTrue(task.getSuggestedBlockLength() == t.getPreferredConsecutiveHours());
 	}
 	
 	@Test
@@ -103,5 +139,22 @@ public class DataTest {
 		// Test mutator and check again
 		test.setExpectedHours(6);
 		assertTrue(test.getExpectedHours() == 6);
+	}
+	
+	/* HELPER METHODS */
+	
+	// Creates Template with three steps 
+	private Template createBasicTemplate() {
+		String name = "Basic Template";
+		Template t = new Template(name);		
+		t.addStep(new TemplateStep("Step 1", .25, 0));
+		t.addStep(new TemplateStep("Step 2", .25, 1));
+		t.addStep(new TemplateStep("Step 3", .5, 2));	
+		return t;
+	}
+	
+	// Returns the Date based on current time
+	private Date getCurrentDate() {
+		return new Date(System.currentTimeMillis());
 	}
 }

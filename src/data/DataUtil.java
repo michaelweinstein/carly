@@ -33,6 +33,18 @@ public class DataUtil {
 	/* util methods */
 	
 	/**
+	 * Checks representation of percentOfTotal
+	 * representation. 
+	 * Must be between 0 and 1 as decimal ratio.
+	 * 
+	 * @param percent of total
+	 * @return true if rep ok
+	 */
+	public static boolean percentRepOK(double per) {
+		return (per <= 1 && per > 0);
+	}
+	
+	/**
 	 * Creates and stores unique identifier
 	 * for caller using java.util.UUID. It is
 	 * often called in data constructors.

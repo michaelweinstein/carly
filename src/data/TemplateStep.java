@@ -4,8 +4,8 @@ package data;
 public class TemplateStep implements ITemplateStep {
 	/* constructor vars */
 	private String _name;
-	private double _percentOfTotal;
-	private int _stepNumber;
+	private double _percentOfTotal = 0;
+	private int _stepNumber = 0;
 	
 	// Aprox number of days this step will take to complete
 	private int _numDays;
@@ -16,22 +16,19 @@ public class TemplateStep implements ITemplateStep {
 	
 	public TemplateStep(String name, double percentOfTemplate) {
 		_name = name;
-		_percentOfTotal = percentOfTemplate;
-		_stepNumber = 0;
-		
+		handlePercent(percentOfTemplate);	
 		setupVars();
 	}
 	public TemplateStep(String name, double percentOfTemplate, int stepNumber) {
 		_name = name;
-		_percentOfTotal = percentOfTemplate;
-		_stepNumber = stepNumber;
-		
+		handlePercent(percentOfTemplate);
+		_stepNumber = stepNumber;		
 		setupVars();
 	}
 	public TemplateStep(String name, double percentOfTemplate, int stepNumber, 
 			int numDays, double hoursPerDay) {
 		_name = name;
-		_percentOfTotal = percentOfTemplate;
+		handlePercent(percentOfTemplate);
 		_stepNumber = stepNumber;
 		_numDays = numDays;
 		_hoursPerDay = hoursPerDay;
@@ -51,6 +48,24 @@ public class TemplateStep implements ITemplateStep {
 		_numDays = DataUtil.DEFAULT_STEP_DAYS;
 		_hoursPerDay = DataUtil.DEFAULT_HOURS_PER_DAY;
 		_timeOfDay = DataUtil.DEFAULT_TIME_OF_DAY;
+	}
+	
+	/**
+	 * Sets _percentOfTotal to percent passed
+	 * into constructor, IF the representation
+	 * is valid. Else _percentOfTotal = 0 and
+	 * message is printed.
+	 * 
+	 * @param 0 < percent <= 1
+	 */
+	private void handlePercent(double percent) {
+		if (DataUtil.percentRepOK(percent)) {
+			_percentOfTotal = percent;
+		} 
+		else {
+			System.out.println("ERROR: Percent representation invalid " + percent + ". " + 
+					"Expecting format: 0 < percent <= 1  (TemplateStep.handlePercent)");
+		}
 	}
 	
 	/* ITemplateStep mutators */

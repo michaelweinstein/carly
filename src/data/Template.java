@@ -9,7 +9,7 @@ public class Template implements ITemplate {
 	private String _uid;
 	private String _name;
 	// Using ArrayList so we can add elements at specific index
-	private ArrayList<ITemplateStep> _steps;
+	private List<ITemplateStep> _steps;
 	private double _preferredConsecutiveHours;
 	
 	/**
@@ -22,6 +22,15 @@ public class Template implements ITemplate {
 		_preferredConsecutiveHours = DataUtil.DEFAULT_CONSECUTIVE_HOURS;
 		_steps = new ArrayList<ITemplateStep>();
 	}
+	/**
+	 * Constructor takes in a list of Steps already formed.
+	 */
+	public Template(String name, List<ITemplateStep> steps) {
+		_name = name;
+		_uid = DataUtil.generateID();
+		_preferredConsecutiveHours = DataUtil.DEFAULT_CONSECUTIVE_HOURS;
+		_steps = steps;
+	}
 	
 	/* ITemplate step manipulation */
 
@@ -31,6 +40,7 @@ public class Template implements ITemplate {
 	 * at index+1. All elements inclusive following index+1 are shifted right.
 	 * Has to check getStepByName because Step names MUST be unique within
 	 * a Template. Returns false if step with that name already exists.
+	 * If stepBefore is null, adds step to end of _steps
 	 * Runtime: O(n) [because of getStepByName]
 	 */
 	@Override
@@ -38,8 +48,15 @@ public class Template implements ITemplate {
 		// Make sure a Step of that name does not already exist
 		ITemplateStep mustBeNull = getStepByName(stepToAdd.getName());
 		if (mustBeNull == null) {
-			int indexBefore = _steps.indexOf(stepBefore);
-			_steps.add(indexBefore+1, stepToAdd);
+			// If not null, add after stepBefore
+			if (stepBefore != null) {
+				int indexBefore = _steps.indexOf(stepBefore);
+				_steps.add(indexBefore+1, stepToAdd);
+			}
+			// If stepBefore is null, add to end of list
+			else {
+				_steps.add(stepToAdd);
+			}
 			return true;
 		}
 		// Indicates that Step of that name already exists
@@ -48,6 +65,17 @@ public class Template implements ITemplate {
 					"exists in Template " + _name + "  (Template.addStep)");
 			return false;
 		}
+	}
+	
+	/**
+	 * Adds Step to the end of List of Steps;
+	 * does not specify index or stepBefore.
+	 * 
+	 * @param stepToAdd to end of list
+	 * @return true if successfully added
+	 */
+	public boolean addStep(ITemplateStep stepToAdd) {
+		return addStep(stepToAdd, null);
 	}
 
 	/**

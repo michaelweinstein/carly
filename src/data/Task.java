@@ -23,7 +23,7 @@ public class Task implements ITask {
 	 */
 	public Task(String name, double percentTotal) {
 		_name = name;
-		_percentOfTotal = percentTotal;
+		handlePercent(percentTotal);
 		/* _assignmentId is not set until Task is added to assignment */	
 		_assignmentId = null;
 		// Set UID of this Task
@@ -36,7 +36,7 @@ public class Task implements ITask {
 	 */
 	public Task(String name, double percentTotal, String assignmentUID) {
 		_name = name;
-		_percentOfTotal = percentTotal;
+		handlePercent(percentTotal);
 		_assignmentId = assignmentUID;
 		_uniqueId = DataUtil.generateID();
 		setInitialValues();
@@ -56,6 +56,24 @@ public class Task implements ITask {
 		_percentComplete = 0;
 		_timeOfDay = DataUtil.DEFAULT_TIME_OF_DAY;
 		_suggestedBlockLength = DataUtil.DEFAULT_CONSECUTIVE_HOURS;
+	}
+	
+	/**
+	 * Sets _percentOfTotal to percent passed
+	 * into constructor, IF the representation
+	 * is valid. Else _percentOfTotal = 0 and
+	 * message is printed.
+	 * 
+	 * @param 0 < percent <= 1
+	 */
+	private void handlePercent(double percent) {
+		if (DataUtil.percentRepOK(percent)) {
+			_percentOfTotal = percent;
+		}
+		else {
+			System.out.println("ERROR: Percent representation invalid " + percent + ". " + 
+					"Expecting format: 0 < percent <= 1  (Task.handlePercent)");
+		}
 	}
 	
 	/* ITask Mutators (Some comments in interface ITask) */
