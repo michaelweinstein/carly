@@ -32,12 +32,15 @@ public interface ITemplate {
 	public double getPreferredConsecutiveHours();
 	
 	/**
-	 * Adds a new step to the template
+	 * Adds a new step to the template. Names
+	 * of Steps in template must be unique
+	 * to be successfully added. 
 	 * 
 	 * @param stepToAdd the new step
 	 * @param stepBefore the step that was before
+	 * @return true if step successfully added
 	 */
-	public void addStep(ITemplateStep stepToAdd, ITemplateStep stepBefore);
+	public boolean addStep(ITemplateStep stepToAdd, ITemplateStep stepBefore);
 	
 	/**
 	 * Removes a step from the template

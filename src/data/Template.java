@@ -26,14 +26,28 @@ public class Template implements ITemplate {
 	/* ITemplate step manipulation */
 
 	/**
-	 * Add steps in list after specified stepBefore. Gets index
+	 * Add step after specified stepBefore in List. Gets index
 	 * of stepBefore, then adds specified stepToAdd to _steps List 
 	 * at index+1. All elements inclusive following index+1 are shifted right.
+	 * Has to check getStepByName because Step names MUST be unique within
+	 * a Template. Returns false if step with that name already exists.
+	 * Runtime: O(n) [because of getStepByName]
 	 */
 	@Override
-	public void addStep(ITemplateStep stepToAdd, ITemplateStep stepBefore) {
-		int indexBefore = _steps.indexOf(stepBefore);
-		_steps.add(indexBefore+1, stepToAdd);
+	public boolean addStep(ITemplateStep stepToAdd, ITemplateStep stepBefore) {
+		// Make sure a Step of that name does not already exist
+		ITemplateStep mustBeNull = getStepByName(stepToAdd.getName());
+		if (mustBeNull == null) {
+			int indexBefore = _steps.indexOf(stepBefore);
+			_steps.add(indexBefore+1, stepToAdd);
+			return true;
+		}
+		// Indicates that Step of that name already exists
+		else {
+			System.out.println("ERROR: A TemplateStep of that name already " + 		//print line
+					"exists in Template " + _name + "  (Template.addStep)");
+			return false;
+		}
 	}
 
 	/**

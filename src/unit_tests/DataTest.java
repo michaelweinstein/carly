@@ -20,6 +20,41 @@ import data.IAssignment;
 public class DataTest {
 	
 	@Test
+	public void createSimpleTemplate()
+	{
+		/**
+		 * Creates a simple Template with
+		 * TemplateSteps and tests data access.
+		 */
+		
+		//TODO
+	}
+	
+	@Test
+	public void simpleAssignmentAndTasks() 
+	{
+		/**
+		 * Tests Assignment methods for adding
+		 * and removing Tasks. Also tests simple
+		 * Task methods.
+		 */
+		
+		// TODO
+	}
+	
+	@Test
+	public void assignmentWithTemplate()
+	{
+		/**
+		 * Creates a Template and then an Assignment 
+		 * based on that template. Mostly tests 
+		 * private method Assignment.createTasksFromTemplate
+		 */
+		
+		//TODO 
+	}
+	
+	@Test
 	public void assignmentTrinity() 
 	{
 		/**

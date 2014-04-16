@@ -46,5 +46,4 @@ public interface ITemplateStep {
 	 * @return the best time of the day as an enum
 	 */
 	public TimeOfDay getBestTimeToWork();
-	
 }
