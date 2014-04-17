@@ -1,5 +1,6 @@
 package backend;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -63,10 +64,21 @@ public class TimeCompactor {
 		//See if there is a block already there.  If not, try to move it there.  If so,
 		//try to switch (in the case of either Pareto improvement or indifference on one end.)
 		
-		//ITimeBlockable pred = null;
-		//ITimeBlockable succ = null;
+		ITimeBlockable pred = null;
+		ITimeBlockable succ = null;
 		
 		long timeUnavailableMillis = 0;
+		long freeTimeBankMillis = 0;
+		long avgFreeTimeMillis = 0;
+		List<ITimeBlockable> asgnBlocks = new ArrayList<ITimeBlockable>();
+		Date timeToStartFrom = end;
+
+		
+		//TODO: THIS ALGORITHM CURRENTLY FAILS FOR CASES WHERE THERE IS NO FREE TIME AVAILABLE
+		//		AT THE END, BUT RATHER, WHERE IT IS ALL AVAILABLE AT THE BEGINNING.
+		//		--Poss solution: get measures of density of blocks over certain ranges of the list
+		//		then determine whether it is better to start iterating from the end of the list,
+		//		or from the beginning.
 		
 		//1. Iterate over the allBlocks set and count the number of hours unavailable in
 		//	 the [start, end] range.
@@ -83,16 +95,51 @@ public class TimeCompactor {
 					timeUnavailableMillis += block.getEnd().getTime() - block.getStart().getTime();
 				}
 			}
+			else {
+				//Track the set of AssignmentBlocks in the range for traversal later
+				asgnBlocks.add(block);
+			}
 		}
 		
-		for(int i = allBlocks.size() - 1; i >= 0; ++i) {
-			ITimeBlockable block = allBlocks.get(i);
+		//2. Calculate the amount of available free time in the [start, end] range, and
+		//	 the average amount of space that can be placed between blocks.
+		freeTimeBankMillis = end.getTime() - start.getTime() - timeUnavailableMillis;
+		for(ITimeBlockable itb : asgnBlocks) {
+			freeTimeBankMillis -= itb.getEnd().getTime() - itb.getStart().getTime();
+		}
+		
+		avgFreeTimeMillis = freeTimeBankMillis / asgnBlocks.size();
+		
+		//3. Iterate over the block list in reverse order, trying to place as much free time between
+		//	 AssignmentBlocks as possible		
+		for(int i = asgnBlocks.size() - 1; i >= 0; --i) {
+			//4. Try to put the average amount of free time between the previously placed block
+			//	 and the block currently being placed.  If there is a conflict with an unmovable block
+			//	 that resides there, find the end of the unmovable zone (WATCH for multiple unmovables)
+			//	 then try to place the block there.
+			//EDGE CASE: What if a block cannot be moved?
+			ITimeBlockable block = asgnBlocks.get(i);
+			long newStart = timeToStartFrom.getTime() - avgFreeTimeMillis;
+						
+			newStart = getBlockInsertLocation(block, allBlocks, newStart);
 			
-			if(!block.isMovable())
-				continue;
+			long delta = block.getEnd().getTime() - block.getStart().getTime();
+			long newEnd = newStart + delta;
 			
 			
+			//Place the block in its new location, decrement from the time bank, and
+			//reset the time for where to start on the next iteration
+			block.getStart().setTime(newStart);
+			block.getEnd().setTime(newEnd);
+			freeTimeBankMillis -= (newEnd - newStart);
+			timeToStartFrom = block.getStart();
 			
+			
+			//TODO: WILL THIS CASE OCCUR?
+			//5. Track the amount of free time in the free bank - if the bank is too low on time, restart
+			//	 the iteration from the beginning and remove a small amount of free time from between 
+			//	 all succeeding elements of blocks in order to ensure that there is enough free time
+			//	 to place the originally-requested block.
 		}
 		
 		
@@ -108,6 +155,47 @@ public class TimeCompactor {
 		
 	}
 	
+	
+	private static long getBlockInsertLocation(ITimeBlockable block, List<ITimeBlockable> allBlocks, 
+			long recommendedStart) {
+		ITimeBlockable pred = null;
+		ITimeBlockable succ = null;
+		
+		long newStart = recommendedStart;
+		long delta = block.getEnd().getTime() - block.getStart().getTime();
+		long newEnd = newStart + delta;
+		
+
+		while(true) {
+			//TODO: I don't like how inefficient a linear traversal here is at every step...
+			int indFit = indexOfFitLocn(allBlocks, new Date(newStart));
+			pred = (indFit == 0 ? null : allBlocks.get(indFit - 1));
+			succ = (indFit >= allBlocks.size() - 1 ? null : allBlocks.get(indFit + 1));
+			
+			//Ensure no overlap with successor
+			if(succ != null && succ.getStart().getTime() < newEnd) {
+				newStart = succ.getEnd().getTime();
+				newEnd = newStart + delta;
+				continue;
+				//succ = allBlocks.get(temp);
+				//++temp;
+			}
+		
+			//Ensure no overlap with predecessor
+			if(pred != null && pred.getEnd().getTime() > newStart) {
+				newStart = pred.getEnd().getTime();
+				newEnd = newStart + delta;
+				continue;
+				//pred = allBlocks.get(indFit);
+				//++indFit;
+			}
+			
+			//If no overlap occurs with either the predecessor or the successor, break this loop
+			break;
+		}
+		
+		return newStart;
+	}
 	
 	
 	//This function is copied from TimeAllocator
@@ -129,10 +217,10 @@ public class TimeCompactor {
 		//comparing *Date*s here
 
 		//Compare to the first element and last element in the list
-		if(curr.compareTo(timeList.get(0).getStart()) < 0)
+		if(curr.compareTo(timeList.get(0).getStart()) <= 0)
 			return 0;
 		else if(curr.compareTo(timeList.get(size - 1).getStart()) > 0)
-			return size - 1;
+			return size;
 
 		//Compare to all surrounding pairs in the middle
 		for(ind = 1; ind < size; ++ind) {

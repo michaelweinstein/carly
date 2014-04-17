@@ -101,7 +101,8 @@ public class TimeAllocator {
 		
 		while(numBlocksLeft > 0) {
 			//1. Use find fit function for the next block (BEST-fit search, NOT FIRST FIT)
-			AssignmentBlock block = findFit(allBlocks, numHoursPerBlock, lastTimePlaced, end);
+			AssignmentBlock block = findFit(allBlocks, numHoursPerBlock, 
+					(Date) lastTimePlaced.clone(), (Date) end.clone());
 
 			//2. If no fit can be found, try compaction OR break the loop and move on to 
 			//the next type of insertion policy
@@ -145,8 +146,16 @@ public class TimeAllocator {
 		//		heuristics including (1) putting assignments in their preferred time-of-day
 		//		(2) spacing them out to have breaks, (3) variety between different types of
 		//		assignments if there are several AssignmentBlocks in a row
-		if(hasCompactedOnce) {
+		//if(hasCompactedOnce) {
 			TimeCompactor.decompact(allBlocks, start, end);
+		//}
+		
+			
+			
+		System.out.println("DEBUG - printing out the time ranges of all blocks");	
+		for(int i = 0; i < allBlocks.size(); ++i) {
+			ITimeBlockable itb = allBlocks.get(i);
+			System.out.println("Start: " + itb.getStart() + " || End: " + itb.getEnd());
 		}
 		
 		//Assign the value of this field so it may be accessed by the "getter"
@@ -189,7 +198,7 @@ public class TimeAllocator {
 			//Get free time between two blocks in the list
 			if(blockLenInMillis <= (delta = blockList.get(i + 1).getStart().getTime() - 
 					blockList.get(i).getEnd().getTime()) && delta - blockLenInMillis < minTimeLeftover) {
-				bestStart = blockList.get(i).getEnd();
+				bestStart = (Date) blockList.get(i).getEnd().clone();
 				minTimeLeftover = delta - blockLenInMillis;
 				bestEnd = new Date(bestStart.getTime() + blockLenInMillis);
 			}	
@@ -198,7 +207,7 @@ public class TimeAllocator {
 		//Get free time between last block in list and end time given
 		if(blockLenInMillis <= (delta = end.getTime() - blockList.get(blockList.size() - 1).getEnd().getTime())
 				&& delta - blockLenInMillis < minTimeLeftover) {
-			bestStart = blockList.get(blockList.size() - 1).getEnd();
+			bestStart = (Date) blockList.get(blockList.size() - 1).getEnd().clone();
 			minTimeLeftover = delta - blockLenInMillis;
 			bestEnd = new Date(bestStart.getTime() + blockLenInMillis);
 		}
