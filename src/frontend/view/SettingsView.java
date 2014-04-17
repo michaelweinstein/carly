@@ -9,6 +9,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import frontend.Utils;
+import frontend.view.template_wizard.TemplateWizardView;
 
 public class SettingsView extends JDialog {
 	
@@ -24,13 +25,7 @@ public class SettingsView extends JDialog {
 		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 		Utils.themeComponent(mainPanel);
 		Utils.padComponent(mainPanel, 50, 50);
-		
-		// Make a scroll pane
-//		final JScrollPane scroller = new JScrollPane();
-//		scroller.setBorder(null);
-//		Utils.themeComponent(scroller);
-//		Utils.themeComponent(scroller.getViewport());
-		
+
 		// Make title of Settings
 		final JLabel title = new JLabel("Settings");
 		Utils.setFont(title, 30);

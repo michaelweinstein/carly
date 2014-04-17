@@ -1,4 +1,4 @@
-package frontend.view;
+package frontend.view.template_wizard;
 
 import java.awt.Dimension;
 import java.awt.Font;

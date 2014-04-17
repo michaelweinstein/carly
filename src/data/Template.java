@@ -23,6 +23,15 @@ public class Template implements ITemplate {
 		_steps = new ArrayList<ITemplateStep>();
 	}
 	/**
+	 * Constructor with preferred consecutive hours
+	 */
+	public Template(String name, double hours) {
+		_name = name;
+		_preferredConsecutiveHours = hours;
+		_uid = DataUtil.generateID();
+		_steps = new ArrayList<ITemplateStep>();
+	}
+	/**
 	 * Constructor takes in a list of Steps already formed.
 	 */
 	public Template(String name, List<ITemplateStep> steps) {
