@@ -3,9 +3,7 @@ package backend;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import javax.print.attribute.standard.DateTimeAtCompleted;
 
 import data.AssignmentBlock;
 import data.IAssignment;
@@ -60,6 +58,7 @@ public class TimeAllocator {
 		//Clear the old sets of blocks 
 		m_toDelete.clear();
 		m_toAdd.clear();
+		m_localChangesToBlocks.clear();
 
 		//Get the current set of blocks that have been marked by the user as either unavailable
 		//or currently occupied by another assignment
@@ -87,8 +86,7 @@ public class TimeAllocator {
 		//Try the best case assumption - that blocks are able to be split uniformly across the days
 		//that a user is working on an assignment
 		numBlocksLeft = (int) Math.ceil(m_asgn.getExpectedHours() / numHoursPerBlock);
-
-
+		
 
 		//TODO: BIG CHANGE!! Items of different tasks must go in sequential order.  Therefore,
 		//		this loop should change so that is a two-layered loop: one layer goes over the
@@ -97,14 +95,35 @@ public class TimeAllocator {
 		//		--After a given Task is completely inserted, then the "start" date should be
 		//		reset to the end of the last time block of that Task type to ensure
 		//		chronological correctness.
+		
+		boolean hasCompactedOnce = false;
+		Date lastTimePlaced = start;
+		
 		while(numBlocksLeft > 0) {
 			//1. Use find fit function for the next block (BEST-fit search, NOT FIRST FIT)
-			AssignmentBlock block = findFit(allBlocks, numHoursPerBlock, start, end);
+			AssignmentBlock block = findFit(allBlocks, numHoursPerBlock, lastTimePlaced, end);
 
-			//2. If no fit can be found, break this loop, and move on to the next type
-			//	 of insertion policy
+			//2. If no fit can be found, try compaction OR break the loop and move on to 
+			//the next type of insertion policy
 			if(block == null) {
-				break;
+				
+				if(!hasCompactedOnce){
+					//Compact existing blocks so that they fit better, and reset the lastTimePlaced
+					//reference so that it is still accurate
+					TimeCompactor.compact(allBlocks, start, end, lastTimePlaced);
+					continue;
+					//TODO: currently I am compacting all blocks... is a different range better?
+					
+				}
+				else {
+					System.err.println("Could not insert block, even after compacting -- TODO:"
+						+ " Try to move blocks contained by other assignments outside of the range\n"
+						+ " OR use more sophisticated compaction around unmovable blocks\n"
+						+ " OR return FAIL message to the user\n"
+						+ " OR try breaking the remaining blocks into half-size pieces\n");
+					
+					break;
+				}
 			}
 
 			//3. If a fit is found, insert the block into the list, decrement the counter
@@ -112,15 +131,13 @@ public class TimeAllocator {
 			int ind = indexOfFitLocn(allBlocks, block.getStart());
 			allBlocks.add(ind, block);
 			--numBlocksLeft;
+			
+			//4. Reset the place that the last block was placed for future searches
+			lastTimePlaced = block.getStart();
 		}
 
 
-		//TODO: Compact existing blocks so that they fit better
-		while(numBlocksLeft != 0) {
-			//compact(block_i);
-			//TODO: Try to re-insert blocks now that the set has been compacted.
-			//reinsert();
-		}
+		//TODO: Attempt alternate insertion policy here
 
 
 		//TODO: Then, decompact all AssignmentBlocks so that a user may have a break
@@ -128,58 +145,17 @@ public class TimeAllocator {
 		//		heuristics including (1) putting assignments in their preferred time-of-day
 		//		(2) spacing them out to have breaks, (3) variety between different types of
 		//		assignments if there are several AssignmentBlocks in a row
-
-		//decompact();
-
+		if(hasCompactedOnce) {
+			TimeCompactor.decompact(allBlocks, start, end);
+		}
+		
 		//Assign the value of this field so it may be accessed by the "getter"
 		//function in this class
 		m_localChangesToBlocks = allBlocks;
 
 	}
-
-
-	private List<ITimeBlockable> zipTimeBlockLists(List<UnavailableBlock> unavailable,
-			List<AssignmentBlock> curr_asgns) {
-		List<ITimeBlockable> zippedList = new ArrayList<ITimeBlockable>(unavailable.size() + curr_asgns.size());
-
-		int unavailInd = 0;
-		int asgnInd = 0;
-
-		//Iterate over the contents of these two arrays, then return a zipped list containing
-		//the contents of both lists, in sorted order
-		UnavailableBlock[] unavail = (UnavailableBlock[]) unavailable.toArray();
-		AssignmentBlock[] asgn = (AssignmentBlock[]) curr_asgns.toArray();
-
-		while (unavailInd < unavail.length || asgnInd < asgn.length) {
-
-			if(unavailInd == unavail.length) {
-				zippedList.add(asgn[asgnInd]);
-				++asgnInd;
-				continue;
-			}
-			if(asgnInd == asgn.length){
-				zippedList.add(unavail[unavailInd]);
-				++unavailInd;
-				continue;
-			}
-
-			int comp = unavail[unavailInd].compareTo(asgn[asgnInd]);
-
-			if(comp < 0) {
-				zippedList.add(unavail[unavailInd]);
-				++unavailInd;
-			}
-			else if(comp > 0) {
-				zippedList.add(asgn[asgnInd]);
-				++asgnInd;
-			}
-			else; //TODO: ???? there should never be two blocks that are equal
-
-		}		
-
-		return zippedList;
-	}
-
+	
+	
 	//TODO: Also pass the Task to-be-assigned to this block... or remove Task from constructor?
 	private AssignmentBlock findFit(List<ITimeBlockable> blockList, double blockLength,
 			Date start, Date end) {
@@ -250,7 +226,7 @@ public class TimeAllocator {
 		if(curr.compareTo(timeList.get(0).getStart()) < 0)
 			return 0;
 		else if(curr.compareTo(timeList.get(size - 1).getStart()) > 0)
-			return size - 1;
+			return size;
 
 		//Compare to all surrounding pairs in the middle
 		for(ind = 1; ind < size; ++ind) {
@@ -262,7 +238,49 @@ public class TimeAllocator {
 		return ind;
 	}
 
+	private List<ITimeBlockable> zipTimeBlockLists(List<UnavailableBlock> unavailable,
+			List<AssignmentBlock> curr_asgns) {
+		List<ITimeBlockable> zippedList = new ArrayList<ITimeBlockable>(unavailable.size() + curr_asgns.size());
 
+		int unavailInd = 0;
+		int asgnInd = 0;
+
+		//Iterate over the contents of these two arrays, then return a zipped list containing
+		//the contents of both lists, in sorted order
+		UnavailableBlock[] unavail = new UnavailableBlock[unavailable.size()];
+		AssignmentBlock[] asgn = new AssignmentBlock[curr_asgns.size()];
+		unavail = unavailable.toArray(unavail);
+		asgn = curr_asgns.toArray(asgn);
+
+		while (unavailInd < unavail.length || asgnInd < asgn.length) {
+
+			if(unavailInd == unavail.length) {
+				zippedList.add(asgn[asgnInd]);
+				++asgnInd;
+				continue;
+			}
+			if(asgnInd == asgn.length){
+				zippedList.add(unavail[unavailInd]);
+				++unavailInd;
+				continue;
+			}
+
+			int comp = unavail[unavailInd].compareTo(asgn[asgnInd]);
+
+			if(comp < 0) {
+				zippedList.add(unavail[unavailInd]);
+				++unavailInd;
+			}
+			else if(comp > 0) {
+				zippedList.add(asgn[asgnInd]);
+				++asgnInd;
+			}
+			else; //TODO: ???? there should never be two blocks that are equal
+
+		}		
+
+		return zippedList;
+	}
 
 	private long convertHoursToMillis(double hrs) {
 		return (long) (hrs * 60 * 60 * 1000);
