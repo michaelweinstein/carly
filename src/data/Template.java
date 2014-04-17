@@ -23,6 +23,15 @@ public class Template implements ITemplate {
 		_steps = new ArrayList<ITemplateStep>();
 	}
 	/**
+	 * Constructor with preferred consecutive hours
+	 */
+	public Template(String name, double hours) {
+		_name = name;
+		_preferredConsecutiveHours = hours;
+		_uid = DataUtil.generateID();
+		_steps = new ArrayList<ITemplateStep>();
+	}
+	/**
 	 * Constructor takes in a list of Steps already formed.
 	 */
 	public Template(String name, List<ITemplateStep> steps) {
@@ -48,7 +57,7 @@ public class Template implements ITemplate {
 		// Make sure a Step of that name does not already exist
 		ITemplateStep mustBeNull = getStepByName(stepToAdd.getName());
 		if (mustBeNull == null) {
-			// If not null, add after stepBefore
+			// Add after stepBefore
 			if (stepBefore != null) {
 				int indexBefore = _steps.indexOf(stepBefore);
 				_steps.add(indexBefore+1, stepToAdd);

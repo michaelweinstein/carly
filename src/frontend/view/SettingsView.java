@@ -1,13 +1,15 @@
 package frontend.view;
 
+import java.awt.Dimension;
+
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 
 import frontend.Utils;
+import frontend.view.template_wizard.TemplateWizardView;
 
 public class SettingsView extends JDialog {
 	
@@ -16,32 +18,28 @@ public class SettingsView extends JDialog {
 	public SettingsView() {
 		super();
 		
-		final JPanel mainPane = new JPanel();
+		this.setPreferredSize(new Dimension(500, 500));
+		
+		final JPanel mainPanel = new JPanel();
 		// Set theme of page
-		mainPane.setLayout(new BoxLayout(mainPane, BoxLayout.Y_AXIS));
-		Utils.themeComponent(mainPane);
-		Utils.padComponent(mainPane, 50, 50);
-		
-		// Make a scroll pane
-		final JScrollPane scroller = new JScrollPane();
-		scroller.setBorder(null);
-		Utils.themeComponent(scroller);
-		Utils.themeComponent(scroller.getViewport());
-		
+		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+		Utils.themeComponent(mainPanel);
+		Utils.padComponent(mainPanel, 50, 50);
+
 		// Make title of Settings
 		final JLabel title = new JLabel("Settings");
 		Utils.setFont(title, 30);
 		Utils.themeComponent(title);
 		
 		// Add title label
-		mainPane.add(Box.createVerticalStrut(20));
-		mainPane.add(title);
+		mainPanel.add(Box.createVerticalStrut(20));
+		mainPanel.add(title);
 		
 		// Add templateWizard
-		mainPane.add(Box.createVerticalStrut(10));
-		mainPane.add(new TemplateWizardView(this));
-		
-		this.add(mainPane);
+		mainPanel.add(Box.createVerticalStrut(10));
+		mainPanel.add(new TemplateWizardView(this));
+
+		this.add(mainPanel);
 		// Add scroll pane
 		// this.add(Box.createVerticalStrut(15));
 		// this.add(scroller);

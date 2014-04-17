@@ -17,17 +17,17 @@ public class DataUtil {
 	/* constants */
 	
 	// Task: Default value for preferred Time of Day in Task
-	public static final TimeOfDay DEFAULT_TIME_OF_DAY = TimeOfDay.EVENING;
+	public static final TimeOfDay 	DEFAULT_TIME_OF_DAY = TimeOfDay.EVENING;
 	// Template, Task: Default value for Task block length, Template consecutive hours
-	public static final double DEFAULT_CONSECUTIVE_HOURS = 3;
+	public static final double 		DEFAULT_CONSECUTIVE_HOURS = 3;
 	
 	// Assignment: Default value of expected hours to complete in Assignment
-	public static final int DEFAULT_ASSIGNMENT_EXPECTED_HOURS = 3;
+	public static final int 		DEFAULT_ASSIGNMENT_EXPECTED_HOURS = 3;
 	
 	// TemplateStep: Val for how many days this step takes
-	public static final int DEFAULT_STEP_DAYS = 1;
+	public static final int 		DEFAULT_STEP_DAYS = 1;
 	// TemplateStep: Val for how many hours a day step is worked on
-	public static final double DEFAULT_HOURS_PER_DAY = 3;
+	public static final double 		DEFAULT_HOURS_PER_DAY = 3;
 	
 	
 	/* util methods */
