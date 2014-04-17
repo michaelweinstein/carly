@@ -48,7 +48,7 @@ public class Template implements ITemplate {
 		// Make sure a Step of that name does not already exist
 		ITemplateStep mustBeNull = getStepByName(stepToAdd.getName());
 		if (mustBeNull == null) {
-			// If not null, add after stepBefore
+			// Add after stepBefore
 			if (stepBefore != null) {
 				int indexBefore = _steps.indexOf(stepBefore);
 				_steps.add(indexBefore+1, stepToAdd);

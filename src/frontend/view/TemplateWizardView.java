@@ -1,11 +1,11 @@
 package frontend.view;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -29,104 +29,124 @@ public class TemplateWizardView extends JPanel {
 	public TemplateWizardView(final SettingsView settings) {
 		super();
 		// Set theme and layout of wizard
-		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		Utils.themeComponentInverse(this);
+		Utils.themeComponent(this);
 		Utils.addBorderFull(this);
 		Utils.padComponentWithBorder(this, padding, padding);
-		
-		// Template Wizard label
-		final JLabel title = new JLabel("Template Wizard");
-		Utils.setFont(title, title_size);
-		Utils.themeComponent(title);
-		
+
 		// TODO: List current templates and resize when grabbing on far left
-		// OR should I put that in Settings, and TemplateWizard is just for new templates??
 		
-		// "Create new template"
-		final JButton createTemplateBtn = new JButton("Create new template");
-		createTemplateBtn.setBorderPainted(false);
-		createTemplateBtn.setFocusPainted(false);
-		Utils.themeComponent(createTemplateBtn);
-		final JPanel templateDiv = templateDiv();
-		createTemplateBtn.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				// Sets templateDiv to visible and renders
-				templateDiv.setVisible(true);
-				templateDiv.repaint();
-				TemplateWizardView.this.repaint();
-			}
-		});
+		/* "New template" button (Listener below) */
+		final JButton newTemplateBtn = new JButton("New template");
+		newTemplateBtn.setFocusPainted(false);
+		newTemplateBtn.setPreferredSize(new Dimension(170, 20));
 		
-		// Add label and spacing
-		this.add(title);
-		this.add(Box.createVerticalStrut(10));
-		this.add(createTemplateBtn);
-		this.add(Box.createVerticalStrut(10));
-		
-		// Add templateDiv; starts with visible(false)
-		this.add(Box.createHorizontalStrut(10));
-		this.add(templateDiv);
-		
-		// this.add(Box.createVerticalStrut(10));
-		// this.add(createStepBtn);
-	}
-	
-	/**
-	 * Makes and returns the panel that is only displayed when user presses "Create new template" button. Contains the
-	 * TemplateWizard's input fields
-	 * 
-	 * @return JPanel
-	 */
-	private JPanel templateDiv() {
-		// Set up encompassing div
-		final JPanel templateDiv = new JPanel();
-		templateDiv.setLayout(new BoxLayout(templateDiv, BoxLayout.Y_AXIS));
-		Utils.themeComponentInverse(templateDiv);
-		templateDiv.setPreferredSize(new Dimension(120, 100));
-		// Starts not visible; set visible in actionlistener in constructor
-		templateDiv.setVisible(false);
-		
-		// Name of new Template
+///////////////
+		/* Name: */
 		final JPanel namePanel = new JPanel();
-		Utils.themeComponentInverse(namePanel);
-		Utils.addBorderLeft(namePanel);
+		Utils.themeComponent(namePanel);
+		namePanel.setPreferredSize(new Dimension(250, 40));		
 		final JLabel nameLabel = new JLabel("Name: ");
+		Utils.themeComponentInverse(nameLabel);
 		final JTextField nameInput = new JTextField();
 		nameInput.setPreferredSize(new Dimension(100, 20));
 		namePanel.add(nameLabel);
 		namePanel.add(nameInput);
+		namePanel.setVisible(false);
 		
-		// "Create new step" button
-		final JButton createStepBtn = new JButton("Create new step");
-		createStepBtn.setBorderPainted(false);
+		/* Consecutive Hours: */
+		final JPanel hoursPanel = new JPanel();
+		Utils.themeComponent(hoursPanel);
+		hoursPanel.setPreferredSize(new Dimension(300, 40));
+		final JLabel hoursLabel = new JLabel("Consecutive hours you want to work: ");
+		Utils.themeComponentInverse(hoursLabel);
+		final JTextField hoursInput = new JTextField();
+		hoursInput.setPreferredSize(new Dimension(30, 20));
+		hoursPanel.add(hoursLabel);
+		hoursPanel.add(hoursInput);
+		hoursPanel.setVisible(false);
+		
+		//TODO List current TemplateSteps and grab on left to move around
+
+		/* "Create new step" button */
+		final JButton createStepBtn = new JButton("Add step");
 		createStepBtn.setFocusPainted(false);
-		Utils.themeComponent(createStepBtn);
+		createStepBtn.setPreferredSize(new Dimension(70, 20));
+		createStepBtn.setVisible(false);
 		createStepBtn.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(final ActionEvent e) {
-				// TODO
+				// TODO Set step inputs visible
 			}
 		});
 		
-		// Add elements to panel
-		templateDiv.add(namePanel);
-		templateDiv.add(createStepBtn);
+		// TODO Add step inputs
 		
-		return templateDiv;
+		/* "Create template" button; submits new template */
+		final JButton submitTemplateBtn = new JButton("Submit template");
+		submitTemplateBtn.setForeground(Color.RED);
+		submitTemplateBtn.setFocusPainted(false);
+		submitTemplateBtn.setPreferredSize(new Dimension(300, 30));
+		submitTemplateBtn.setVisible(false);
+		submitTemplateBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				// TODO Check that all data is valid and entered, then create and send Template to database
+				boolean verified = verifyData();
+				if (verified) {
+					// Re-enable "New template" button
+					newTemplateBtn.setEnabled(true);
+					
+					// Hides all elements
+					namePanel.setVisible(false);
+					hoursPanel.setVisible(false);
+					createStepBtn.setVisible(false);
+					submitTemplateBtn.setVisible(false);
+				}
+			}
+		});
+////////^^^^^^^^^^		
+		
+		/* TOP: "New template" Listener */
+		newTemplateBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				
+				// Dislays all elements		
+				namePanel.setVisible(true);
+				hoursPanel.setVisible(true);
+				createStepBtn.setVisible(true);
+				submitTemplateBtn.setVisible(true);
+				
+				// Disable "New template" btn while form is open
+				newTemplateBtn.setEnabled(false);
+				// Repaint panel
+				TemplateWizardView.this.repaint();
+			}
+		});
+		
+		/* Adds all elements of Template Wizard form */
+	
+		this.add(newTemplateBtn);
+		this.add(Box.createVerticalStrut(10));
+		
+		this.add(namePanel);
+		this.add(hoursPanel);
+		this.add(createStepBtn);
+		this.add(Box.createVerticalStrut(10));
+		
+		this.add(submitTemplateBtn);
 	}
 	
 	/**
-	 * Makes anre turns the panel displayed when user presses "Create new step"
+	 * Verifies that all user input fields have valid input, and that no
+	 * mandatory fields have been left blank -- returns true. 
+	 * Alerts user if a field is invalid or blank, and returns false.
 	 * 
-	 * @return JPanel
+	 * @return true if all fields valid, else false
 	 */
-	private JPanel stepDiv() {
-		// TODO
-		// Name of subtask
-		// Percent of total task
-		return null;
+	private boolean verifyData() {
+		// TODO Verify all fields valid and filled; display message to user if not
+		return true;
 	}
 }
