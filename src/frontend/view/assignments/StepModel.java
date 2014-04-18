@@ -77,19 +77,32 @@ public class StepModel extends AbstractTableModel {
 		// Make sure the percentage is a valid number 1-100 (0 doesn't make sense)
 		if (col == PERCENT_INDEX) {
 			final String strRep = value.toString();
+			double perc = 0;
+			
+			// If it's empty, just set and get out
+			if (strRep.isEmpty()) {
+				rowData.get(row)[col] = strRep;
+				fireTableCellUpdated(row, col);
+				return;
+			}
+			
+			// Otherwise, try parsing it into something!
 			try {
-				final double perc = Double.parseDouble(strRep);
+				perc = Double.parseDouble(strRep);
 				if (perc > 0 && perc <= 100) {
 					rowData.get(row)[col] = perc;
+					fireTableCellUpdated(row, col);
 				}
+				return;
 			} catch (final NumberFormatException nfe) {
-				return; // Oops! NaN value is bad
+				return; // Oops! NaN value is bad, do nothing
 			}
 		} else if (col == TITLE_INDEX) {
 			rowData.get(row)[col] = value;
+			fireTableCellUpdated(row, col);
+			return;
 		}
 		
-		fireTableCellUpdated(row, col);
 	}
 	
 	/**

@@ -62,6 +62,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	private JLabel					_statusLabel;
 	private JComboBox<ITemplate>	_templatePicker;
 	private StepViewTable			_stepList;
+	private StepModel				_stepModel;
 	
 	/**
 	 * Constructor creates all relevant data
@@ -84,6 +85,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		
 		Utils.themeComponent(scroller);
 		Utils.themeComponent(scroller.getViewport());
+		Utils.themeComponent(scroller.getVerticalScrollBar());
 		Utils.padComponent(scroller, 0, 0);
 		
 		// Addition of all items to dialog
@@ -284,11 +286,11 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			public void itemStateChanged(final ItemEvent event) {
 				if (event.getStateChange() == ItemEvent.SELECTED) {
 					final ITemplate item = (ITemplate) event.getItem();
-					_stepList.getModel().clear();
+					_stepModel.clear();
 					for (final ITemplateStep step : item.getAllSteps()) {
-						_stepList.getModel().addItem(step);
+						_stepModel.addItem(step);
 					}
-					_stepList.getModel().addBlankItem();
+					_stepModel.addBlankItem();
 				}
 			}
 		});
@@ -311,8 +313,9 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		// Tasks view
 		final Object dataValues[][] = { { "", "" } };
 		final String colNames[] = { "Step Name", "% of Total" };
-		_stepList = new StepViewTable(new StepModel(dataValues, colNames));
-		_stepList.getModel().addTableModelListener(this);
+		_stepModel = new StepModel(dataValues, colNames);
+		_stepModel.addTableModelListener(this);
+		_stepList = new StepViewTable(_stepModel);
 		Utils.padComponent(_stepList, 10, 30);
 		c.gridx = 1;
 		c.gridheight = 1;
@@ -336,9 +339,9 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	@Override
 	public void tableChanged(final TableModelEvent e) {
 		if (e.getLastRow() == _stepList.getRowCount() - 1) {
-			_stepList.getModel().addBlankItem();
+			_stepModel.addBlankItem();
 		}
-		_stepList.getModel().deleteRowsIfEmpty(e.getFirstRow(), e.getLastRow());
+		_stepModel.deleteRowsIfEmpty(e.getFirstRow(), e.getLastRow());
 		revalidate();
 		this.repaint();
 	}
@@ -366,13 +369,13 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		_statusLabel.setText(DEFAULT_LABEL);
 		_titleField.setText("");
 		_dateTimeField.setValue(new Date());
-		_stepList.getModel().clear();
-		_stepList.getModel().addBlankItem();
+		_stepModel.clear();
+		_stepModel.addBlankItem();
 	}
 	
 	@Override
 	public Dimension getMinimumSize() {
-		return new Dimension(360, 400);
+		return new Dimension(360, 500);
 	}
 	
 }
