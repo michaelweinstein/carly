@@ -1,4 +1,4 @@
-package frontend.view;
+package frontend.view.assignments;
 
 import javax.swing.JPanel;
 

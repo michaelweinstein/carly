@@ -8,6 +8,8 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 import frontend.Utils;
+import frontend.view.calendar.AssignmentsView;
+import frontend.view.calendar.CalendarView;
 
 /**
  * Represents a JFrame class that is the frontend interface

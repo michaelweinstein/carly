@@ -25,10 +25,9 @@ public interface IAssignment {
 	public int getExpectedHours();
 	
 	/**
-	 * Mutator for number of hours a user
-	 * expects this Assignment to take.
+	 * Mutator for number of hours a user expects this Assignment to take.
 	 * 
-	 * @param h, int approximate hours
+	 * @param h int approximate hours
 	 */
 	public void setExpectedHours(int h);
 	

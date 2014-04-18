@@ -25,7 +25,7 @@ public abstract class Utils {
 	// GUI Constants
 	public static final Color	COLOR_BACKGROUND	= Color.DARK_GRAY;
 	public static final Color	COLOR_FOREGROUND	= Color.WHITE;
-	public static final Color	COLOR_BORDER		= Color.ORANGE;
+	public static final Color	COLOR_ACCENT		= Color.ORANGE;
 	public static final String	APP_FONT_NAME		= "Arial";
 	
 	/**
@@ -34,7 +34,7 @@ public abstract class Utils {
 	 * @param panel the panel that needs the border
 	 */
 	public static void addBorderFull(final JComponent panel) {
-		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(2, 2, 2, 2, COLOR_BORDER)));
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(2, 2, 2, 2, COLOR_ACCENT)));
 	}
 	
 	/**
@@ -43,7 +43,7 @@ public abstract class Utils {
 	 * @param panel the panel that needs the border
 	 */
 	public static void addBorderLeft(final JComponent panel) {
-		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 2, 0, 0, COLOR_BORDER)));
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 2, 0, 0, COLOR_ACCENT)));
 	}
 	
 	/**
@@ -52,7 +52,7 @@ public abstract class Utils {
 	 * @param panel the panel that needs the border
 	 */
 	public static void addBorderRight(final JComponent panel) {
-		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 0, 0, 2, COLOR_BORDER)));
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 0, 0, 2, COLOR_ACCENT)));
 	}
 	
 	/**
@@ -61,7 +61,7 @@ public abstract class Utils {
 	 * @param panel the panel that needs the border
 	 */
 	public static void addBorderTop(final JComponent panel) {
-		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(2, 0, 0, 0, COLOR_BORDER)));
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(2, 0, 0, 0, COLOR_ACCENT)));
 	}
 	
 	/**
@@ -70,7 +70,7 @@ public abstract class Utils {
 	 * @param panel the panel that needs the border
 	 */
 	public static void addBorderBottom(final JComponent panel) {
-		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 0, 2, 0, COLOR_BORDER)));
+		panel.setBorder(new CompoundBorder(panel.getBorder(), new MatteBorder(0, 0, 2, 0, COLOR_ACCENT)));
 	}
 	
 	/**
@@ -189,4 +189,5 @@ public abstract class Utils {
 	public static void printError(final String msg) {
 		System.err.println("ERROR: " + msg);
 	}
+	
 }

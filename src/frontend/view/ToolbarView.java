@@ -12,6 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import frontend.Utils;
+import frontend.view.assignments.AddAssignmentDialog;
 
 /**
  * Represents the toolbar at top of the screen
