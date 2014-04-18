@@ -28,6 +28,8 @@ public class MainView extends JFrame {
 	
 	/**
 	 * Constructor sets window properties and adds newly created views
+	 * 
+	 * @param vc the view controller in control
 	 */
 	public MainView(final ViewController vc) {
 		super(Utils.APP_NAME);
