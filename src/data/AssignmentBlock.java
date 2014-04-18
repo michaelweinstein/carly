@@ -73,5 +73,8 @@ public class AssignmentBlock implements ITimeBlockable {
 		return m_start.compareTo(o.getStart());
 	}
 
-	
+	@Override
+	public String toString() {
+		return "Assigned: [" + m_start.toString() + ", " + m_end.toString() + "]";
+	}
 }
