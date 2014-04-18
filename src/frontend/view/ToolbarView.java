@@ -23,13 +23,13 @@ public class ToolbarView extends JPanel {
 	
 	private static final long	serialVersionUID	= -2158045975284361590L;
 	
-	public ToolbarView() {
+	public ToolbarView(final ViewController vc) {
 		Utils.themeComponent(this);
 		Utils.addBorderBottom(this);
 		Utils.padComponentWithBorder(this, 0, 20);
 		
 		// Assignment adding
-		final JDialog dialog = new AddAssignmentDialog();
+		final JDialog dialog = new AddAssignmentDialog(vc);
 		final JButton addAssignmentButton = new JButton("New Assignment");
 		addAssignmentButton.addActionListener(new ActionListener() {
 			

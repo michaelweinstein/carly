@@ -29,7 +29,7 @@ public class MainView extends JFrame {
 	/**
 	 * Constructor sets window properties and adds newly created views
 	 */
-	public MainView() {
+	public MainView(final ViewController vc) {
 		super(Utils.APP_NAME);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(600, 550));
@@ -37,7 +37,7 @@ public class MainView extends JFrame {
 		
 		// Make child views and add them
 		calendar = new CalendarView();
-		toolbar = new ToolbarView();
+		toolbar = new ToolbarView(vc);
 		assignmentsView = new AssignmentsView();
 		
 		// Whole view

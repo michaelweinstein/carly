@@ -35,7 +35,7 @@ public class ViewController {
 	 * Makes a new MainView, that itself sets up data
 	 */
 	public void create() {
-		window = new MainView();
+		window = new MainView(this);
 		
 		// Show it
 		window.pack();
