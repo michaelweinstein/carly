@@ -18,6 +18,9 @@ public class TimeCompactor {
 	public static void compact(List<ITimeBlockable> allBlocks, Date start, Date end, 
 			Date lastTimePlaced) {
 		
+		if(allBlocks.size() == 0)
+			return;
+		
 		int startInd = TimeUtilities.indexOfFitLocn(allBlocks, start);
 		Date timeToPushTo = allBlocks.get(startInd).getEnd();
 		
