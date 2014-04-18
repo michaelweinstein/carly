@@ -71,4 +71,9 @@ public class UnavailableBlock implements ITimeBlockable {
 		return m_start.compareTo(o.getStart());
 	}
 	
+	@Override
+	public String toString() {
+		return "Unavailable: [" + m_start.toString() + ", " + m_end.toString() + "]";
+	}
+	
 }

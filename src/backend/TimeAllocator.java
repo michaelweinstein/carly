@@ -67,6 +67,16 @@ public class TimeAllocator {
 		Date end = m_asgn.getDueDate();
 		List<UnavailableBlock> unavailable = new ArrayList<>();
 				//StorageService.getAllUnavailableBlocksWithinRange(start, end);
+		
+		//TODO: AS A TEMPORARY TEST - inserting some stuff into the unavailable list
+		/************************************************************/
+		UnavailableBlock ub1 = new UnavailableBlock((Date) start.clone(), new Date(start.getTime() + 14400000), null, false);
+		UnavailableBlock ub2 = new UnavailableBlock(new Date(start.getTime() + 86400000),
+				new Date(start.getTime() + 104400000), null, false);
+		unavailable.add(ub1);
+		unavailable.add(ub2);
+		/************************************************************/
+
 		List<AssignmentBlock> curr_asgns = new ArrayList<>();
 				//StorageService.getAllAssignmentBlocksWithinRange(start, end);
 		List<ITimeBlockable> allBlocks = zipTimeBlockLists(unavailable, curr_asgns);
@@ -101,7 +111,8 @@ public class TimeAllocator {
 		
 		while(numBlocksLeft > 0) {
 			//1. Use find fit function for the next block (BEST-fit search, NOT FIRST FIT)
-			AssignmentBlock block = findFit(allBlocks, numHoursPerBlock, lastTimePlaced, end);
+			AssignmentBlock block = findFit(allBlocks, numHoursPerBlock, 
+					(Date) lastTimePlaced.clone(), (Date) end.clone());
 
 			//2. If no fit can be found, try compaction OR break the loop and move on to 
 			//the next type of insertion policy
@@ -128,7 +139,7 @@ public class TimeAllocator {
 
 			//3. If a fit is found, insert the block into the list, decrement the counter
 			//	 and continue.
-			int ind = indexOfFitLocn(allBlocks, block.getStart());
+			int ind = TimeUtilities.indexOfFitLocn(allBlocks, block.getStart());
 			allBlocks.add(ind, block);
 			--numBlocksLeft;
 			
@@ -145,8 +156,21 @@ public class TimeAllocator {
 		//		heuristics including (1) putting assignments in their preferred time-of-day
 		//		(2) spacing them out to have breaks, (3) variety between different types of
 		//		assignments if there are several AssignmentBlocks in a row
-		if(hasCompactedOnce) {
+		
+		System.out.println("Debug, allBlocks list before decompaction");
+		for(int i = 0; i < allBlocks.size(); ++i) {
+			ITimeBlockable itb = allBlocks.get(i);
+			System.out.println("Start: " + itb.getStart() + " || End: " + itb.getEnd());
+		}
+		
+		//if(hasCompactedOnce) {
 			TimeCompactor.decompact(allBlocks, start, end);
+		//}
+			
+		System.out.println("DEBUG - printing out the time ranges of all blocks");	
+		for(int i = 0; i < allBlocks.size(); ++i) {
+			ITimeBlockable itb = allBlocks.get(i);
+			System.out.println("Start: " + itb.getStart() + " || End: " + itb.getEnd() + itb.isMovable());
 		}
 		
 		//Assign the value of this field so it may be accessed by the "getter"
@@ -189,7 +213,7 @@ public class TimeAllocator {
 			//Get free time between two blocks in the list
 			if(blockLenInMillis <= (delta = blockList.get(i + 1).getStart().getTime() - 
 					blockList.get(i).getEnd().getTime()) && delta - blockLenInMillis < minTimeLeftover) {
-				bestStart = blockList.get(i).getEnd();
+				bestStart = (Date) blockList.get(i).getEnd().clone();
 				minTimeLeftover = delta - blockLenInMillis;
 				bestEnd = new Date(bestStart.getTime() + blockLenInMillis);
 			}	
@@ -198,7 +222,7 @@ public class TimeAllocator {
 		//Get free time between last block in list and end time given
 		if(blockLenInMillis <= (delta = end.getTime() - blockList.get(blockList.size() - 1).getEnd().getTime())
 				&& delta - blockLenInMillis < minTimeLeftover) {
-			bestStart = blockList.get(blockList.size() - 1).getEnd();
+			bestStart = (Date) blockList.get(blockList.size() - 1).getEnd().clone();
 			minTimeLeftover = delta - blockLenInMillis;
 			bestEnd = new Date(bestStart.getTime() + blockLenInMillis);
 		}
@@ -208,35 +232,6 @@ public class TimeAllocator {
 		return new AssignmentBlock(bestStart, bestEnd, null, true);
 	}
 
-
-	//Returns the index in the list where the current time should appear
-	//This function uses START dates in its comparisons
-	private int indexOfFitLocn(List<ITimeBlockable> timeList, Date curr) {
-		int ind;
-		int size = timeList.size();
-
-		if(timeList.size() == 0)
-			return 0;
-
-
-		//TODO: Use the *TimeBlock*s' compareTo() function instead of directly
-		//comparing *Date*s here
-
-		//Compare to the first element and last element in the list
-		if(curr.compareTo(timeList.get(0).getStart()) < 0)
-			return 0;
-		else if(curr.compareTo(timeList.get(size - 1).getStart()) > 0)
-			return size;
-
-		//Compare to all surrounding pairs in the middle
-		for(ind = 1; ind < size; ++ind) {
-			if(curr.compareTo(timeList.get(ind - 1).getStart()) > 0 &&
-					curr.compareTo(timeList.get(ind).getStart()) < 0)
-				return ind;
-		}
-
-		return ind;
-	}
 
 	private List<ITimeBlockable> zipTimeBlockLists(List<UnavailableBlock> unavailable,
 			List<AssignmentBlock> curr_asgns) {

@@ -1,4 +1,4 @@
-package frontend.view;
+package frontend.view.calendar;
 
 import java.awt.Dimension;
 
@@ -41,5 +41,10 @@ public class CalendarView extends JPanel {
 	public Dimension getMinimumSize() {
 		return new Dimension(400, 300);
 	}
+	
+	/**
+	 * Does nothing currently
+	 */
+	public void reloadData() {}
 	
 }

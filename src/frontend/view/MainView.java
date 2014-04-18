@@ -8,6 +8,8 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 import frontend.Utils;
+import frontend.view.assignments.AssignmentsView;
+import frontend.view.calendar.CalendarView;
 
 /**
  * Represents a JFrame class that is the frontend interface
@@ -26,8 +28,10 @@ public class MainView extends JFrame {
 	
 	/**
 	 * Constructor sets window properties and adds newly created views
+	 * 
+	 * @param vc the view controller in control
 	 */
-	public MainView() {
+	public MainView(final ViewController vc) {
 		super(Utils.APP_NAME);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(600, 550));
@@ -35,8 +39,8 @@ public class MainView extends JFrame {
 		
 		// Make child views and add them
 		calendar = new CalendarView();
-		toolbar = new ToolbarView();
-		assignmentsView = new AssignmentsView();
+		toolbar = new ToolbarView(vc);
+		assignmentsView = new AssignmentsView(vc);
 		
 		// Whole view
 		final JPanel mainPanel = new JPanel();
@@ -47,7 +51,11 @@ public class MainView extends JFrame {
 		Utils.themeComponent(mainPanel);
 	}
 	
-	public void showOverlay(final JPanel overlay) {
-		
+	/**
+	 * Loads data recursively
+	 */
+	public void reloadData() {
+		calendar.reloadData();
+		assignmentsView.reloadData();
 	}
 }
