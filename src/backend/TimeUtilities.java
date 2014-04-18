@@ -72,4 +72,18 @@ public class TimeUtilities {
 		return ind;
 	}
 	
+	public static String printSchedule(List<ITimeBlockable> allBlocks) {
+		StringBuilder builder = new StringBuilder();
+		for(int i = 0; i < allBlocks.size(); ++i) {
+			ITimeBlockable itb = allBlocks.get(i);
+			builder.append("Start: ");
+			builder.append(itb.getStart());
+			builder.append(" || End: ");
+			builder.append(itb.getEnd());
+			builder.append("\n");
+		}
+		
+		return builder.toString();
+	}
+	
 }
