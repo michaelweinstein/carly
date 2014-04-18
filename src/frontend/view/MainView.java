@@ -49,10 +49,11 @@ public class MainView extends JFrame {
 		Utils.themeComponent(mainPanel);
 	}
 	
-	@Override
-	public void repaint() {
-		assignmentsView.repaint();
-		calendar.repaint();
-		super.repaint();
+	/**
+	 * Loads data recursively
+	 */
+	public void reloadData() {
+		calendar.reloadData();
+		assignmentsView.reloadData();
 	}
 }

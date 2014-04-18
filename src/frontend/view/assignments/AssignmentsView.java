@@ -2,12 +2,14 @@ package frontend.view.assignments;
 
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
 import data.Assignment;
 import frontend.Utils;
@@ -49,27 +51,17 @@ public class AssignmentsView extends JPanel {
 		Utils.themeComponent(scroller.getViewport());
 		
 		final JLabel title = new JLabel("All Assignments");
-		title.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 18));
+		title.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 22));
 		Utils.themeComponent(title);
+		Utils.padComponent(title, 15, 0, 10, 0);
+		Utils.addBorderBottom(title);
+		Utils.padComponentWithBorder(title, 0, 10);
 		
-		add(Box.createVerticalStrut(20));
 		add(title);
-		add(Box.createVerticalStrut(15));
+		add(Box.createVerticalStrut(20));
 		add(scroller);
-	}
-	
-	/**
-	 * Loads in assignments
-	 */
-	@Override
-	public void repaint() {
-		if (assignmentItems != null) {
-			assignmentItems.removeAll();
-			for (final Assignment a : vc.getAssignments()) {
-				assignmentItems.add(new AssignmentItemView(a));
-			}
-		}
-		super.repaint();
+		
+		reloadData();
 	}
 	
 	@Override
@@ -80,5 +72,24 @@ public class AssignmentsView extends JPanel {
 	@Override
 	public Dimension getMinimumSize() {
 		return new Dimension(250, 300);
+	}
+	
+	/**
+	 * Reloads assignments
+	 */
+	public void reloadData() {
+		assignmentItems.removeAll();
+		final List<Assignment> ass = vc.getAssignments();
+		if (ass.isEmpty()) {
+			final JTextArea l = new JTextArea("You're free!");
+			Utils.themeComponent(l);
+			Utils.padComponent(l, 20, 0);
+			l.setEditable(false);
+			l.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 12));
+			assignmentItems.add(l);
+		}
+		for (final Assignment a : ass) {
+			assignmentItems.add(new AssignmentItemView(a));
+		}
 	}
 }

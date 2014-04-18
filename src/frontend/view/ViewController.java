@@ -1,10 +1,7 @@
 package frontend.view;
 
-import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.swing.JFrame;
 
 import data.Assignment;
 import frontend.app.GUIApp;
@@ -17,9 +14,7 @@ import frontend.app.GUIApp;
 public class ViewController {
 	
 	private final GUIApp			app;
-	
-	// View stuff
-	private JFrame					window;
+	private MainView				window;
 	
 	private final List<Assignment>	allAssignments	= new ArrayList<>();	// FOR TESTING ONLY!
 																			
@@ -65,10 +60,7 @@ public class ViewController {
 	 * Redraws whole window
 	 */
 	public void redraw() {
-		for (final Component c : window.getComponents()) {
-			c.revalidate();
-			c.repaint();
-		}
+		window.reloadData();
 		window.revalidate();
 		window.repaint();
 	}
