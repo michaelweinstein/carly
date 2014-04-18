@@ -20,6 +20,7 @@ public class StepModel extends AbstractTableModel {
 	private final String[]			columnNames;
 	private final List<Object[]>	rowData;
 	private final List<Object[]>	deletes;
+	private boolean					editable;
 	
 	/**
 	 * Creates a new table given data
@@ -34,6 +35,7 @@ public class StepModel extends AbstractTableModel {
 			this.rowData.add(list);
 		}
 		deletes = new ArrayList<>();
+		editable = true;
 	}
 	
 	@Override
@@ -68,7 +70,7 @@ public class StepModel extends AbstractTableModel {
 	
 	@Override
 	public boolean isCellEditable(final int row, final int col) {
-		return true;
+		return editable;
 	}
 	
 	@Override
@@ -152,5 +154,14 @@ public class StepModel extends AbstractTableModel {
 	 */
 	public void addItem(final ITemplateStep step) {
 		rowData.add(new Object[] { step.getName(), step.getPercentOfTotal() * 100.0 });
+	}
+	
+	/**
+	 * Sets the editable parameter of the model
+	 * 
+	 * @param b the boolean representing editable
+	 */
+	public void setEditable(final boolean b) {
+		editable = b;
 	}
 }

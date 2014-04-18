@@ -8,7 +8,7 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 import frontend.Utils;
-import frontend.view.calendar.AssignmentsView;
+import frontend.view.assignments.AssignmentsView;
 import frontend.view.calendar.CalendarView;
 
 /**
@@ -38,7 +38,7 @@ public class MainView extends JFrame {
 		// Make child views and add them
 		calendar = new CalendarView();
 		toolbar = new ToolbarView(vc);
-		assignmentsView = new AssignmentsView();
+		assignmentsView = new AssignmentsView(vc);
 		
 		// Whole view
 		final JPanel mainPanel = new JPanel();
@@ -49,7 +49,11 @@ public class MainView extends JFrame {
 		Utils.themeComponent(mainPanel);
 	}
 	
-	public void showOverlay(final JPanel overlay) {
-		
+	/**
+	 * Loads data recursively
+	 */
+	public void reloadData() {
+		calendar.reloadData();
+		assignmentsView.reloadData();
 	}
 }

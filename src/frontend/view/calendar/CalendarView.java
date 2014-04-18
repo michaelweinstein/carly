@@ -42,4 +42,9 @@ public class CalendarView extends JPanel {
 		return new Dimension(400, 300);
 	}
 	
+	/**
+	 * Does nothing currently
+	 */
+	public void reloadData() {}
+	
 }

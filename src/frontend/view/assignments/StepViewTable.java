@@ -11,6 +11,11 @@ public class StepViewTable extends JTable {
 	
 	private static final long	serialVersionUID	= 4252084989397140385L;
 	
+	/**
+	 * Just sets up the look
+	 * 
+	 * @param model the model to run this view
+	 */
 	public StepViewTable(final StepModel model) {
 		super(model);
 		setShowHorizontalLines(true);
