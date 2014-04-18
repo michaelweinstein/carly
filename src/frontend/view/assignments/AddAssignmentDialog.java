@@ -3,7 +3,6 @@ package frontend.view.assignments;
 import hub.HubController;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -30,7 +29,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
-import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SwingConstants;
@@ -44,6 +42,7 @@ import data.ITemplateStep;
 import data.Template;
 import data.TemplateStep;
 import frontend.Utils;
+import frontend.view.ViewController;
 
 /**
  * Class for the dialog box that pops up when adding a new assignment
@@ -52,6 +51,7 @@ import frontend.Utils;
  */
 public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	
+	private final ViewController	vc;
 	private static final String		DATE_FORMAT_STRING	= "MMMM dd, yyyy 'at' hh:mm a";
 	private static final String		DEFAULT_LABEL		= " ";
 	private static final long		serialVersionUID	= -5465413225077024401L;
@@ -61,14 +61,17 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	private JSpinner				_dateTimeField;
 	private JLabel					_statusLabel;
 	private JComboBox<ITemplate>	_templatePicker;
-	private JTable					_stepList;
-	private StepModel				_stepContent;
+	private StepViewTable			_stepList;
 	
 	/**
 	 * Constructor creates all relevant data
+	 * 
+	 * @param vc the parent view controller
 	 */
-	public AddAssignmentDialog() {
+	public AddAssignmentDialog(final ViewController vc) {
 		super();
+		this.vc = vc;
+		
 		Utils.themeComponent(this);
 		Utils.themeComponent(getRootPane());
 		Utils.padComponent(getRootPane(), 15, 15);
@@ -121,6 +124,10 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 				try {
 					final Assignment a = parseFields();
 					HubController.passAssignmentToLearner(a);
+					// FOR TESTING ONLY
+					vc.addAssignment(a);
+					vc.redraw();
+					// ///////
 					clearContents();
 					dispose();
 				} catch (final IllegalArgumentException e1) {
@@ -178,9 +185,9 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		// Make a list of template steps out of the text
 		final List<ITemplateStep> steps = new ArrayList<>();
 		double totalPercentage = 0;
-		for (int i = 0; i < _stepContent.getRowCount(); i++) {
-			final String title = _stepContent.getValueAt(i, StepModel.TITLE_INDEX).toString();
-			final String percString = _stepContent.getValueAt(i, StepModel.PERCENT_INDEX).toString();
+		for (int i = 0; i < _stepList.getModel().getRowCount(); i++) {
+			final String title = _stepList.getModel().getValueAt(i, StepModel.TITLE_INDEX).toString();
+			final String percString = _stepList.getModel().getValueAt(i, StepModel.PERCENT_INDEX).toString();
 			
 			// Important! Skips the empty field at end
 			if (title.isEmpty() && percString.isEmpty()) {
@@ -277,11 +284,11 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			public void itemStateChanged(final ItemEvent event) {
 				if (event.getStateChange() == ItemEvent.SELECTED) {
 					final ITemplate item = (ITemplate) event.getItem();
-					_stepContent.clear();
+					_stepList.getModel().clear();
 					for (final ITemplateStep step : item.getAllSteps()) {
-						_stepContent.addItem(step);
+						_stepList.getModel().addItem(step);
 					}
-					_stepContent.addBlankItem();
+					_stepList.getModel().addBlankItem();
 				}
 			}
 		});
@@ -304,24 +311,13 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		// Tasks view
 		final Object dataValues[][] = { { "", "" } };
 		final String colNames[] = { "Step Name", "% of Total" };
-		_stepContent = new StepModel(dataValues, colNames);
-		_stepContent.addTableModelListener(this);
-		_stepList = new JTable(_stepContent);
-		_stepList.setShowHorizontalLines(true);
-		_stepList.setShowVerticalLines(false);
-		_stepList.setAutoCreateColumnsFromModel(true);
-		_stepList.setRowMargin(5);
-		_stepList.setRowHeight(24);
-		_stepList.setGridColor(Color.white);
-		_stepList.setSelectionForeground(Utils.COLOR_FOREGROUND);
-		_stepList.setSelectionBackground(Utils.COLOR_BACKGROUND);
-		Utils.themeComponent(_stepList);
+		_stepList = new StepViewTable(new StepModel(dataValues, colNames));
+		_stepList.getModel().addTableModelListener(this);
 		Utils.padComponent(_stepList, 10, 30);
 		c.gridx = 1;
 		c.gridheight = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		final JTableHeader header = _stepList.getTableHeader();
-		Utils.themeComponent(header);
 		pane.add(header, c);
 		c.gridx = 1;
 		c.gridy = 4;
@@ -340,9 +336,9 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	@Override
 	public void tableChanged(final TableModelEvent e) {
 		if (e.getLastRow() == _stepList.getRowCount() - 1) {
-			_stepContent.addBlankItem();
+			_stepList.getModel().addBlankItem();
 		}
-		_stepContent.deleteRowsIfEmpty(e.getFirstRow(), e.getLastRow());
+		_stepList.getModel().deleteRowsIfEmpty(e.getFirstRow(), e.getLastRow());
 		revalidate();
 		this.repaint();
 	}
@@ -370,8 +366,8 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		_statusLabel.setText(DEFAULT_LABEL);
 		_titleField.setText("");
 		_dateTimeField.setValue(new Date());
-		_stepContent.clear();
-		_stepContent.addBlankItem();
+		_stepList.getModel().clear();
+		_stepList.getModel().addBlankItem();
 	}
 	
 	@Override
