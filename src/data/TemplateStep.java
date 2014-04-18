@@ -34,6 +34,20 @@ public class TemplateStep implements ITemplateStep {
 		_hoursPerDay = hoursPerDay;
 		_timeOfDay = DataUtil.DEFAULT_TIME_OF_DAY;
 	}
+
+
+	/**
+	 * Constructor used by StorageService to reconstruct the step object
+	 */
+	public TemplateStep(String name, double percentTotal, int stepNumber, int numDays, 
+			double hoursPerDay, TimeOfDay timeOfDay) {
+		_name = name; 
+		_percentOfTotal = percentTotal; 
+		_stepNumber = stepNumber; 
+		_numDays = numDays; 
+		_hoursPerDay = hoursPerDay; 
+		_timeOfDay = timeOfDay; 
+	}
 	
 	/* Private methods */
 	
@@ -103,5 +117,15 @@ public class TemplateStep implements ITemplateStep {
 	@Override
 	public TimeOfDay getBestTimeToWork() {
 		return _timeOfDay;
+	}
+	@Override
+	public int getNumberOfDays() {
+		// TODO Auto-generated method stub
+		return _numDays;
+	}
+	@Override
+	public double getHoursPerDay() {
+		// TODO Auto-generated method stub
+		return _hoursPerDay;
 	}
 }

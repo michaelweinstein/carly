@@ -42,6 +42,18 @@ public class Assignment implements IAssignment {
 		_tasks = createTasksFromTemplate(template);
 	}
 	
+	/**
+	 * Constructor used by StorageService to rebuild an Assignment
+	 * Template and list of tasks are set later.
+	 */
+	public Assignment(String id, String name, Date dueDate, int expectedHours, List<ITask> taskList) {
+		_uniqueId = id; 
+		_name = name; 
+		_deadline = dueDate; 
+		_expectedHours = expectedHours; 
+		_tasks = taskList; 
+	}
+	
 	/* Private methods */
 	
 	/**
@@ -135,6 +147,14 @@ public class Assignment implements IAssignment {
 	@Override
 	public void setExpectedHours(int h) {
 		_expectedHours = h;
+	}
+	
+	/**
+	 * Used by Storage Service to reconstruct the Assignment
+	 * @param template
+	 */
+	public void setTemplate(ITemplate template) {
+		_template = template;
 	}
 	
 	/* IAssignment Accessors (Comments in interface IAssignment) */
