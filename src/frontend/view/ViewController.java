@@ -1,5 +1,6 @@
 package frontend.view;
 
+import java.awt.Component;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -52,9 +53,22 @@ public class ViewController {
 	}
 	
 	/**
+	 * STRICTLY FOR TESTING
+	 * 
+	 * @return the list of assignments
+	 */
+	public List<Assignment> getAssignments() {
+		return allAssignments;
+	}
+	
+	/**
 	 * Redraws whole window
 	 */
 	public void redraw() {
+		for (final Component c : window.getComponents()) {
+			c.revalidate();
+			c.repaint();
+		}
 		window.revalidate();
 		window.repaint();
 	}

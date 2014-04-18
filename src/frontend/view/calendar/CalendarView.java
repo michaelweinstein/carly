@@ -33,6 +33,17 @@ public class CalendarView extends JPanel {
 	}
 	
 	@Override
+	public void repaint() {
+		if (lineView != null) {
+			lineView.repaint();
+		}
+		if (weekView != null) {
+			weekView.repaint();
+		}
+		super.repaint();
+	}
+	
+	@Override
 	public Dimension getPreferredSize() {
 		return new Dimension(600, 400);
 	}
