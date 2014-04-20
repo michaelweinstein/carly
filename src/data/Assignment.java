@@ -10,7 +10,7 @@ public class Assignment implements IAssignment {
 	private final String	_uniqueId;
 	private final String	_name;
 	private final Date		_deadline;
-	private final ITemplate	_template;
+	private ITemplate	_template = null;
 	private int				_expectedHours;
 	private List<ITask>		_tasks;
 	
