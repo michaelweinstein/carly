@@ -40,6 +40,20 @@ public class Task implements ITask {
 		setInitialValues();
 	}
 	
+	/**
+	 * Constructor used by StorageService to recreate the task object
+	 */
+	public Task(String id, String name, double percentTotal, String asgnId, double percentComplete, 
+			TimeOfDay timeOfDay, double suggestedBlockLength) {
+		_uniqueId = id; 
+		_name = name; 
+		_percentOfTotal = percentTotal; 
+		_assignmentId = asgnId; 
+		_percentComplete = percentComplete; 
+		_timeOfDay = timeOfDay; 
+		_suggestedBlockLength = suggestedBlockLength; 
+	}
+	
 	/* Private methods */
 	
 	/**

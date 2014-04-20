@@ -44,6 +44,16 @@ public class Template implements ITemplate {
 		_steps = steps;
 	}
 	
+	/**
+	 * Constructor used by StorageService to reconstruct the template object
+	 */
+	public Template(String id, String name, List<ITemplateStep> steps, double consecutiveHours) {
+		_uid = id; 
+		_name = name; 
+		_steps = steps; 
+		_preferredConsecutiveHours = consecutiveHours; 
+	}
+	
 	/* ITemplate step manipulation */
 	
 	/**

@@ -9,7 +9,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.ScrollPaneConstants;
+import javax.swing.border.EmptyBorder;
 
 import frontend.Utils;
 
@@ -32,13 +32,13 @@ public class WeekView extends JScrollPane {
 		setViewportView(_parentContainer);
 		
 		themeAll();
+		_parentContainer.setPreferredSize(_parentContainer.getPreferredSize());
 	}
 	
 	/**
 	 * Themes everything in scope
 	 */
 	private void themeAll() {
-		setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		
 		Utils.themeComponent(this);
 		Utils.themeComponent(getViewport());
@@ -46,6 +46,7 @@ public class WeekView extends JScrollPane {
 		Utils.themeComponent(_centerPanel);
 		Utils.themeComponentInverse(_timePanel);
 		
+		setViewportBorder(new EmptyBorder(0, 0, 0, 0));
 		Utils.padComponent(this, 0, 0);
 		Utils.padComponent(_parentContainer, 0, 0);
 		Utils.padComponent(_centerPanel, 0, 0);
@@ -56,9 +57,8 @@ public class WeekView extends JScrollPane {
 	public void revalidate() {
 		if (_timePanel != null) {
 			final Dimension ts = _timePanel.getSize();
-			_parentContainer.setPreferredSize(new Dimension(getPreferredSize().width, ts.height));
-			_centerPanel
-					.setPreferredSize(new Dimension(_parentContainer.getPreferredSize().width - ts.width, ts.height));
+			_parentContainer.setSize(new Dimension(getSize().width, getSize().height));
+			_centerPanel.setSize(new Dimension(getSize().width - ts.width, ts.height));
 		}
 		super.revalidate();
 	}

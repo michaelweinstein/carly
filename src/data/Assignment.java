@@ -10,7 +10,7 @@ public class Assignment implements IAssignment {
 	private final String	_uniqueId;
 	private final String	_name;
 	private final Date		_deadline;
-	private final ITemplate	_template;
+	private ITemplate	_template = null;
 	private int				_expectedHours;
 	private List<ITask>		_tasks;
 	
@@ -39,6 +39,18 @@ public class Assignment implements IAssignment {
 		_uniqueId = DataUtil.generateID();
 		
 		_tasks = createTasksFromTemplate(template);
+	}
+	
+	/**
+	 * Constructor used by StorageService to rebuild an Assignment
+	 * Template and list of tasks are set later.
+	 */
+	public Assignment(String id, String name, Date dueDate, int expectedHours, List<ITask> taskList) {
+		_uniqueId = id; 
+		_name = name; 
+		_deadline = dueDate; 
+		_expectedHours = expectedHours; 
+		_tasks = taskList; 
 	}
 	
 	/* Private methods */
@@ -124,6 +136,14 @@ public class Assignment implements IAssignment {
 	@Override
 	public void setExpectedHours(final int h) {
 		_expectedHours = h;
+	}
+	
+	/**
+	 * Used by Storage Service to reconstruct the Assignment
+	 * @param template
+	 */
+	public void setTemplate(ITemplate template) {
+		_template = template;
 	}
 	
 	/* IAssignment Accessors (Comments in interface IAssignment) */

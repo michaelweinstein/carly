@@ -46,4 +46,19 @@ public interface ITemplateStep {
 	 * @return the best time of the day as an enum
 	 */
 	public TimeOfDay getBestTimeToWork();
+	
+	/**
+	 * Number of days this step lasts
+	 * 
+	 * @return number of days
+	 */
+	public int getNumberOfDays();
+	
+	/**
+	 * Gives the hours that the step of the template
+	 * should be worked on per day
+	 * 
+	 * @return number of hours per day
+	 */
+	public double getHoursPerDay();
 }

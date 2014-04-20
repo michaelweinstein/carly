@@ -4,12 +4,11 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.util.List;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
+import javax.swing.ScrollPaneConstants;
 
 import data.Assignment;
 import frontend.Utils;
@@ -44,8 +43,13 @@ public class AssignmentsView extends JPanel {
 		assignmentItems = new JPanel();
 		assignmentItems.setLayout(new BoxLayout(assignmentItems, BoxLayout.Y_AXIS));
 		assignmentItems.setAlignmentX(LEFT_ALIGNMENT);
+		Utils.padComponent(assignmentItems, 0, 30);
+		final JPanel aiWrapper = new JPanel();
+		aiWrapper.add(assignmentItems);
+		Utils.themeComponent(aiWrapper);
 		Utils.themeComponent(assignmentItems);
-		scroller = new JScrollPane(assignmentItems);
+		scroller = new JScrollPane(aiWrapper);
+		scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		scroller.setBorder(null);
 		Utils.themeComponent(scroller);
 		Utils.themeComponent(scroller.getViewport());
@@ -53,25 +57,14 @@ public class AssignmentsView extends JPanel {
 		final JLabel title = new JLabel("All Assignments");
 		title.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 22));
 		Utils.themeComponent(title);
-		Utils.padComponent(title, 15, 0, 10, 0);
+		Utils.padComponent(title, 15, 0, 0, 0);
 		Utils.addBorderBottom(title);
-		Utils.padComponentWithBorder(title, 0, 10);
+		Utils.padComponentWithBorder(title, 0, 20);
 		
 		add(title);
-		add(Box.createVerticalStrut(20));
 		add(scroller);
 		
 		reloadData();
-	}
-	
-	@Override
-	public Dimension getPreferredSize() {
-		return new Dimension(250, 300);
-	}
-	
-	@Override
-	public Dimension getMinimumSize() {
-		return new Dimension(250, 300);
 	}
 	
 	/**
@@ -81,15 +74,23 @@ public class AssignmentsView extends JPanel {
 		assignmentItems.removeAll();
 		final List<Assignment> ass = vc.getAssignments();
 		if (ass.isEmpty()) {
-			final JTextArea l = new JTextArea("You're free!");
+			final JLabel l = new JLabel("You're free!");
 			Utils.themeComponent(l);
-			Utils.padComponent(l, 20, 0);
-			l.setEditable(false);
-			l.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 12));
+			l.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 13));
 			assignmentItems.add(l);
 		}
 		for (final Assignment a : ass) {
 			assignmentItems.add(new AssignmentItemView(a));
 		}
+	}
+	
+	@Override
+	public Dimension getPreferredSize() {
+		return new Dimension(280, 300);
+	}
+	
+	@Override
+	public Dimension getMinimumSize() {
+		return new Dimension(280, 300);
 	}
 }

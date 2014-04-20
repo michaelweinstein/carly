@@ -52,20 +52,20 @@ public class Main {
 //		a = (parser.existsFlag(Utilities.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
 //		a.start();
 		 
-		// Check the arguments for validity and create objects as needed
-		try {
-			parser.parse(args);
-		} catch (final IllegalArgumentException e) {
-			Utils.printError(e.getMessage());
-			System.out.println(Utils.USAGE);
-			return;
-		}
-		
-		// Create an App, subtype dependent on the GUI command line flag
-		final boolean debug = parser.existsFlag(Utils.DEBUG);
-		a = (parser.existsFlag(Utils.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
-		a.start();
-		
+//		// Check the arguments for validity and create objects as needed
+//		try {
+//			parser.parse(args);
+//		} catch (final IllegalArgumentException e) {
+//			Utils.printError(e.getMessage());
+//			System.out.println(Utils.USAGE);
+//			return;
+//		}
+//		
+//		// Create an App, subtype dependent on the GUI command line flag
+//		final boolean debug = parser.existsFlag(Utils.DEBUG);
+//		a = (parser.existsFlag(Utils.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
+//		a.start();
+//		
 		//DEBUG
 		StorageService.setUp();
 	}

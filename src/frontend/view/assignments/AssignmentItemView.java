@@ -1,5 +1,6 @@
 package frontend.view.assignments;
 
+import java.awt.Dimension;
 import java.awt.Font;
 import java.text.DateFormat;
 import java.util.Date;
@@ -40,8 +41,8 @@ public class AssignmentItemView extends JPanel {
 	 */
 	private void createView() {
 		Utils.themeComponent(this);
-		Utils.padComponent(this, 0, 10, 20, 0);
-		Utils.addBorderLeft(this);
+		Utils.padComponent(this, 0, 0, 20, 0);
+		Utils.addBorderBottom(this);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setAlignmentX(LEFT_ALIGNMENT);
 		
@@ -49,8 +50,8 @@ public class AssignmentItemView extends JPanel {
 		final String title = assignment.getName();
 		final JLabel titleLabel = new JLabel(title);
 		titleLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 16));
-		Utils.padComponent(titleLabel, 0, 0);
 		Utils.themeComponent(titleLabel);
+		Utils.padComponent(titleLabel, 10, 0);
 		add(titleLabel);
 		
 		// Date
@@ -58,9 +59,8 @@ public class AssignmentItemView extends JPanel {
 		final DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 		final JLabel dueLabel = new JLabel("Due Date: " + formatter.format(due));
 		dueLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.ITALIC, 11));
-		Utils.padComponent(dueLabel, 0, 0);
 		Utils.themeComponent(dueLabel);
-		Utils.addBorderBottom(dueLabel);
+		Utils.padComponent(dueLabel, 10, 0);
 		add(dueLabel);
 		
 		add(Box.createVerticalStrut(20));
@@ -78,7 +78,15 @@ public class AssignmentItemView extends JPanel {
 		mod.setEditable(false);
 		final StepViewTable taskTable = new StepViewTable(mod);
 		Utils.themeComponent(taskTable);
-		Utils.padComponent(taskTable, 0, 10, 10, 10);
-		add(taskTable);
+		final JPanel taskPanel = new JPanel();
+		Utils.themeComponent(taskPanel);
+		Utils.padComponent(taskPanel, 0, 0, 20, 0);
+		taskPanel.add(taskTable);
+		add(taskPanel);
+	}
+	
+	@Override
+	public Dimension getMaximumSize() {
+		return new Dimension(245, Integer.MAX_VALUE - 1);
 	}
 }
