@@ -55,4 +55,10 @@ public interface ITimeBlockable extends Comparable<ITimeBlockable> {
 	 */
 	public boolean isMovable();
 	
+	/**
+	 * Gives the block length in milliseconds
+	 * @return the length of the block in milliseconds
+	 */
+	public long getLength();
+	
 }

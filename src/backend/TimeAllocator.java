@@ -4,12 +4,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-
 import data.AssignmentBlock;
 import data.IAssignment;
 import data.ITask;
 import data.ITemplate;
+import data.ITemplateStep;
 import data.ITimeBlockable;
+import data.Task;
 import data.UnavailableBlock;
 
 
@@ -43,7 +44,7 @@ public class TimeAllocator {
 
 		//Get the current set of blocks that have been marked by the user as either unavailable
 		//or currently occupied by another assignment
-		//TODO: note that these lists are in sorted order.
+		//Note that these lists are in sorted order.
 		Date start = new Date();
 		Date end = m_asgn.getDueDate();
 		List<UnavailableBlock> unavailable = new ArrayList<>();
@@ -81,9 +82,10 @@ public class TimeAllocator {
 
 		//Try the best case assumption - that blocks are able to be split uniformly across the days
 		//that a user is working on an assignment
-		numBlocksLeft = (int) Math.ceil(m_asgn.getExpectedHours() / numHoursPerBlock);
+		//numBlocksLeft = (int) Math.ceil(m_asgn.getExpectedHours() / numHoursPerBlock);
 		
-
+		
+		
 		//TODO: BIG CHANGE!! Items of different tasks must go in sequential order.  Therefore,
 		//		this loop should change so that is a two-layered loop: one layer goes over the
 		//		set of tasks to insert, and the inner layer goes over the number of blocks for
@@ -92,13 +94,105 @@ public class TimeAllocator {
 		//		reset to the end of the last time block of that Task type to ensure
 		//		chronological correctness.
 		
-		boolean hasCompactedOnce = false;
+		List<ITemplateStep> tempSteps = template.getAllSteps();
 		Date lastTimePlaced = start;
+		boolean success = false;
+		for(int i = 0; i < tempSteps.size(); ++i) {
+			//Get the number of blocks to place for this current step
+			ITemplateStep step = tempSteps.get(i);
+			double numHoursInStep = m_asgn.getExpectedHours() * step.getPercentOfTotal();
+			numBlocksLeft = (int) Math.ceil(numHoursInStep / numHoursPerBlock);
+
+			//TODO: Put the insertion stuff here! (Poss abstract insertionPolicy stuff
+			//		to its own function for ease of use here)
+			success = tryUniformInsertion(allBlocks, start, end, lastTimePlaced, step,
+					numBlocksLeft, numHoursPerBlock);
+		
+			//TODO: Attempt alternate insertion policy here
+			if(!success) {}
+		}
+		
+		
+//		boolean hasCompactedOnce = false;
+//		Date lastTimePlaced = start;
+//		
+//		while(numBlocksLeft > 0) {
+//			//1. Use find fit function for the next block (BEST-fit search, NOT FIRST FIT)
+//			AssignmentBlock block = findFit(allBlocks, numHoursPerBlock, 
+//					(Date) lastTimePlaced.clone(), (Date) end.clone());
+//
+//			//2. If no fit can be found, try compaction OR break the loop and move on to 
+//			//the next type of insertion policy
+//			if(block == null) {
+//				
+//				if(!hasCompactedOnce){
+//					//Compact existing blocks so that they fit better, and reset the lastTimePlaced
+//					//reference so that it is still accurate
+//					TimeCompactor.compact(allBlocks, start, end, lastTimePlaced);
+//					continue;
+//					//TODO: currently I am compacting all blocks... is a different range better?
+//					
+//				}
+//				else {
+//					System.err.println("Could not insert block, even after compacting -- TODO:"
+//						+ " Try to move blocks contained by other assignments outside of the range\n"
+//						+ " OR use more sophisticated compaction around unmovable blocks\n"
+//						+ " OR return FAIL message to the user\n"
+//						+ " OR try breaking the remaining blocks into half-size pieces\n");
+//					
+//					break;
+//				}
+//			}
+//
+//			//3. If a fit is found, insert the block into the list, decrement the counter
+//			//	 and continue.
+//			int ind = TimeUtilities.indexOfFitLocn(allBlocks, block.getStart());
+//			allBlocks.add(ind, block);
+//			--numBlocksLeft;
+//			
+//			//4. Reset the place that the last block was placed for future searches
+//			lastTimePlaced = block.getStart();
+//		}
+
+
+
+		//TODO: Then, decompact all AssignmentBlocks so that a user may have a break
+		//		from his/her work time.  This decompact() function will consider several
+		//		heuristics including (1) putting assignments in their preferred time-of-day
+		//		(2) spacing them out to have breaks, (3) variety between different types of
+		//		assignments if there are several AssignmentBlocks in a row
+		
+		System.out.println("[Start, End] : [" + start + ", " + end + "]");
+		System.out.println("Debug, allBlocks list before decompaction");
+		for(int i = 0; i < allBlocks.size(); ++i) {
+			ITimeBlockable itb = allBlocks.get(i);
+			System.out.println("Start: " + itb.getStart() + " || End: " + itb.getEnd());
+		}
+		
+		TimeCompactor.decompact(allBlocks, start, end);
+			
+		System.out.println("DEBUG - printing out the time ranges of all blocks");	
+		for(int i = 0; i < allBlocks.size(); ++i) {
+			ITimeBlockable itb = allBlocks.get(i);
+			System.out.println("Start: " + itb.getStart() + " || End: " + itb.getEnd() + itb.isMovable());
+		}
+		
+		//Assign the value of this field so it may be accessed by the "getter"
+		//function in this class
+		m_localChangesToBlocks = allBlocks;
+
+	}
+	
+	
+	private boolean tryUniformInsertion(List<ITimeBlockable> allBlocks, Date start, Date end, Date lastTimePlaced,
+			ITemplateStep step, int numBlocksLeft, double numHoursPerBlock) {
+		
+		boolean hasCompactedOnce = false;
 		
 		while(numBlocksLeft > 0) {
 			//1. Use find fit function for the next block (BEST-fit search, NOT FIRST FIT)
 			AssignmentBlock block = findFit(allBlocks, numHoursPerBlock, 
-					(Date) lastTimePlaced.clone(), (Date) end.clone());
+					(Date) lastTimePlaced.clone(), (Date) end.clone(), step);
 
 			//2. If no fit can be found, try compaction OR break the loop and move on to 
 			//the next type of insertion policy
@@ -119,7 +213,7 @@ public class TimeAllocator {
 						+ " OR return FAIL message to the user\n"
 						+ " OR try breaking the remaining blocks into half-size pieces\n");
 					
-					break;
+					return false;
 				}
 			}
 
@@ -132,43 +226,15 @@ public class TimeAllocator {
 			//4. Reset the place that the last block was placed for future searches
 			lastTimePlaced = block.getStart();
 		}
-
-
-		//TODO: Attempt alternate insertion policy here
-
-
-		//TODO: Then, decompact all AssignmentBlocks so that a user may have a break
-		//		from his/her work time.  This decompact() function will consider several
-		//		heuristics including (1) putting assignments in their preferred time-of-day
-		//		(2) spacing them out to have breaks, (3) variety between different types of
-		//		assignments if there are several AssignmentBlocks in a row
 		
-		System.out.println("Debug, allBlocks list before decompaction");
-		for(int i = 0; i < allBlocks.size(); ++i) {
-			ITimeBlockable itb = allBlocks.get(i);
-			System.out.println("Start: " + itb.getStart() + " || End: " + itb.getEnd());
-		}
 		
-		//if(hasCompactedOnce) {
-			TimeCompactor.decompact(allBlocks, start, end);
-		//}
-			
-		System.out.println("DEBUG - printing out the time ranges of all blocks");	
-		for(int i = 0; i < allBlocks.size(); ++i) {
-			ITimeBlockable itb = allBlocks.get(i);
-			System.out.println("Start: " + itb.getStart() + " || End: " + itb.getEnd() + itb.isMovable());
-		}
-		
-		//Assign the value of this field so it may be accessed by the "getter"
-		//function in this class
-		m_localChangesToBlocks = allBlocks;
-
+		return true;
 	}
 	
 	
 	//TODO: Also pass the Task to-be-assigned to this block... or remove Task from constructor?
 	private AssignmentBlock findFit(List<ITimeBlockable> blockList, double blockLength,
-			Date start, Date end) {
+			Date start, Date end, ITemplateStep step) {
 		//Return a newly-initialized AssignmentBlock containing the relevant start/end
 		//dates for the current chunk.
 
@@ -214,8 +280,9 @@ public class TimeAllocator {
 		}
 
 
-		//TODO: give an actual task here instead of null
-		return new AssignmentBlock(bestStart, bestEnd, null, true);
+		//Create the task to give in the AssignmentBlock constructor
+		ITask task = new Task(m_asgn.getName() + ":" + step.getName(), step.getPercentOfTotal(), m_asgn.getID());
+		return new AssignmentBlock(bestStart, bestEnd, task, true);
 	}
 
 
