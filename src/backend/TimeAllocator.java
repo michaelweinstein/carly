@@ -24,20 +24,10 @@ public class TimeAllocator {
 	private static final double DEFAULT_HRS_PER_BLOCK = 3.0;
 
 	private IAssignment m_asgn;
-	private List<ITimeBlockable> m_toDelete;
-	private List<ITimeBlockable> m_toAdd;
-
-	//TODO: Replace the two lists above with the below - I will return to Dylan
-	//		two lists representing all the unavailable time blocks and all the assigned
-	//		time blocks that have been added or modified from the original calendar
-	//		(i.e. I give him 2 lists containing everything within the ranges that 
-	//		I have been messing with)
 	private List<ITimeBlockable> m_localChangesToBlocks;
 
 	public TimeAllocator(IAssignment asgn) {
 		this.m_asgn = asgn;
-		this.m_toDelete = new ArrayList<ITimeBlockable>();
-		this.m_toAdd = new ArrayList<ITimeBlockable>();
 		this.m_localChangesToBlocks = new ArrayList<ITimeBlockable>();
 	}
 
@@ -49,15 +39,6 @@ public class TimeAllocator {
 		int numSubtasks;
 		int numBlocksLeft; //the number of blocks left to place
 
-		//TODO: Do a check right away where I iterate over all available time to see if
-		//		I can even insert an assignment with the requested number of hours.
-		//CAREFUL - certain blocks are unmovable... therefore, I'm not sure that I
-		//can ever guarantee that an assignment can fit.  HOWEVER, I will be able to
-		//declare that an assignment *can't* fit.
-
-		//Clear the old sets of blocks 
-		m_toDelete.clear();
-		m_toAdd.clear();
 		m_localChangesToBlocks.clear();
 
 		//Get the current set of blocks that have been marked by the user as either unavailable
@@ -81,6 +62,11 @@ public class TimeAllocator {
 				//StorageService.getAllAssignmentBlocksWithinRange(start, end);
 		List<ITimeBlockable> allBlocks = zipTimeBlockLists(unavailable, curr_asgns);
 
+		//If there are not enough free hours in the range specified by the new Assignment,
+		//exit this function
+		if(!TimeUtilities.existsPossibleFit(allBlocks, m_asgn))
+			return;
+		
 		//Get the number of subtasks for this assignment, determine how many chunks to break into
 		//per subtask, and how long per subtask
 		taskList = m_asgn.getTasks();
@@ -279,14 +265,6 @@ public class TimeAllocator {
 
 	private long convertHoursToMillis(double hrs) {
 		return (long) (hrs * 60 * 60 * 1000);
-	}
-
-	public List<ITimeBlockable> getBlocksToDelete() {
-		return new ArrayList<ITimeBlockable>(m_toDelete);
-	}
-
-	public List<ITimeBlockable> getBlocksToAdd() {
-		return new ArrayList<ITimeBlockable>(m_toAdd);
 	}
 
 	public List<ITimeBlockable> getEntireBlockSet() {

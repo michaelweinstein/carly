@@ -72,7 +72,7 @@ public class TimeCompactorTest {
 		allBlocks.add(b3);
 		allBlocks.add(b4);
 		
-		System.out.println("Decompact Test 1: ");
+		System.out.println("Decompact Test 1, (Start, End) = (" + start + ", " + end + ")");
 		System.out.println(TimeUtilities.printSchedule(allBlocks));
 		System.out.println("----");
 		//Test de-compaction - the UnavailableBlock in the middle should not be moved

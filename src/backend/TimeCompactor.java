@@ -127,6 +127,11 @@ public class TimeCompactor {
 			long recommendedStart = timeToStartFrom.getTime() - avgFreeTimeMillis - delta;
 			long newStart = getBlockInsertLocation(block, allBlocks, recommendedStart);
 			
+			//TODO: this is a temporary fix - if a time is recommended that is too far in the past,
+			//		then exit this function
+			if(newStart < start.getTime())
+				return;
+			
 			long newEnd = newStart + delta;
 			
 			
