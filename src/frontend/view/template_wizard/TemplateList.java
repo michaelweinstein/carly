@@ -14,22 +14,24 @@ public class TemplateList {
 	
 	public TemplateList() {
 		_templates = StorageService.getAllTemplates();
-		
-//////////////	
-/*		System.out.println("_templates.size(): " + _templates.size());
+				
+//////////////	print liiiiines
+		System.out.println("TemplateList _templates.size(): " + _templates.size());
 		for (ITemplate t: _templates) {
-			System.out.println("t: " + t);
-		}*/
+			System.out.println("TemplateList t: " + t);
+		}
+//////^^^^^^^^^^^^^^
 	}
 	
 	/**
+	 * Add Template to local list and to the SQL
+	 * database. Storing in a local list saves 
+	 * having to query a second time to get all
+	 * templates to display to user in TemplateWizardView.
 	 * 
 	 * @param t
 	 */
 	public static void addTemplate(Template t) {
-//////
-//		System.out.println("template: " + t);
-		
 		StorageService.addTemplate(t);
 		_templates.add(t);
 	}
