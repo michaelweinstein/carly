@@ -2,12 +2,13 @@ package backend;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Cache<T> {
-	private HashMap<String, T> _cache; 
+	private ConcurrentHashMap<String, T> _cache; 
 	
 	public Cache() {
-		_cache = new HashMap<>(); 
+		_cache = new ConcurrentHashMap<>(); 
 	}
 	
 	public boolean contains(String key) {

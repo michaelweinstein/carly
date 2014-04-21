@@ -2,23 +2,28 @@ package frontend.view.template_wizard;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.table.JTableHeader;
 import javax.swing.text.JTextComponent;
-
-import backend.StorageService;
 
 import data.Template;
 import frontend.Utils;
 import frontend.view.SettingsView;
+import frontend.view.assignments.StepModel;
+import frontend.view.assignments.StepViewTable;
 
 /**
  * This is the front-end class for the Template Wizard panel that is on the Settings page (not the Dialogue View).
@@ -37,14 +42,14 @@ public class TemplateWizardView extends JPanel {
 	private Map<String, JTextComponent> _inputMap = new HashMap<>();
 	
 	/* User Input Label Strings */
-	private static final String new_template = "New template";
-	private static final String new_step = "New step";
-	private static final String template_name = "Name";
-	private static final String template_hours = "Consecutive hours you want to work";
-	private static final String step_name = "Step name";
-	private static final String step_percent = "Percent of total assignment";
-	private static final String submit_step = "Add step";
-	private static final String submit_template = "Submit template";
+	private static final String new_template 		= "New template";
+	private static final String template_name 		= "Name";
+	private static final String template_hours 		= "Consecutive hours you want to work";
+	private static final String submit_template 	= "Submit template";	
+	// Steps Panel
+	private static final String step_name 			= "Step name";
+	private static final String step_percent 		= "% of total";
+	private static final String steps_list 			= "Steps";
 	
 	// TODO Store panels/buttons as instance variables, factor out some code (change order of constructor listeners)
 	
@@ -60,6 +65,10 @@ public class TemplateWizardView extends JPanel {
 		Utils.themeComponent(this);
 		Utils.addBorderFull(this);
 		Utils.padComponentWithBorder(this, padding, padding);
+				
+////////
+		// Get list of Templates and store it in TemplateList (in constructor)
+		new TemplateList();
 
 		// TODO: List current templates and resize when grabbing on far left
 		
@@ -76,57 +85,10 @@ public class TemplateWizardView extends JPanel {
 		final JPanel hoursPanel = newNumberPanel(template_hours);
 		
 		
-		/* TemplateStep wizard */
-
 		//TODO List current TemplateSteps and grab on left to move around
-
-		/* "Create new step" button (listener below) */
-		final JButton createStepBtn = new JButton(new_step);
-		createStepBtn.setFocusPainted(false);
-		createStepBtn.setPreferredSize(new Dimension(130, 20));
-		createStepBtn.setVisible(false);
 		
-		/* "Step name: " */
-		final JPanel stepNamePanel = newNamePanel(step_name);	
-		/* "Percent of assignment: " */
-		final JPanel stepPercentPanel = newNumberPanel(step_percent);
-		
-		/* Submit step ("Add step" button) */
-		final JButton submitStepBtn = new JButton(submit_step);
-		submitStepBtn.setPreferredSize(new Dimension(140, 20));
-		submitStepBtn.setForeground(Color.RED);
-		submitStepBtn.setFocusPainted(false);
-		submitStepBtn.setVisible(false);
-		submitStepBtn.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				// TODO
-				boolean verified = verifyStepData();
-				if (verified) {
-					//TODO 
-					// Store step data from _inputMap
-					// Create new Step and store in StepList
-					// Clear step data from _inputMap
-					
-					// Set input fields invisible
-					stepNamePanel.setVisible(false);
-					stepPercentPanel.setVisible(false);
-					submitStepBtn.setVisible(false);
-				}
-			}
-		});
-		
-		/* TOP "Create new step" button listener */
-		createStepBtn.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				// TODO Set step inputs visible
-				stepNamePanel.setVisible(true);
-				stepPercentPanel.setVisible(true);
-				submitStepBtn.setVisible(true);
-			}
-		});
+		final JPanel stepPanel = createStepsPanel();
+		stepPanel.setVisible(false);
 		
 		/* --- End of TemplateStep Wizard --- */
 
@@ -149,8 +111,8 @@ public class TemplateWizardView extends JPanel {
 					double hours = Double.parseDouble(_inputMap.get(template_hours).getText());
 					Template t = new Template(name, hours);
 					// Add Template to database
-					StorageService.addTemplate(t);
-					// Add Template to local list too for responsiveness
+//					StorageService.addTemplate(t);
+					// Add Template to StorageService and local list
 					TemplateList.addTemplate(t);
 					
 					// GUI Response if template successfully created
@@ -159,12 +121,12 @@ public class TemplateWizardView extends JPanel {
 					// Hides all elements
 					namePanel.setVisible(false);
 					hoursPanel.setVisible(false);
-					createStepBtn.setVisible(false);
+					
+//					createStepBtn.setVisible(false);					
+					
 					submitTemplateBtn.setVisible(false);
 					// Hide step inputs if they are still showing
-					stepNamePanel.setVisible(false);
-					stepPercentPanel.setVisible(false);
-					submitStepBtn.setVisible(false);
+					stepPanel.setVisible(false);
 				}
 			}
 		});
@@ -177,8 +139,8 @@ public class TemplateWizardView extends JPanel {
 				// Dislays all elements		
 				namePanel.setVisible(true);
 				hoursPanel.setVisible(true);
-				createStepBtn.setVisible(true);
 				submitTemplateBtn.setVisible(true);
+				stepPanel.setVisible(true);
 				
 				// Disable "New template" btn while form is open
 				newTemplateBtn.setEnabled(false);
@@ -190,17 +152,22 @@ public class TemplateWizardView extends JPanel {
 		/* --- End of Main Listener --- */
 		
 		/* Adds all elements of Template Wizard form */
-	
+////////////////////////////////////////////////	
 		this.add(newTemplateBtn);
-		this.add(Box.createVerticalStrut(10));
+//		this.add(Box.createVerticalStrut(10));
+/////^^^^^^^^^^
 		
 		this.add(namePanel);
 		this.add(hoursPanel);
-		this.add(createStepBtn);
+		
+//		this.add(createStepBtn);
 		// Step inputs
-		this.add(stepNamePanel);
-		this.add(stepPercentPanel);
-		this.add(submitStepBtn);
+//		this.add(stepNamePanel);
+//		this.add(stepPercentPanel);
+//		this.add(submitStepBtn);
+		
+//////////////////StepViewTable
+		this.add(stepPanel);
 		
 		this.add(submitTemplateBtn);
 	}
@@ -209,6 +176,73 @@ public class TemplateWizardView extends JPanel {
 	// TODO setStepsVisible(boolean), setAllVisible(boolean)
 		
 // ============ START Create Panel Methods ==================
+	
+	/**
+	 * Creates and returns a JPanel with JTable
+	 * for user to input and view the TemplateSteps
+	 * of a Template.
+	 * 
+	 * @return JPanel ( {steps, % of total} list )
+	 */
+	private JPanel createStepsPanel() {
+		JPanel panel = new JPanel();
+		// Create Layout and Constraints, main components
+		final GridBagConstraints c = new GridBagConstraints();
+		panel.setLayout(new GridBagLayout());
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 1;
+		c.weighty = 0;
+		c.insets = new Insets(0, 0, 10, 0);
+		Utils.themeComponent(panel);
+		
+		// Create TableModel
+		final Object dataValues[][] = { { "", ""} };
+		final String colNames[] = {step_name, step_percent};
+		// Create TableModel to pass into StepViewTable
+		final StepModel model = new StepModel(dataValues, colNames);
+		// Step data verified automatically
+		model.addTableModelListener(new TableModelListener() {
+			@Override
+			public void tableChanged(TableModelEvent e) {
+				// TODO User-edited Step Table
+				if (e.getLastRow() == model.getRowCount() -1) 
+					model.addBlankItem();
+				model.deleteRowsIfEmpty(e.getFirstRow(), e.getLastRow());
+				revalidate();
+				TemplateWizardView.this.repaint();
+			}
+		});
+		
+		// 'Steps: ' label
+		final JLabel stepLabel = new JLabel(steps_list + ": ");
+		Utils.themeComponent(stepLabel);
+		Utils.padComponent(stepLabel, 11, 5);
+		c.gridx = 0;
+		c.gridy = 0;
+		c.gridwidth = 1;
+//		c.anchor = GridBagConstraints.CENTER;
+		panel.add(stepLabel, c);
+		
+		// Instantiate StepViewTable 
+		final StepViewTable steplist = new StepViewTable(model);
+		// Create Header
+		final JTableHeader header = steplist.getTableHeader();
+		// Style Header
+		c.gridx = 1;
+		c.gridy = 0;
+		c.gridheight = 1;
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		panel.add(header, c);
+		// Style StepViewTable list
+		Utils.padComponent(steplist, 10, 30);
+		c.gridx = 1;
+		c.gridy = 1;
+		c.gridheight = GridBagConstraints.REMAINDER;
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		panel.add(steplist, c);
+		return panel;
+	}
+	
 	/**
 	 * Factored out code to create a panel with
 	 * a label and text field for inputting the
@@ -252,44 +286,7 @@ public class TemplateWizardView extends JPanel {
 	
 	
 // ============ START Verify Data Methods ==================
-	/**
-	 * Checks that step data is valid.
-	 * That Name field is not empty.
-	 * That Percent field can be parsed as double.
-	 * 
-	 * @return
-	 */
-	private boolean verifyStepData() {
-		// Set up validity booleans
-		boolean validName = false;
-		boolean validPercent = false;
-		// Check step name
-		if (_inputMap.containsKey(step_name)) {
-			// TODO: Check that name is valid
-			String stepName = _inputMap.get(step_name).getText();
-			// Is not empty string
-			if (!stepName.isEmpty()) {
-				validName = true;
-			}
-		}
-		// Check step percent of total
-		if (_inputMap.containsKey(step_percent)) {
-			// TODO: Check that percent is within range, and Double.parseDouble works
-			String percent = _inputMap.get(step_percent).getText();
-			if (!percent.isEmpty()) {
-				// Is valid as double
-				try {
-					Double.parseDouble(percent);
-					validPercent = true;
-				} catch (NumberFormatException e) {
-					validPercent = false;
-				}
-			}
-		}
-		// TODO Display specific error messages
-		return validName && validPercent;
-	}
-	
+
 	/**
 	 * Verifies that all user input fields have valid input, and that no
 	 * mandatory fields have been left blank -- returns true. 

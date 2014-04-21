@@ -23,9 +23,26 @@ public interface ITimeBlockable extends Comparable<ITimeBlockable> {
 	 */
 	public void setEnd(Date d);
 	
+	/**
+	 * The start date of the block
+	 * 
+	 * @return a Date object representing the start of the time block 
+	 */
 	public Date getStart();
+	
+	/**
+	 * The end date of the block
+	 * 
+	 * @return a Date object representing the end of the time block 
+	 */
 	public Date getEnd();
 	
+	/**
+	 * The unique id representing this time block 
+	 * 
+	 * @return a String representing this block's unique id
+	 */
+	public String getId(); 
 	
 	/**
 	 * Set the task of this time block

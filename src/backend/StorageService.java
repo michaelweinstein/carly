@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -13,14 +14,17 @@ import java.util.List;
 import java.util.Map;
 
 import data.Assignment;
+import data.AssignmentBlock;
 import data.IAssignment;
 import data.ITask;
 import data.ITemplate;
 import data.ITemplateStep;
+import data.ITimeBlockable;
 import data.Task;
 import data.Template;
 import data.TemplateStep;
 import data.TimeOfDay;
+import data.UnavailableBlock;
 
 /**
  * Handles the storage, retrieval and persistence of data for Carly
@@ -29,34 +33,48 @@ import data.TimeOfDay;
  */
 public class StorageService {
 	
-//	private static Cache<IAssignment> _assignments;
-//	private static Cache<ITask> _tasks; 
-	private static Cache<ITemplate> _templates; 
+	private static Cache<Template> _templates; 
 	
 	/**
-	 * Called when the user opens app for the first time 
+	 * Called each time application starts up 
 	 */
-	public static synchronized void setUp() {
+	public static synchronized void initialize(boolean dropTables) {
+		_templates = new Cache<>();
 		//Create tables in the database
 		try (Connection con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD)) {
 			Class.forName("org.h2.Driver");
 			
-			System.out.println("Connected to db!");
+			if (dropTables) {
+			    try (Statement stmt = con.createStatement()) {
+			        stmt.execute(Utilities.DROP_ALL_TABLES);
+			    }
+			}
+			
 	        ArrayList<String> queries = new ArrayList<>(); 
+	        
+	        //TimeBlock table 
+	        ArrayList<String> blockCols = new ArrayList<>();
+	        blockCols.add(concatColumn("BLOCK_ID", "VARCHAR(255) NOT NULL PRIMARY KEY"));
+	        blockCols.add(concatColumn("TASK_ID", "VARCHAR(255)"));
+	        blockCols.add(concatColumn("BLOCK_START", "BIGINT"));
+	        blockCols.add(concatColumn("BLOCK_END", "BIGINT"));
+	        blockCols.add(concatColumn("BLOCK_MOVABLE", "BOOLEAN"));
+	        queries.add(Utilities.buildCreateString("TIME_BLOCK", blockCols)); 
 	        
 	        //Assignment table
 	        ArrayList<String> assignmentCols = new ArrayList<>();
 	        assignmentCols.add(concatColumn("ASGN_ID", "VARCHAR(255) NOT NULL PRIMARY KEY"));
 	        assignmentCols.add(concatColumn("ASGN_NAME", "VARCHAR(255)"));
 	        assignmentCols.add(concatColumn("ASGN_EXPECTED_HOURS", "INT"));
-	        assignmentCols.add(concatColumn("ASGN_DATE", "DATE"));
+	        assignmentCols.add(concatColumn("ASGN_DATE", "BIGINT"));
 	        assignmentCols.add(concatColumn("ASGN_TEMPLATE_ID", "VARCHAR(255)"));
 	        queries.add(Utilities.buildCreateString("ASSIGNMENT", assignmentCols)); 
 			
 	        //Tasks table
 	        ArrayList<String> taskCols = new ArrayList<>();
-	        taskCols.add(concatColumn("ASGN_ID", 
-	        		"VARCHAR(255) NOT NULL FOREIGN KEY REFERENCES ASSIGNMENT (ASGN_ID) ON DELETE CASCADE"));
+	        taskCols.add(concatColumn("ASGN_ID", "VARCHAR(255) NOT NULL"));
+	        taskCols.add(concatColumn("FOREIGN KEY (ASGN_ID)", 
+	        		"REFERENCES ASSIGNMENT (ASGN_ID) ON DELETE CASCADE"));
 	        taskCols.add(concatColumn("TASK_ID", "VARCHAR(255) NOT NULL PRIMARY KEY"));
 	        taskCols.add(concatColumn("TASK_NAME", "VARCHAR(255)"));
 	        taskCols.add(concatColumn("TASK_PERCENT_TOTAL", "DOUBLE"));
@@ -75,7 +93,9 @@ public class StorageService {
 	        //Template step table
 	        ArrayList<String> stepCols = new ArrayList<>();
 	        stepCols.add(concatColumn("TEMPLATE_ID", 
-	        		"VARCHAR(255) NOT NULL FOREIGN KEY REFERENCES TEMPLATE (TEMPLATE_ID) ON DELETE CASCADE"));
+	        		"VARCHAR(255) NOT NULL"));
+	        stepCols.add(concatColumn("FOREIGN KEY (TEMPLATE_ID)", 
+	        		"REFERENCES TEMPLATE (TEMPLATE_ID) ON DELETE CASCADE"));
 	        stepCols.add(concatColumn("STEP_NAME", "VARCHAR(255)"));  
 	        stepCols.add(concatColumn("STEP_PERCENT_TOTAL", "DOUBLE"));
 	        stepCols.add(concatColumn("STEP_STEP_NUMBER", "INT"));
@@ -85,37 +105,39 @@ public class StorageService {
 	        stepCols.add(concatColumn("PRIMARY KEY", "(TEMPLATE_ID, STEP_NAME)"));
 	        queries.add(Utilities.buildCreateString("TEMPLATE_STEP", stepCols));
 
-//		    try (Statement stmt = con.createStatement()) {
-//		    	for (String query: queries) {
-//		    		stmt.addBatch(query);
-//		    	}
-//		    	stmt.executeBatch(); //TODO CAN YOU BATCH CREATE STATEMENTS? 
-//		    } 
+		    try (Statement stmt = con.createStatement()) {
+		    	for (String query: queries) {
+		    		stmt.addBatch(query);
+		    	}
+		    	stmt.executeBatch(); 
+		    } 
 	        
-//	        String query = "SHOW COLUMNS FROM ASSIGNMENT"; 
-//
+		    //DEBUG
+//	        String query = "SHOW TABLES"; 
 //		    try (Statement stmt = con.createStatement()) {
-//	
 //		        ResultSet rs = stmt.executeQuery(query);
+//		        
+//		        ResultSetMetaData rsmd = rs.getMetaData();
+//		        int columnCount = rsmd.getColumnCount();
+//		        System.out.println("Column names are: ");
+//		        // The column count starts from 1
+//		        for (int i = 1; i < columnCount + 1; i++ ) {
+//		          String name = rsmd.getColumnName(i);
+//		          System.out.println(name);
+//		        }
 //	
-//		        System.out.println("Processing results."); 
-//		        System.out.println(rs.toString()); 
+//		        System.out.println("Processing results.");
+//		        while (rs.next()) {
+//		        	System.out.println(rs.getString("TABLE_NAME"));
+//		        }
 //		    }
+		    //DEBUG
 		} 
 		catch (ClassNotFoundException e) {
 			Utilities.printException("db drive class not found", e); 
 		} catch (SQLException e) {
 			Utilities.printSQLException("could not create all tables", e); 
 		}
-	}
-	
-	/** 
-	 * Called at each application startup
-	 */
-	public static synchronized void initialize() {
-//		_assignments = new Cache<>();
-//		_tasks = new Cache<>();
-		_templates = new Cache<>();
 	}
 	
 	/*
@@ -131,24 +153,52 @@ public class StorageService {
 	    	Class.forName("org.h2.Driver");
 	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
 			
+	    	//DEBUG
+	        String query = "SHOW COLUMNS FROM ASSIGNMENT"; 
+		    try (Statement stmt = con.createStatement()) {
+	
+		        ResultSet rs = stmt.executeQuery(query);
+		        
+		        ResultSetMetaData rsmd = rs.getMetaData();
+		        int columnCount = rsmd.getColumnCount();
+
+		        System.out.println("Column names are: ");
+		        // The column count starts from 1
+		        for (int i = 1; i < columnCount + 1; i++ ) {
+		          String name = rsmd.getColumnName(i);
+		          System.out.println("\t" + name);
+		        }
+	
+		        System.out.println("Processing results.");
+		        while (rs.next()) {
+		        	System.out.println("\t" + rs.getString("COLUMN_NAME"));
+		        }
+		    }
+		    //DEBUG
+	    	
+	    	
 	        con.setAutoCommit(false);
 	        assignmentStatement = con.prepareStatement(Utilities.INSERT_ASGN);
 	        taskStatement = con.prepareStatement(Utilities.INSERT_TASK);
         	String assignmentId = assignment.getID(); 
         	
         	//insert assignment
+        	System.out.println("INSERT_ASGN calling setValues()");
             Utilities.setValues(assignmentStatement, assignmentId, assignment.getName(), 
-            		assignment.getExpectedHours(), assignment.getDueDate(), assignment.getTemplate().getID());
+            		assignment.getExpectedHours(), assignment.getDueDate().getTime(), assignment.getTemplate().getID());
             assignmentStatement.execute();
             
             //insert associated tasks
             for (ITask task : assignment.getTasks()) {
+            	System.out.println("INSERT_TASK calling setValues()");
             	Utilities.setValues(taskStatement, assignmentId, task.getTaskID(), task.getName(), 
             			task.getPercentOfTotal(), task.getPercentComplete(), 
             			task.getPreferredTimeOfDay().name(), task.getSuggestedBlockLength());
             	taskStatement.addBatch();
             }
             taskStatement.executeBatch();
+            
+            //TODO: Check to see if the template exists, if not throw an exception!
             
             //commit to the database
             con.commit();
@@ -203,7 +253,7 @@ public class StorageService {
 	        	
 	        	//insert assignment
 	            Utilities.setValues(assignmentStatement, assignmentId, assignment.getName(), 
-	            		assignment.getExpectedHours(), assignment.getDueDate(), assignment.getTemplate().getID());
+	            		assignment.getExpectedHours(), assignment.getDueDate().getTime(), assignment.getTemplate().getID());
 	            assignmentStatement.execute();
 	            
 	            //insert associated tasks
@@ -214,9 +264,7 @@ public class StorageService {
 	            	taskStatement.addBatch();
 	            }
 	            taskStatement.executeBatch();
-	            
-	            //TODO: merge for template and template steps
-	            
+	            	            
 	            //commit to the database and update counter if successful
 	            con.commit();
 	            numSuccess++; 
@@ -301,8 +349,9 @@ public class StorageService {
 		return assignment; 
 	}
 	
-	public static synchronized IAssignment updateAssignment(IAssignment assignment) {
+	public static synchronized Assignment updateAssignment(Assignment assignment) {
 		PreparedStatement assignmentStatement = null;
+		PreparedStatement taskStatement = null; 
 	    Connection con = null; 
 	    
 	    try {
@@ -312,12 +361,22 @@ public class StorageService {
 	        con.setAutoCommit(false);
 	        assignmentStatement = con.prepareStatement(Utilities.UPDATE_ASGN);
         	String assignmentId = assignment.getID(); 
+        	List<ITask> taskList = assignment.getTasks(); 
         	
         	//insert assignment
-        	 Utilities.setValues(assignmentStatement, assignment.getName(), 
-	            		assignment.getExpectedHours(), assignment.getDueDate(), 
+        	Utilities.setValues(assignmentStatement, assignment.getName(), 
+	            		assignment.getExpectedHours(), assignment.getDueDate().getTime(), 
 	            		assignment.getTemplate().getID(), assignmentId);
             assignmentStatement.execute();
+            
+            //merge all tasks
+            taskStatement = con.prepareStatement(Utilities.MERGE_TASK);
+            for (ITask task : taskList) {
+            	Utilities.setValues(taskStatement, assignmentId, task.getTaskID(), task.getName(), 
+            			task.getPercentComplete(), task.getPreferredTimeOfDay().name(), task.getSuggestedBlockLength());
+            	taskStatement.addBatch();
+            }
+            taskStatement.executeBatch(); 
             
             //commit to the database
             con.commit();
@@ -340,6 +399,9 @@ public class StorageService {
 	    		if (assignmentStatement != null) {
 		            assignmentStatement.close();
 		        }
+	    		if (taskStatement != null) {
+	    			taskStatement.close(); 
+	    		}
 		        con.setAutoCommit(true);
 	    	}
 	    	catch(SQLException x) {
@@ -350,25 +412,176 @@ public class StorageService {
 	    return assignment; 
 	}
 	
-	public static synchronized List<IAssignment> getAllAssignmentsWithinRange(Date date1, Date date2) {
+	public static synchronized Assignment getAssignmentById(String toBeFoundId) {
+		System.out.println("StorageService.getAssignmentById");
 		PreparedStatement assignmentStatement = null;
 		PreparedStatement templateStatement = null; 
-	    Connection con = null; 
-	    HashMap<String,Assignment> _idToAssignment = new HashMap<>();   
-	    HashMap<String,List<Assignment>> _templateIdToAssignmentList = new HashMap<>();
-	    HashMap<String,Template> _idToTemplate = new HashMap<>(); 
-	    ArrayList<IAssignment> results = new ArrayList<>(); 
-	    
-	    //Defensive programming in case the date1 is not earlier than date2
-	    Date earlierDate = (date1.compareTo(date2) < 0) ? date1 : date2; 
-	    Date laterDate = (date2.compareTo(date1) > 0) ? date2 : date1; 
+	    Connection con = null;
+	    Assignment result = null; 
+	    Template template = null;
+	    String templateId = "";
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
 	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
 			
-	        assignmentStatement = con.prepareStatement(Utilities.SELECT_ASGN_TASKS_BY_DATE); 
-        	Utilities.setValues(assignmentStatement, earlierDate, laterDate);
+	    	System.out.println("preparing statement!");
+	        assignmentStatement = con.prepareStatement(Utilities.SELECT_ASGN_BY_ID); 
+        	System.out.println("SELECT_ASGN_BY_ID calling setValues()");
+	        Utilities.setValues(assignmentStatement, toBeFoundId);
+        	ResultSet asgnTaskResults = assignmentStatement.executeQuery();
+
+        	//DEBUG
+        	ResultSet debugSet = asgnTaskResults; 
+	        ResultSetMetaData rsmd = debugSet.getMetaData();
+	        int columnCount = rsmd.getColumnCount();
+
+	        System.out.println("StorageService: getAssignmentById: asgn/task query column names are: ");
+	        // The column count starts from 1
+	        for (int i = 1; i < columnCount + 1; i++ ) {
+	          String name = rsmd.getColumnName(i);
+	          System.out.println("\t" + name);
+	        }
+		    //DEBUG
+        	
+        	while (asgnTaskResults.next()) {
+        		//Getting all of the field for reconstructing the task object
+        		String taskId = asgnTaskResults.getString("TASK_ID");
+        		String taskName = asgnTaskResults.getString("TASK_NAME");
+        		double taskPercentTotal = asgnTaskResults.getDouble("TASK_PERCENT_TOTAL");
+        		double taskPercentComplete = asgnTaskResults.getDouble("TASK_PERCENT_COMPLETE");
+        		String timeOfDay = asgnTaskResults.getString("TASK_TIME_OF_DAY");
+        		TimeOfDay taskTimeOfDay = TimeOfDay.valueOf(timeOfDay); 
+        		double taskSuggestedLength = asgnTaskResults.getDouble("TASK_SUGGESTED_LENGTH");
+        		
+        		//Get the necessary fields from assignment
+        		String asgnId = asgnTaskResults.getString("ASSIGNMENT.ASGN_ID"); 
+        		String asgnTemplateId = asgnTaskResults.getString("ASGN_TEMPLATE_ID");
+        		
+        		Task task = new Task(taskId, taskName, taskPercentTotal, asgnId, taskPercentComplete, 
+        				taskTimeOfDay, taskSuggestedLength);
+        		
+        		//if the assignment hasn't been reconstructed yet
+        		if (result == null) {
+            		String asgnName = asgnTaskResults.getString("ASGN_NAME"); 
+            		Date asgnDueDate = new Date(asgnTaskResults.getLong("ASGN_DATE")); 
+            		int asgnExpectedHours = asgnTaskResults.getInt("ASGN_EXPECTED_HOURS");
+            		ArrayList<ITask> asgnTaskList = new ArrayList<>(); 
+            		
+            		asgnTaskList.add(task);
+            		result = new Assignment(asgnId, asgnName, asgnDueDate, asgnExpectedHours, asgnTaskList);
+            		templateId = asgnTemplateId; 
+        		}
+        		//if the assignment has already been reconstructed, just add task to its task list
+        		else {
+        			result.addTask(task);
+        		}
+        	}
+        	
+        	/*
+        	 * Assignments are still missing a reference to their Template.
+        	 * We need to rebuilt Templates and all their TemplateSteps first
+        	 */
+        	
+	        templateStatement = con.prepareStatement(Utilities.SELECT_TEMPLATES_AND_STEPS_BY_ID); 
+	        
+        	//Now add the appropriate template reference to each assignment 
+    		if (_templates.contains(templateId)) {
+    			template = _templates.get(templateId); 
+    		}
+    		else {
+    			System.out.println("SELECT_TEMPLATE_AND_STEPS_BY_ID calling setValues()");
+    			Utilities.setValues(templateStatement, templateId);
+        		ResultSet templateStepResults =  templateStatement.executeQuery();
+        		
+        		//DEBUG
+    	        rsmd = templateStepResults.getMetaData();
+    	        columnCount = rsmd.getColumnCount();
+
+    	        System.out.println("StorageService: getAssignmentById: template/steps query column names are: ");
+    	        // The column count starts from 1
+    	        for (int i = 1; i < columnCount + 1; i++ ) {
+    	          String name = rsmd.getColumnName(i);
+    	          System.out.println("\t" + name);
+    	        }
+    		    //DEBUG
+        		
+    	        
+        		while (templateStepResults.next()) {
+        			System.out.println("StorageService: getAssignmentById: template/steps whilte loop");
+        			//Reconstructing the template step
+            		String stepName = templateStepResults.getString("STEP_NAME");
+            		double stepPercentTotal = templateStepResults.getDouble("STEP_PERCENT_TOTAL");
+            		int stepStepNumber = templateStepResults.getInt("STEP_STEP_NUMBER");
+            		int stepNumDays = templateStepResults.getInt("STEP_NUM_DAYS");
+            		double stepHoursPerDay = templateStepResults.getDouble("STEP_HOURS_PER_DAY");
+            		String timeOfDay = templateStepResults.getString("STEP_TIME_OF_DAY");
+            		TimeOfDay stepTimeOfDay = TimeOfDay.valueOf(timeOfDay); 
+            		
+            		String templId = templateStepResults.getString("TEMPLATE.TEMPLATE_ID");  
+            		TemplateStep step = new TemplateStep(stepName, stepPercentTotal, stepStepNumber, 
+            				stepNumDays, stepHoursPerDay, stepTimeOfDay);
+            		
+            		if (template == null) {
+            			String templateName = templateStepResults.getString("TEMPLATE_NAME");
+                		double templateConsecutiveHours = templateStepResults.getDouble("TEMPLATE_CONSECUTIVE_HOURS");
+                		ArrayList<ITemplateStep> templateList = new ArrayList<>();   
+                		templateList.add(step); 
+                		
+                		template = new Template(templId, templateName, templateList, templateConsecutiveHours); 
+                		result.setTemplate(template);
+                		System.out.println("\tStorageService: getAssignmentById: just set assignment's template: " + result.getTemplate().toString()); 
+            		}
+            		else {
+            			template.addStep(step); 
+            		}
+        		}
+        		
+        		_templates.insert(templateId, template); 
+    		}
+	    } 
+	    catch (ClassNotFoundException e) {
+			Utilities.printException("StorageService: getAssignmentById: db drive class not found", e);
+		} 
+	    catch (SQLException e) {
+	        Utilities.printSQLException("StorageService: getAssignmentById: could not retrieve assignments", e);
+	    } 
+	    finally {
+	    	try {
+	    		if (assignmentStatement != null) {
+		            assignmentStatement.close();
+		        }
+	    		if (templateStatement != null) {
+		            templateStatement.close();
+		        }
+	    	}
+	    	catch(SQLException x) {
+                Utilities.printSQLException("StorageService: getAssignmentById: could not close resource", x);
+            }
+	    }
+		
+		return result; 
+	}
+	
+	public static synchronized List<Assignment> getAllAssignmentsWithinRange(Date date1, Date date2) {
+		PreparedStatement assignmentStatement = null;
+		PreparedStatement templateStatement = null; 
+	    Connection con = null; 
+	    HashMap<String,Assignment> idToAssignment = new HashMap<>();   
+	    HashMap<String,List<Assignment>> templateIdToAssignmentList = new HashMap<>();
+	    HashMap<String,Template> idToTemplate = new HashMap<>(); 
+	    ArrayList<Assignment> results = new ArrayList<>(); 
+	    
+	    //Defensive programming in case the date1 is not earlier than date2
+	    Date earlier = (date1.compareTo(date2) < 0) ? date1 : date2; 
+	    Date later = (date2.compareTo(date1) > 0) ? date2 : date1; 
+	    
+	    try {
+	    	Class.forName("org.h2.Driver");
+	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+			
+	        assignmentStatement = con.prepareStatement(Utilities.SELECT_ASGNS_TASKS_BY_DATE); 
+        	Utilities.setValues(assignmentStatement, earlier.getTime(), later.getTime());
         	ResultSet asgnTaskResults = assignmentStatement.executeQuery();
 
         	while (asgnTaskResults.next()) {
@@ -390,29 +603,29 @@ public class StorageService {
         				taskTimeOfDay, taskSuggestedLength);
         		
         		//if the assignment hasn't been reconstructed yet
-        		if (!_idToAssignment.containsKey(asgnId)) {
+        		if (!idToAssignment.containsKey(asgnId)) {
             		String asgnName = asgnTaskResults.getString("ASGN_NAME"); 
-            		Date asgnDueDate = asgnTaskResults.getDate("ASGN_DATE"); 
+            		Date asgnDueDate = new Date(asgnTaskResults.getLong("ASGN_DATE")); 
             		int asgnExpectedHours = asgnTaskResults.getInt("ASGN_EXPECTED_HOURS");
             		ArrayList<ITask> asgnTaskList = new ArrayList<>(); 
             		
             		asgnTaskList.add(task);
             		asgn = new Assignment(asgnId, asgnName, asgnDueDate, asgnExpectedHours, asgnTaskList); 
-            		_idToAssignment.put(asgnId, asgn);
+            		idToAssignment.put(asgnId, asgn);
         		}
         		//if the assignment has already been reconstructed, just add task to its task list
         		else {
-        			asgn = _idToAssignment.get(asgnId);
+        			asgn = idToAssignment.get(asgnId);
         			asgn.addTask(task);
         		}
         		
-        		if (_templateIdToAssignmentList.containsKey(asgnTemplateId)) {
-        			_templateIdToAssignmentList.get(asgnTemplateId).add(asgn);
+        		if (templateIdToAssignmentList.containsKey(asgnTemplateId)) {
+        			templateIdToAssignmentList.get(asgnTemplateId).add(asgn);
         		}
         		else {
         			ArrayList<Assignment> asgnList = new ArrayList<>(); 
         			asgnList.add(asgn); 
-        			_templateIdToAssignmentList.put(asgnTemplateId, asgnList); 
+        			templateIdToAssignmentList.put(asgnTemplateId, asgnList); 
         		}
         	}
         	
@@ -421,10 +634,10 @@ public class StorageService {
         	 * We need to rebuilt Templates and all their TemplateSteps first
         	 */
         	
-	        templateStatement = con.prepareStatement(Utilities.SELECT_TEMPLATE_AND_STEPS_BY_ID); 
+	        templateStatement = con.prepareStatement(Utilities.SELECT_TEMPLATES_AND_STEPS_BY_ID); 
 	        
         	//Now add the appropriate template reference to each assignment 
-        	for (Map.Entry<String, List<Assignment>> entry : _templateIdToAssignmentList.entrySet()) {
+        	for (Map.Entry<String, List<Assignment>> entry : templateIdToAssignmentList.entrySet()) {
         		String listTemplateId = entry.getKey(); 
         		List<Assignment> associatedAssignments = entry.getValue(); 
         		
@@ -451,25 +664,25 @@ public class StorageService {
                 		TemplateStep step = new TemplateStep(stepName, stepPercentTotal, stepStepNumber, 
                 				stepNumDays, stepHoursPerDay, stepTimeOfDay);
                 		
-                		if (!_idToTemplate.containsKey(templateId)) {
+                		if (!idToTemplate.containsKey(templateId)) {
                 			String templateName = templateStepResults.getString("TEMPLATE_NAME");
                     		double templateConsecutiveHours = templateStepResults.getDouble("TEMPLATE_CONSECUTIVE_HOURS");
                     		ArrayList<ITemplateStep> templateList = new ArrayList<>();   
                     		templateList.add(step); 
                     		
                     		Template template = new Template(templateId, templateName, templateList, templateConsecutiveHours); 
-                    		_idToTemplate.put(templateId, template);
+                    		idToTemplate.put(templateId, template);
                     		
                     		for (Assignment a : associatedAssignments) {
                     			a.setTemplate(template);
                     		}
                 		}
                 		else {
-                			_idToTemplate.get(templateId).addStep(step); 
+                			idToTemplate.get(templateId).addStep(step); 
                 		}
             		}
             		
-            		_templates.insert(listTemplateId, _idToTemplate.get(listTemplateId)); 
+            		_templates.insert(listTemplateId, idToTemplate.get(listTemplateId)); 
         		}
         	}
 	    } 
@@ -493,7 +706,7 @@ public class StorageService {
             }
 	    }
 		
-	    results.addAll(_idToAssignment.values()); 
+	    results.addAll(idToAssignment.values()); 
 		return results; 
 	}
 
@@ -503,15 +716,15 @@ public class StorageService {
 	    ArrayList<ITask> results = new ArrayList<>(); 
 	    
 	    //Defensive programming in case the date1 is not earlier than date2
-	    Date earlierDate = (date1.compareTo(date2) < 0) ? date1 : date2; 
-	    Date laterDate = (date2.compareTo(date1) > 0) ? date2 : date1; 
+	    Date earlier = (date1.compareTo(date2) < 0) ? date1 : date2; 
+	    Date later = (date2.compareTo(date1) > 0) ? date2 : date1; 
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
 	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
 			
 	        statement = con.prepareStatement(Utilities.SELECT_TASKS_BY_DATE); 
-        	Utilities.setValues(statement, earlierDate, laterDate);
+        	Utilities.setValues(statement, earlier.getTime(), later.getTime());
         	ResultSet taskResults = statement.executeQuery();
         	
         	while (taskResults.next()) {
@@ -553,17 +766,182 @@ public class StorageService {
 	 * Store and retrieve TimeBlocks
 	 */
 
-//	public static synchronized List<UnavailableBlock> getAllUnavailableBlocksWithinRange(Date date1, Date date2);
-//	public static synchronized List<AssignmentBlock> getAllAssignmentBlocksWithinRange(Date date1, Date date2);
+	public static synchronized List<UnavailableBlock> getAllUnavailableBlocksWithinRange(Date date1, Date date2) {
+		PreparedStatement statement = null; 
+	    Connection con = null; 
+	    ArrayList<UnavailableBlock> results = new ArrayList<>(); 
+	    
+	    //Defensive programming in case the date1 is not earlier than date2
+	    Date earlier = (date1.compareTo(date2) < 0) ? date1 : date2; 
+	    Date later = (date2.compareTo(date1) > 0) ? date2 : date1; 
+	    
+	    try {
+	    	Class.forName("org.h2.Driver");
+	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+			
+	        statement = con.prepareStatement(Utilities.SELECT_UNAVAILABLE_BLOCKS_BY_DATE); 
+        	Utilities.setValues(statement, earlier.getTime(), later.getTime());
+        	ResultSet blockResults = statement.executeQuery();
+        	
+        	while (blockResults.next()) {
+        		String blockId = blockResults.getString("BLOCK_ID");
+        		String taskId = blockResults.getString("TIME_BLOCK.TASK_ID");
+        		Date blockStart = new Date(blockResults.getLong("BLOCK_START"));
+        		Date blockEnd = new Date(blockResults.getLong("BLOCK_END"));
+        		boolean blockMovable = blockResults.getBoolean("BLOCK_MOVABLE");
+        		
+        		String asgnId = blockResults.getString("ASGN_ID");
+        		String taskName = blockResults.getString("TASK_NAME");
+        		double taskPercentTotal = blockResults.getDouble("TASK_PERCENT_TOTAL");
+        		double taskPercentComplete = blockResults.getDouble("TASK_PERCENT_COMPLETE");
+        		String timeOfDay = blockResults.getString("TASK_TIME_OF_DAY");
+        		TimeOfDay taskTimeOfDay = TimeOfDay.valueOf(timeOfDay); 
+        		double taskSuggestedLength = blockResults.getDouble("TASK_SUGGESTED_LENGTH");
+        		
+        		Task task = new Task(taskId, taskName, taskPercentTotal, asgnId, taskPercentComplete, 
+        				taskTimeOfDay, taskSuggestedLength);
+        		results.add(new UnavailableBlock(blockId, blockStart, blockEnd, task, blockMovable)); 
+        	}
+	    } 
+	    catch (ClassNotFoundException e) {
+			Utilities.printException("db drive class not found", e);
+		} 
+	    catch (SQLException e) {
+	        Utilities.printSQLException("could not retrieve assignments", e);
+	    } 
+	    finally {
+	    	try {
+	    		if (statement != null) {
+		            statement.close();
+		        }
+	    	}
+	    	catch(SQLException x) {
+                Utilities.printSQLException("could not close resource", x);
+            }
+	    }
+		
+		return results; 
+	}
+	
+	public static synchronized List<AssignmentBlock> getAllAssignmentBlocksWithinRange(Date date1, Date date2) {
+		PreparedStatement statement = null; 
+	    Connection con = null; 
+	    ArrayList<AssignmentBlock> results = new ArrayList<>(); 
+	    
+	    //Defensive programming in case the date1 is not earlier than date2
+	    Date earlier = (date1.compareTo(date2) < 0) ? date1 : date2; 
+	    Date later = (date2.compareTo(date1) > 0) ? date2 : date1; 
+	    
+	    try {
+	    	Class.forName("org.h2.Driver");
+	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+			
+	        statement = con.prepareStatement(Utilities.SELECT_ASSIGNMENT_BLOCKS_BY_DATE); 
+        	Utilities.setValues(statement, earlier.getTime(), later.getTime());
+        	ResultSet blockResults = statement.executeQuery();
+        	
+        	while (blockResults.next()) {
+        		String blockId = blockResults.getString("BLOCK_ID");
+        		String taskId = blockResults.getString("TIME_BLOCK.TASK_ID");
+        		Date blockStart = new Date(blockResults.getLong("BLOCK_START"));
+        		Date blockEnd = new Date(blockResults.getLong("BLOCK_END"));
+        		boolean blockMovable = blockResults.getBoolean("BLOCK_MOVABLE");
+        		
+        		String asgnId = blockResults.getString("ASGN_ID");
+        		String taskName = blockResults.getString("TASK_NAME");
+        		double taskPercentTotal = blockResults.getDouble("TASK_PERCENT_TOTAL");
+        		double taskPercentComplete = blockResults.getDouble("TASK_PERCENT_COMPLETE");
+        		String timeOfDay = blockResults.getString("TASK_TIME_OF_DAY");
+        		TimeOfDay taskTimeOfDay = TimeOfDay.valueOf(timeOfDay); 
+        		double taskSuggestedLength = blockResults.getDouble("TASK_SUGGESTED_LENGTH");
+        		
+        		Task task = new Task(taskId, taskName, taskPercentTotal, asgnId, taskPercentComplete, 
+        				taskTimeOfDay, taskSuggestedLength);
+        		results.add(new AssignmentBlock(blockId, blockStart, blockEnd, task, blockMovable)); 
+        	}
+	    } 
+	    catch (ClassNotFoundException e) {
+			Utilities.printException("db drive class not found", e);
+		} 
+	    catch (SQLException e) {
+	        Utilities.printSQLException("could not retrieve assignments", e);
+	    } 
+	    finally {
+	    	try {
+	    		if (statement != null) {
+		            statement.close();
+		        }
+	    	}
+	    	catch(SQLException x) {
+                Utilities.printSQLException("could not close resource", x);
+            }
+	    }
+		
+		return results;
+	}
 
-//	public static synchronized void addTimeBlock(ITimeBlockable block);
-//	public static synchronized void addAllTimeBlocks(List<ITimeBlockable> block);
+	public static synchronized void addTimeBlock(ITimeBlockable block) {
+		PreparedStatement statement = null;
+	    Connection con = null; 
+	    
+	    try {
+	    	Class.forName("org.h2.Driver");
+	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+			
+	        con.setAutoCommit(false);
+	        statement = con.prepareStatement(Utilities.INSERT_TIME_BLOCK);
+            Utilities.setValues(statement, block.getId(), block.getTaskId(), block.getStart().getTime(),
+            		block.getEnd().getTime(), block.isMovable());
+            statement.execute();
+                        
+            //TODO: Check to see if associated task is stored in db and either throw exception or add/update it
+                        
+            //commit to the database
+            con.commit();
+	    } 
+	    catch (ClassNotFoundException e) {
+			Utilities.printException("StorageService: addTemplate: db drive class not found", e);
+		} 
+	    catch (SQLException e) {
+	        Utilities.printSQLException("StorageService: addTemplate: attempting to roll back transaction", e);
+	        if (con != null) {
+	            try {
+	                con.rollback();
+	            } catch(SQLException x) {
+	                Utilities.printSQLException("StorageService: addTemplate: could not roll back transaction", x);
+	            }
+	        }
+	    } 
+	    finally {
+	    	try {
+	    		if (statement != null) {
+		            statement.close();
+		        }
+		        con.setAutoCommit(true);
+	    	}
+	    	catch(SQLException x) {
+                Utilities.printSQLException("could not close resource", x);
+            }
+	    } 
+	}
+	
+	public static synchronized void addAllTimeBlocks(List<ITimeBlockable> block) {
+		
+	}
+	
+	public static synchronized ITimeBlockable updateTimeBlock(ITimeBlockable block) {
+		return block; 
+	}
+	
+	public static synchronized ITimeBlockable removeTimeBlock(ITimeBlockable block) {
+		return block; 
+	}
 
 	/*
 	 * Storage and retrieval of Templates used to lay out Assignments 
 	 */
 	
-	public static synchronized ITemplate getTemplate(String id) {
+	public static synchronized Template getTemplate(String id) {
 		if (_templates.contains(id)) {
 			return _templates.get(id); 
 		}
@@ -576,7 +954,7 @@ public class StorageService {
 	    	Class.forName("org.h2.Driver");
 	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
 			
-	        statement = con.prepareStatement(Utilities.SELECT_TEMPLATE_AND_STEPS_BY_ID); 
+	        statement = con.prepareStatement(Utilities.SELECT_TEMPLATES_AND_STEPS_BY_ID); 
         	Utilities.setValues(statement, id);
     		ResultSet templateStepResults =  statement.executeQuery();
     		
@@ -643,19 +1021,10 @@ public class StorageService {
 	        stepStatement = con.prepareStatement(Utilities.INSERT_TEMPLATE_STEP);
         	String templateId = temp.getID(); 
         	
-//        	"INSERT INTO TEMPLATE " +
-//			"(TEMPLATE_ID, TEMPLATE_NAME, TEMPLATE_CONSECUTIVE_HOURS) " + 
-//			"VALUES (?, ?, ?) ";
-        	
         	//insert assignment
             Utilities.setValues(templateStatement, templateId, temp.getName(), temp.getPreferredConsecutiveHours());
             templateStatement.execute();
-            
-//            "INSERT INTO TEMPLATE_STEP " +
-//			"(TEMPLATE_ID, STEP_NAME, STEP_PERCENT_TOTAL, STEP_STEP_NUMBER, _STEP_NUM_DAYS, " +
-//			"STEP_HOURS_PER_DAY, STEP_TIME_OF_DAY) " + 
-//			"VALUES (?, ?, ?, ?, ?, ?, ?) ";
-            
+                        
             //insert associated tasks
             for (ITemplateStep step : temp.getAllSteps()) {
             	Utilities.setValues(stepStatement, templateId, step.getName(), step.getPercentOfTotal(), 
@@ -663,20 +1032,20 @@ public class StorageService {
             	stepStatement.addBatch();
             }
             stepStatement.executeBatch();
-            
+                        
             //commit to the database
             con.commit();
 	    } 
 	    catch (ClassNotFoundException e) {
-			Utilities.printException("db drive class not found", e);
+			Utilities.printException("StorageService: addTemplate: db drive class not found", e);
 		} 
 	    catch (SQLException e) {
-	        Utilities.printSQLException("attempting to roll back transaction", e);
+	        Utilities.printSQLException("StorageService: addTemplate: attempting to roll back transaction", e);
 	        if (con != null) {
 	            try {
 	                con.rollback();
 	            } catch(SQLException x) {
-	                Utilities.printSQLException("could not roll back transaction", x);
+	                Utilities.printSQLException("StorageService: addTemplate: could not roll back transaction", x);
 	            }
 	        }
 	    } 
@@ -700,7 +1069,8 @@ public class StorageService {
 	
 	public static synchronized ITemplate updateTemplate(ITemplate temp) {
 		PreparedStatement templateStatement = null;
-		PreparedStatement stepStatement = null;
+		PreparedStatement deleteStepStatement = null;
+		PreparedStatement insertStepStatement = null;
 	    Connection con = null; 
 	    
 	    try {
@@ -708,18 +1078,25 @@ public class StorageService {
 	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
 	        con.setAutoCommit(false);
 
+	        //Update the existing template, if any of the values have changed
 	        templateStatement = con.prepareStatement(Utilities.UPDATE_TEMPLATE);
         	Utilities.setValues(templateStatement, temp.getName(), 
         			 temp.getPreferredConsecutiveHours(), temp.getID());
             templateStatement.execute();
             
-            stepStatement = con.prepareStatement(Utilities.MERGE_TEMPLATE_STEP);
+            //Delete all template steps from before
+            deleteStepStatement = con.prepareStatement(Utilities.DELETE_TEMPLATE_STEPS_BY_ID);
+            Utilities.setValues(deleteStepStatement, temp.getID());
+            deleteStepStatement.execute(); 
+            
+            //Insert new template steps
+            insertStepStatement = con.prepareStatement(Utilities.INSERT_TEMPLATE_STEP);
             for (ITemplateStep step : temp.getAllSteps()) {
-            	Utilities.setValues(stepStatement, temp.getID(), step.getName(), step.getPercentOfTotal(), step.getStepNumber(), 
+            	Utilities.setValues(insertStepStatement, temp.getID(), step.getName(), step.getPercentOfTotal(), step.getStepNumber(), 
             			step.getNumberOfDays(), step.getHoursPerDay(), step.getBestTimeToWork().name());
-            	stepStatement.addBatch();
+            	insertStepStatement.addBatch();
             }
-            stepStatement.executeBatch(); 
+            insertStepStatement.executeBatch(); 
             
             //commit to the database
             con.commit();
@@ -732,7 +1109,8 @@ public class StorageService {
 	        if (con != null) {
 	            try {
 	                con.rollback();
-	            } catch(SQLException x) {
+	            } 
+	            catch(SQLException x) {
 	                Utilities.printSQLException("could not roll back transaction", x);
 	            }
 	        }
@@ -742,8 +1120,8 @@ public class StorageService {
 	    		if (templateStatement != null) {
 		            templateStatement.close();
 		        }
-	    		if (stepStatement != null) {
-		            stepStatement.close();
+	    		if (insertStepStatement != null) {
+		            insertStepStatement.close();
 		        }
 		        con.setAutoCommit(true);
 	    	}
@@ -765,7 +1143,7 @@ public class StorageService {
 	    	Class.forName("org.h2.Driver");
 	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
 			
-	        statement = con.prepareStatement(Utilities.SELECT_ALL_TEMPLATE_AND_STEPS); 
+	        statement = con.prepareStatement(Utilities.SELECT_ALL_TEMPLATES_AND_STEPS); 
     		ResultSet templateStepResults =  statement.executeQuery();
     		
     		while (templateStepResults.next()) {
