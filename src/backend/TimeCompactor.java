@@ -171,8 +171,9 @@ public class TimeCompactor {
 		
 		
 		//Try to move assignments to their preferred time-of-day if possible
-		//TODO: tweak how blocks are spaced out -- uniformly is likely not the best way to go
 		
+	
+		//TODO: tweak how blocks are spaced out -- uniformly is likely not the best way to go
 		
 	}
 	
@@ -256,6 +257,11 @@ public class TimeCompactor {
 			}
 			
 		}
+	}
+	
+	
+	private static void optimizePreferredTime(List<ITimeBlockable> allBlocks) {
+		//TODO: try to put blocks in their preferred time of day, if possible
 	}
 	
 	

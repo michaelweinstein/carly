@@ -103,4 +103,17 @@ public class TimeUtilities {
 		return builder.toString();
 	}
 	
+	
+	
+	//Return false and do not modify the list if an insertion is not possible
+	public static boolean switchTimeBlocks(List<ITimeBlockable> allBlocks, ITimeBlockable b1, ITimeBlockable b2) {
+		
+		//TODO : check to see if same length (switch always possible)
+		//TODO : check to see if one longer than other - look at its immediate neighbors in list (maybe possible)
+		
+		//Return true if the insertion was successful
+		return true;
+	}
+	
+	
 }
