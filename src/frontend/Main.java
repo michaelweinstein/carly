@@ -70,6 +70,10 @@ public class Main {
 		a = (parser.existsFlag(Utils.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
 		a.start();
 		
+		/* For StorageService.initialize(false||true):
+		 * Set 'true' if you want to drop old tables at the start of every run
+		 * Set 'false' for persistence */
+		
 		//DEBUG
 		StorageService.initialize(false);
 	}
