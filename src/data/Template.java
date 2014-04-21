@@ -149,4 +149,35 @@ public class Template implements ITemplate {
 	public String toString() {
 		return _name;
 	}
+	
+	public String fullString() {
+		StringBuilder builder = new StringBuilder(); 
+		builder.append ("[uid: ");
+		builder.append(_uid); 
+		builder.append(", name: ");
+		builder.append(_name); 
+		builder.append(", preferredConsecutiveHours: ");
+		builder.append(_preferredConsecutiveHours); 
+		builder.append(", steps: ");
+		
+		for (ITemplateStep step : _steps) {
+			builder.append("\n" + step.getName()); 
+		}
+		builder.append("]"); 
+		return builder.toString().trim(); 
+	}
+	
+	@Override
+	public boolean equals(Object other) {
+		if (!(other instanceof Template)) {
+			return false; 
+		}
+		try {
+			Template comp = (Template) other;
+			return (comp.fullString().contains(this.fullString())) ? true : false;
+		}
+		catch (ClassCastException x) {
+			return false; 
+		}
+	}
 }
