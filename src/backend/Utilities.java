@@ -28,7 +28,7 @@ public abstract class Utilities {
 	protected static final String INSERT_TIME_BLOCK = 
 			"INSERT INTO TIME_BLOCK " + 
 			"(BLOCK_ID, TASK_ID, BLOCK_START, BLOCK_END, BLOCK_MOVABLE) " + 
-			"(?, ?, ?, ?, ?) ";
+			"VALUES (?, ?, ?, ?, ?) ";
 	
 	protected static final String UPDATE_TIME_BLOCK = 
 			"UPDATE TIME_BLOCK " +
@@ -55,7 +55,7 @@ public abstract class Utilities {
 			"INNER JOIN TASK " + 
 			"ON TASK.TASK_ID = TIME_BLOCK.TASK_ID " +
 			"WHERE BLOCK_START >= ? AND BLOCK_END <= ? " + 
-			"AND BLOCK_MOVABLE = TRUE "; 
+			"AND BLOCK_MOVABLE = FALSE "; 
 	
 	/*
 	 * Assignment SQL statements

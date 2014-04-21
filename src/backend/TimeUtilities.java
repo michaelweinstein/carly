@@ -108,7 +108,20 @@ public class TimeUtilities {
 	//Return false and do not modify the list if an insertion is not possible
 	public static boolean switchTimeBlocks(List<ITimeBlockable> allBlocks, ITimeBlockable b1, ITimeBlockable b2) {
 		
-		//TODO : check to see if same length (switch always possible)
+		//Check to see if same length (switch always possible)
+		if(b1.getLength() == b2.getLength()) {
+			Date tempStart = b2.getStart();
+			Date tempEnd = b2.getEnd();
+			
+			b2.setStart(b1.getStart());
+			b2.setEnd(b1.getEnd());
+			b1.setStart(tempStart);
+			b1.setEnd(tempEnd);
+			
+			return true;
+		}
+		
+		
 		//TODO : check to see if one longer than other - look at its immediate neighbors in list (maybe possible)
 		
 		//Return true if the insertion was successful
