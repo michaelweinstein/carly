@@ -37,14 +37,14 @@ public class TemplateWizardView extends JPanel {
 	private Map<String, JTextComponent> _inputMap = new HashMap<>();
 	
 	/* User Input Label Strings */
-	private static final String new_template = "New template";
-	private static final String new_step = "New step";
-	private static final String template_name = "Name";
-	private static final String template_hours = "Consecutive hours you want to work";
-	private static final String step_name = "Step name";
-	private static final String step_percent = "Percent of total assignment";
-	private static final String submit_step = "Add step";
-	private static final String submit_template = "Submit template";
+	private static final String new_template 		= "New template";
+	private static final String new_step 			= "New step";
+	private static final String template_name 		= "Name";
+	private static final String template_hours 		= "Consecutive hours you want to work";
+	private static final String step_name 			= "Step name";
+	private static final String step_percent 		= "Percent of total assignment";
+	private static final String submit_step 		= "Add step";
+	private static final String submit_template 	= "Submit template";
 	
 	// TODO Store panels/buttons as instance variables, factor out some code (change order of constructor listeners)
 	
@@ -60,6 +60,10 @@ public class TemplateWizardView extends JPanel {
 		Utils.themeComponent(this);
 		Utils.addBorderFull(this);
 		Utils.padComponentWithBorder(this, padding, padding);
+		
+////
+		// Get list of Templates and store it in TemplateList (in constructor)
+		TemplateList tlist = new TemplateList();
 
 		// TODO: List current templates and resize when grabbing on far left
 		
@@ -149,8 +153,8 @@ public class TemplateWizardView extends JPanel {
 					double hours = Double.parseDouble(_inputMap.get(template_hours).getText());
 					Template t = new Template(name, hours);
 					// Add Template to database
-					StorageService.addTemplate(t);
-					// Add Template to local list too for responsiveness
+//					StorageService.addTemplate(t);
+					// Add Template to StorageService and local list
 					TemplateList.addTemplate(t);
 					
 					// GUI Response if template successfully created

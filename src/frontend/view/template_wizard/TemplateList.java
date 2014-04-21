@@ -17,6 +17,12 @@ public class TemplateList {
 ///// Until StorageService method is written
 		if (_templates == null) 
 			_templates = new ArrayList<ITemplate>();
+		
+/////		
+		System.out.println("_templates.size(): " + _templates.size());
+		for (ITemplate t: _templates) {
+			System.out.println("t: " + t);
+		}
 	}
 	
 	/**
@@ -24,6 +30,10 @@ public class TemplateList {
 	 * @param t
 	 */
 	public static void addTemplate(Template t) {
+//////
+		System.out.println("template: " + t);
+		
+		StorageService.addTemplate(t);
 		_templates.add(t);
 	}
 	
