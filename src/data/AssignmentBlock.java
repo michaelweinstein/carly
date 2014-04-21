@@ -9,19 +9,41 @@ public class AssignmentBlock implements ITimeBlockable {
 	//always support movable blocks, and the UnavailableBlock class should never.
 	//TODO: Proposed solution - continue to store the member variable, but do not need
 	//the extra parameter to the constructor
-	
+	private final String m_uniqueId;
 	private Date m_start;
 	private Date m_end;
 	private ITask m_task;
 	private boolean m_isMovable;
 	
 	public AssignmentBlock(Date start, Date end, ITask task, boolean movable) {
+		this.m_uniqueId = DataUtil.generateID();
 		this.m_start = start;
 		this.m_end = end;
 		this.m_task = task;
 		this.m_isMovable = movable;
 	}
 	
+	/**
+	 * Constructor used by StorageService to reconstruct this object
+	 * 
+	 * @param id 		Unique identifier for this block
+	 * @param start		Starting date of block
+	 * @param end		Ending date of block
+	 * @param task		Task associated with this block 
+	 * @param movable	Whether this block is movable
+	 */
+	public AssignmentBlock(String id, Date start, Date end, ITask task, boolean movable) {
+		this.m_uniqueId = id;
+		this.m_start = start;
+		this.m_end = end;
+		this.m_task = task;
+		this.m_isMovable = movable;
+	}
+	
+	@Override
+	public String getId() {
+		return m_uniqueId; 
+	}
 	
 	@Override
 	public void setStart(Date d) {

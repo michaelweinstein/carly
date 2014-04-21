@@ -201,33 +201,31 @@ public class StorageServiceTest {
 //	 * Testing Assignment related functionality 
 //	 */
 //	
-//	@Test
-//	public void storeAndRetrieveOneAssignment() {
-//		Date dueDate = new Date(); 
-//		Template template = new Template("Template 1"); 		
-//		template.addStep(new TemplateStep("Step 1", 1.0)); 
-//		Assignment asgn = new Assignment("Assignment 1", dueDate, template); 
-//		asgn.addTask(new Task("Task 1", 1, asgn.getID())); 
-//		
-//		String asgnId = asgn.getID(); 
-//		
-//		StorageService.addTemplate(template); //TODO: handle case where you try to add asgn without template, need to catch the error that is thrown! 
-//		StorageService.addAssignment(asgn); 
-//		
-//		Assignment afterAsgn = StorageService.getAssignmentById(asgnId); 
-//		
-//		System.out.println("\nTemplate Id: " + asgn.getTemplate().getID());
-//		System.out.println("Template BEFORE: " + template.fullString());
-//		System.out.println("Template AFTER: " + ((Template)afterAsgn.getTemplate()).fullString());
-//		
-//		assertEquals(template.fullString(), ((Template)afterAsgn.getTemplate()).fullString());
-//		assertTrue(template.equals(afterAsgn.getTemplate())); 
-//		System.out.println("\nBEFORE: " + asgn.fullString());
-//		System.out.println("AFTER: " + afterAsgn.fullString()); 
-//		
-//		//TODO: ask if storing time matters
-////		assertEquals(asgn.fullString(), afterAsgn.fullString()); 
-//	}
+	@Test
+	public void storeAndRetrieveOneAssignment() {
+		Date dueDate = new Date(); 
+		Template template = new Template("Template 1"); 		
+		template.addStep(new TemplateStep("Step 1", 1.0)); 
+		Assignment asgn = new Assignment("Assignment 1", dueDate, template); 
+		asgn.addTask(new Task("Task 1", 1, asgn.getID())); 
+		
+		String asgnId = asgn.getID(); 
+		
+		StorageService.addTemplate(template); //TODO: handle case where you try to add asgn without template, need to catch the error that is thrown! 
+		StorageService.addAssignment(asgn); 
+		
+		Assignment afterAsgn = StorageService.getAssignmentById(asgnId); 
+		
+		System.out.println("\nTemplate Id: " + asgn.getTemplate().getID());
+		System.out.println("Template BEFORE: " + template.fullString());
+		System.out.println("Template AFTER: " + ((Template)afterAsgn.getTemplate()).fullString());
+		
+		assertEquals(template.fullString(), ((Template)afterAsgn.getTemplate()).fullString());
+		assertTrue(template.equals(afterAsgn.getTemplate())); 
+		System.out.println("\nBEFORE: " + asgn.fullString());
+		System.out.println("AFTER: " + afterAsgn.fullString()); 
+		assertEquals(asgn.fullString(), afterAsgn.fullString()); 
+	}
 //	
 //	@Test
 //	public void removeAssignment() {
@@ -278,26 +276,26 @@ public class StorageServiceTest {
 //		System.out.println("BEFORE Template: " + template.fullString());
 //		System.out.println("AFTER Template: " + afterTemplate.fullString());
 //	}
-
-	@Test
-	public void updateTemplate() {
-		Template template = new Template("Template 1"); 		
-		template.addStep(new TemplateStep("Step 1", 0.25));
-		template.addStep(new TemplateStep("Step 2", 0.25));
-		TemplateStep step = new TemplateStep("Step 3", 0.25); 
-		template.addStep(step);
-		template.addStep(new TemplateStep("Step 4", 0.25));
-		StorageService.addTemplate(template); 
-		
-		template.removeStep(step); 
-		Template afterTemplate = (Template)StorageService.updateTemplate(template);
-		
-		System.out.println("BEFORE Template: " + template.fullString());
-		System.out.println("AFTER Template: " + afterTemplate.fullString());
-		
-		//TODO: check to see if template steps are correctly reconstructed. 
-	}
-	
+//
+//	@Test
+//	public void updateTemplate() {
+//		Template template = new Template("Template 1"); 		
+//		template.addStep(new TemplateStep("Step 1", 0.25));
+//		template.addStep(new TemplateStep("Step 2", 0.25));
+//		TemplateStep step = new TemplateStep("Step 3", 0.25); 
+//		template.addStep(step);
+//		template.addStep(new TemplateStep("Step 4", 0.25));
+//		StorageService.addTemplate(template); 
+//		
+//		template.removeStep(step); 
+//		Template afterTemplate = (Template)StorageService.updateTemplate(template);
+//		
+//		System.out.println("BEFORE Template: " + template.fullString());
+//		System.out.println("AFTER Template: " + afterTemplate.fullString());
+//		
+//		//TODO: check to see if template steps are correctly reconstructed. 
+//	}
+//	
 //	@Test
 //	public void getAllTemplates() {
 //		

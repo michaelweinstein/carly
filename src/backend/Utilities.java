@@ -25,13 +25,37 @@ public abstract class Utilities {
 	 * ITimeBlockable SQL insertion statements 
 	 */
 	
-	protected static final String INSERT_TIMEBLOCK = 
-			"";
+	protected static final String INSERT_TIME_BLOCK = 
+			"INSERT INTO TIME_BLOCK " + 
+			"(BLOCK_ID, TASK_ID, BLOCK_START, BLOCK_END, BLOCK_MOVABLE) " + 
+			"(?, ?, ?, ?, ?) ";
+	
+	protected static final String UPDATE_TIME_BLOCK = 
+			"UPDATE TIME_BLOCK " +
+			"SET BLOCK_START = ?, BLOCK_END = ?, TASK_ID = ? " + 
+			"WHERE BLOCK_ID = ? "; 
+			
+	protected static final String DELETE_TIME_BLOCK = 
+			"DELETE FROM TIME_BLOCK " + 
+			"WHERE BLOCK_ID = ? "; 
 	
 	/*
 	 * AssignmentBlock and UnavailableBlock SQL retrieval statements
 	 */
 	
+	protected static final String SELECT_ASSIGNMENT_BLOCKS_BY_DATE = 
+			"SELECT * FROM TIME_BLOCK " + 
+			"INNER JOIN TASK " + 
+			"ON TASK.TASK_ID = TIME_BLOCK.TASK_ID " +
+			"WHERE BLOCK_START >= ? AND BLOCK_END <= ? " + 
+			"AND BLOCK_MOVABLE = TRUE ";  
+	
+	protected static final String SELECT_UNAVAILABLE_BLOCKS_BY_DATE = 
+			"SELECT * FROM TIME_BLOCK " + 
+			"INNER JOIN TASK " + 
+			"ON TASK.TASK_ID = TIME_BLOCK.TASK_ID " +
+			"WHERE BLOCK_START >= ? AND BLOCK_END <= ? " + 
+			"AND BLOCK_MOVABLE = TRUE "; 
 	
 	/*
 	 * Assignment SQL statements
@@ -41,19 +65,24 @@ public abstract class Utilities {
 			"INSERT INTO ASSIGNMENT " +
 	        "(ASGN_ID, ASGN_NAME, ASGN_EXPECTED_HOURS, ASGN_DATE, ASGN_TEMPLATE_ID) " + 
 	        "VALUES (?, ?, ?, ?, ?) ";
+	
 	protected static final String DELETE_ASGN = 
 			"DELETE FROM ASSIGNMENT " +
 	        "WHERE ASGN_ID = ? ";
+	
 	protected static final String UPDATE_ASGN = 
 			"UPDATE ASSIGNMENT " +
 			"SET ASGN_NAME = ?, ASGN_EXPECTED_HOURS = ?, ASGN_DATE = ?, ASGN_TEMPLATE_ID = ? " + 
 	        "WHERE ASGN_ID = ? ";
+	
+	//TODO: test how changing dates to longs has affected the search
 	protected static final String SELECT_ASGNS_TASKS_BY_DATE = 
 			"SELECT * FROM ASSIGNMENT " +
 			"INNER JOIN TASK " +
 			"ON TASK.ASGN_ID = ASSIGNMENT.ASGN_ID " +
 	        "WHERE ASSIGNMENT.ASGN_DATE BETWEEN ? AND ? " + 
 	        "ORDER BY ASSIGNMENT.ASGN_ID "; 
+	
 	protected static final String SELECT_ASGN_BY_ID = 
 			"SELECT * FROM ASSIGNMENT " +
 			"INNER JOIN TASK " +
@@ -71,6 +100,7 @@ public abstract class Utilities {
 	        "TASK_TIME_OF_DAY, TASK_SUGGESTED_LENGTH) " + 
 	        "VALUES (?, ?, ?, ?, ?, ?, ?) ";
 	
+	//TODO: test how changing dates to longs has affected the search
 	protected static final String SELECT_TASKS_BY_DATE = 
 			"SELECT TASK.* FROM TASK " +
 			"INNER JOIN ASSIGNMENT " +
