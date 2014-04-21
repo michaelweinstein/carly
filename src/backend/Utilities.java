@@ -10,16 +10,28 @@ public abstract class Utilities {
 	 * TODO: factor out into external configuration file
 	 */
 	
-	protected static final String DB_URL = "jdbc:h2:~/test";
-	protected static final String DB_USER = "sa"; 
-	protected static final String DB_PWD = ""; 
-	protected static final String DB_NAME = "test"; 
+	public static final String DB_URL = "jdbc:h2:~/test";
+	public static final String DB_USER = "sa"; 
+	public static final String DB_PWD = ""; 
+	public static final String DB_NAME = "test"; 
 	
 	/*
 	 * Misc SQL statements
 	 */
 	
 	protected static final String DROP_ALL_TABLES = "DROP TABLE IF EXISTS ASSIGNMENT, TASK, TEMPLATE, TEMPLATE_STEP"; 
+	
+	/*
+	 * ITimeBlockable SQL insertion statements 
+	 */
+	
+	protected static final String INSERT_TIMEBLOCK = 
+			"";
+	
+	/*
+	 * AssignmentBlock and UnavailableBlock SQL retrieval statements
+	 */
+	
 	
 	/*
 	 * Assignment SQL statements
@@ -80,23 +92,11 @@ public abstract class Utilities {
 			"INSERT INTO TEMPLATE " +
 			"(TEMPLATE_ID, TEMPLATE_NAME, TEMPLATE_CONSECUTIVE_HOURS) " + 
 			"VALUES (?, ?, ?) ";
-	
-	protected static final String INSERT_TEMPLATE_STEP =  
-			"INSERT INTO TEMPLATE_STEP " +
-			"(TEMPLATE_ID, STEP_NAME, STEP_PERCENT_TOTAL, STEP_STEP_NUMBER, STEP_NUM_DAYS, " +
-			"STEP_HOURS_PER_DAY, STEP_TIME_OF_DAY) " + 
-			"VALUES (?, ?, ?, ?, ?, ?, ?) ";
-	
+
 	protected static final String UPDATE_TEMPLATE = 
 			"UPDATE TEMPLATE " +
 			"SET TEMPLATE_NAME = ?, TEMPLATE_CONSECUTIVE_HOURS = ? " + 
-			"WHERE TEMPLATE_ID = ? "; 
-	
-	protected static final String MERGE_TEMPLATE_STEP = 
-			"MERGE INTO TEMPLATE_STEP " +
-			"(TEMPLATE_ID, STEP_NAME, STEP_PERCENT_TOTAL, STEP_STEP_NUMBER, _STEP_NUM_DAYS, " +
-			"STEP_HOURS_PER_DAY, STEP_TIME_OF_DAY) " +
-			"VALUES (?, ?, ?, ?, ?, ?, ?) ";  
+			"WHERE TEMPLATE_ID = ? ";   
 	
 	protected static final String SELECT_TEMPLATES_AND_STEPS_BY_ID = 
 			"SELECT * FROM TEMPLATE " +
@@ -110,6 +110,26 @@ public abstract class Utilities {
 			"INNER JOIN TEMPLATE_STEP " +
 			"ON TEMPLATE.TEMPLATE_ID = TEMPLATE_STEP.TEMPLATE_ID " +
 			"ORDER BY TEMPLATE.TEMPLATE_ID ";
+	
+	/*
+	 * TemplateStep SQL statements
+	 */
+	
+	protected static final String INSERT_TEMPLATE_STEP =  
+			"INSERT INTO TEMPLATE_STEP " +
+			"(TEMPLATE_ID, STEP_NAME, STEP_PERCENT_TOTAL, STEP_STEP_NUMBER, STEP_NUM_DAYS, " +
+			"STEP_HOURS_PER_DAY, STEP_TIME_OF_DAY) " + 
+			"VALUES (?, ?, ?, ?, ?, ?, ?) ";
+	
+	protected static final String MERGE_TEMPLATE_STEP = 
+			"MERGE INTO TEMPLATE_STEP " +
+			"(TEMPLATE_ID, STEP_NAME, STEP_PERCENT_TOTAL, STEP_STEP_NUMBER, _STEP_NUM_DAYS, " +
+			"STEP_HOURS_PER_DAY, STEP_TIME_OF_DAY) " +
+			"VALUES (?, ?, ?, ?, ?, ?, ?) ";
+	
+	protected static final String DELETE_TEMPLATE_STEPS_BY_ID = 
+			"DELETE FROM TEMPLATE_STEP " +
+			"WHERE TEMPLATE_ID = ? "; 
 	
 	/*
 	 * Error handling helper methods
@@ -143,9 +163,9 @@ public abstract class Utilities {
 	}
 	
 	public static void setValues(PreparedStatement preparedStatement, Object... values) throws SQLException {
-	    System.out.println("Utilities.setValues");
+//	    System.out.println("Utilities.setValues");
 		for (int i = 0; i < values.length; i++) {
-	    	System.out.println("\tvalues: " + values[i]);
+//	    	System.out.println("\tvalues: " + values[i]);
 	        preparedStatement.setObject(i + 1, values[i]);
 	    }
 	}
