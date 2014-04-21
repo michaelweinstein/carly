@@ -75,5 +75,10 @@ public class UnavailableBlock implements ITimeBlockable {
 	public String toString() {
 		return "Unavailable: [" + m_start.toString() + ", " + m_end.toString() + "]";
 	}
+
+	@Override
+	public long getLength() {
+		return m_end.getTime() - m_start.getTime();
+	}
 	
 }

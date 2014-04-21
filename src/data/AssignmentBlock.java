@@ -77,4 +77,10 @@ public class AssignmentBlock implements ITimeBlockable {
 	public String toString() {
 		return "Assigned: [" + m_start.toString() + ", " + m_end.toString() + "]";
 	}
+
+
+	@Override
+	public long getLength() {
+		return m_end.getTime() - m_start.getTime();
+	}
 }

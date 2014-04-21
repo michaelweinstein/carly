@@ -2,7 +2,9 @@ package backend;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import data.IAssignment;
 import data.ITimeBlockable;
 
 
@@ -71,6 +73,21 @@ public class TimeUtilities {
 
 		return ind;
 	}
+	
+	
+	public static boolean existsPossibleFit(List<ITimeBlockable> allBlocks, IAssignment asgn) {
+		long amtFreeTime = 0;
+		
+		for(int i = 0; i < allBlocks.size() - 1; ++i) {
+			ITimeBlockable b1 = allBlocks.get(i);
+			ITimeBlockable b2 = allBlocks.get(i + 1);
+			amtFreeTime += b2.getStart().getTime() - b1.getEnd().getTime();
+		}
+		
+		double numFreeHours = TimeUnit.HOURS.convert(amtFreeTime, TimeUnit.MILLISECONDS);
+		return (numFreeHours <= (double) asgn.getExpectedHours());
+	}
+	
 	
 	public static String printSchedule(List<ITimeBlockable> allBlocks) {
 		StringBuilder builder = new StringBuilder();
