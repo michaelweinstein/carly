@@ -14,14 +14,17 @@ import java.util.List;
 import java.util.Map;
 
 import data.Assignment;
+import data.AssignmentBlock;
 import data.IAssignment;
 import data.ITask;
 import data.ITemplate;
 import data.ITemplateStep;
+import data.ITimeBlockable;
 import data.Task;
 import data.Template;
 import data.TemplateStep;
 import data.TimeOfDay;
+import data.UnavailableBlock;
 
 /**
  * Handles the storage, retrieval and persistence of data for Carly
@@ -41,8 +44,6 @@ public class StorageService {
 		try (Connection con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD)) {
 			Class.forName("org.h2.Driver");
 			
-			System.out.println("Connected to db!");
-			
 			if (dropTables) {
 			    try (Statement stmt = con.createStatement()) {
 			        stmt.execute(Utilities.DROP_ALL_TABLES);
@@ -56,7 +57,7 @@ public class StorageService {
 	        assignmentCols.add(concatColumn("ASGN_ID", "VARCHAR(255) NOT NULL PRIMARY KEY"));
 	        assignmentCols.add(concatColumn("ASGN_NAME", "VARCHAR(255)"));
 	        assignmentCols.add(concatColumn("ASGN_EXPECTED_HOURS", "INT"));
-	        assignmentCols.add(concatColumn("ASGN_DATE", "DATE"));
+	        assignmentCols.add(concatColumn("ASGN_DATE", "TIMESTAMP"));
 	        assignmentCols.add(concatColumn("ASGN_TEMPLATE_ID", "VARCHAR(255)"));
 	        queries.add(Utilities.buildCreateString("ASSIGNMENT", assignmentCols)); 
 			
@@ -103,26 +104,24 @@ public class StorageService {
 		    } 
 	        
 		    //DEBUG
-	        String query = "SHOW TABLES"; 
-		    try (Statement stmt = con.createStatement()) {
-	
-		        ResultSet rs = stmt.executeQuery(query);
-		        
-		        ResultSetMetaData rsmd = rs.getMetaData();
-		        int columnCount = rsmd.getColumnCount();
-
-		        System.out.println("Column names are: ");
-		        // The column count starts from 1
-		        for (int i = 1; i < columnCount + 1; i++ ) {
-		          String name = rsmd.getColumnName(i);
-		          System.out.println(name);
-		        }
-	
-		        System.out.println("Processing results.");
-		        while (rs.next()) {
-		        	System.out.println(rs.getString("TABLE_NAME"));
-		        }
-		    }
+//	        String query = "SHOW TABLES"; 
+//		    try (Statement stmt = con.createStatement()) {
+//		        ResultSet rs = stmt.executeQuery(query);
+//		        
+//		        ResultSetMetaData rsmd = rs.getMetaData();
+//		        int columnCount = rsmd.getColumnCount();
+//		        System.out.println("Column names are: ");
+//		        // The column count starts from 1
+//		        for (int i = 1; i < columnCount + 1; i++ ) {
+//		          String name = rsmd.getColumnName(i);
+//		          System.out.println(name);
+//		        }
+//	
+//		        System.out.println("Processing results.");
+//		        while (rs.next()) {
+//		        	System.out.println(rs.getString("TABLE_NAME"));
+//		        }
+//		    }
 		    //DEBUG
 		} 
 		catch (ClassNotFoundException e) {
@@ -758,17 +757,27 @@ public class StorageService {
 	 * Store and retrieve TimeBlocks
 	 */
 
-//	public static synchronized List<UnavailableBlock> getAllUnavailableBlocksWithinRange(Date date1, Date date2);
-//	public static synchronized List<AssignmentBlock> getAllAssignmentBlocksWithinRange(Date date1, Date date2);
+	public static synchronized List<UnavailableBlock> getAllUnavailableBlocksWithinRange(Date date1, Date date2) {
+		return null; 
+	}
+	
+	public static synchronized List<AssignmentBlock> getAllAssignmentBlocksWithinRange(Date date1, Date date2) {
+		return null; 
+	}
 
-//	public static synchronized void addTimeBlock(ITimeBlockable block);
-//	public static synchronized void addAllTimeBlocks(List<ITimeBlockable> block);
+	public static synchronized void addTimeBlock(ITimeBlockable block) {
+		
+	}
+	
+	public static synchronized void addAllTimeBlocks(List<ITimeBlockable> block) {
+		
+	}
 
 	/*
 	 * Storage and retrieval of Templates used to lay out Assignments 
 	 */
 	
-	public static synchronized ITemplate getTemplate(String id) {
+	public static synchronized Template getTemplate(String id) {
 		if (_templates.contains(id)) {
 			return _templates.get(id); 
 		}
@@ -850,20 +859,16 @@ public class StorageService {
         	
         	//insert assignment
             Utilities.setValues(templateStatement, templateId, temp.getName(), temp.getPreferredConsecutiveHours());
-            boolean templateStatementResult = templateStatement.execute();
-            
-            System.out.println("StorageService: addTemplate: state of insert template: " + templateStatementResult);
-            
+            templateStatement.execute();
+                        
             //insert associated tasks
             for (ITemplateStep step : temp.getAllSteps()) {
             	Utilities.setValues(stepStatement, templateId, step.getName(), step.getPercentOfTotal(), 
             			step.getStepNumber(), step.getNumberOfDays(), step.getHoursPerDay(), step.getBestTimeToWork().name());
             	stepStatement.addBatch();
             }
-            int[] stepStatementResult = stepStatement.executeBatch();
-            
-            System.out.println("StorageService: addTemplate: state of insert step: " + stepStatementResult.length);
-            
+            stepStatement.executeBatch();
+                        
             //commit to the database
             con.commit();
 	    } 
@@ -900,7 +905,8 @@ public class StorageService {
 	
 	public static synchronized ITemplate updateTemplate(ITemplate temp) {
 		PreparedStatement templateStatement = null;
-		PreparedStatement stepStatement = null;
+		PreparedStatement deleteStepStatement = null;
+		PreparedStatement insertStepStatement = null;
 	    Connection con = null; 
 	    
 	    try {
@@ -908,18 +914,25 @@ public class StorageService {
 	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
 	        con.setAutoCommit(false);
 
+	        //Update the existing template, if any of the values have changed
 	        templateStatement = con.prepareStatement(Utilities.UPDATE_TEMPLATE);
         	Utilities.setValues(templateStatement, temp.getName(), 
         			 temp.getPreferredConsecutiveHours(), temp.getID());
             templateStatement.execute();
             
-            stepStatement = con.prepareStatement(Utilities.MERGE_TEMPLATE_STEP);
+            //Delete all template steps from before
+            deleteStepStatement = con.prepareStatement(Utilities.DELETE_TEMPLATE_STEPS_BY_ID);
+            Utilities.setValues(deleteStepStatement, temp.getID());
+            deleteStepStatement.execute(); 
+            
+            //Insert new template steps
+            insertStepStatement = con.prepareStatement(Utilities.INSERT_TEMPLATE_STEP);
             for (ITemplateStep step : temp.getAllSteps()) {
-            	Utilities.setValues(stepStatement, temp.getID(), step.getName(), step.getPercentOfTotal(), step.getStepNumber(), 
+            	Utilities.setValues(insertStepStatement, temp.getID(), step.getName(), step.getPercentOfTotal(), step.getStepNumber(), 
             			step.getNumberOfDays(), step.getHoursPerDay(), step.getBestTimeToWork().name());
-            	stepStatement.addBatch();
+            	insertStepStatement.addBatch();
             }
-            stepStatement.executeBatch(); 
+            insertStepStatement.executeBatch(); 
             
             //commit to the database
             con.commit();
@@ -932,7 +945,8 @@ public class StorageService {
 	        if (con != null) {
 	            try {
 	                con.rollback();
-	            } catch(SQLException x) {
+	            } 
+	            catch(SQLException x) {
 	                Utilities.printSQLException("could not roll back transaction", x);
 	            }
 	        }
@@ -942,8 +956,8 @@ public class StorageService {
 	    		if (templateStatement != null) {
 		            templateStatement.close();
 		        }
-	    		if (stepStatement != null) {
-		            stepStatement.close();
+	    		if (insertStepStatement != null) {
+		            insertStepStatement.close();
 		        }
 		        con.setAutoCommit(true);
 	    	}
