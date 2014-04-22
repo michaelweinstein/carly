@@ -12,7 +12,6 @@ import data.ITask;
 import data.ITemplate;
 import data.ITemplateStep;
 import data.ITimeBlockable;
-import data.Task;
 import data.UnavailableBlock;
 
 
@@ -38,8 +37,6 @@ public class TimeAllocator {
 
 	public void insertAsgn() {
 		double numHoursPerBlock;
-		List<ITask> taskList;
-		int numSubtasks;
 		int numBlocksLeft; //the number of blocks left to place
 
 		m_localChangesToBlocks.clear();
@@ -72,16 +69,10 @@ public class TimeAllocator {
 		
 		//Get the number of subtasks for this assignment, determine how many chunks to break into
 		//per subtask, and how long per subtask
-		taskList = m_asgn.getTasks();
-		numSubtasks = taskList.size();
-		numHoursPerBlock = DEFAULT_HRS_PER_BLOCK;
+		ITemplate template = m_asgn.getTemplate();		
+		numHoursPerBlock = (template == null ? DEFAULT_HRS_PER_BLOCK : template.getPreferredConsecutiveHours());
 
-		//TODO: Will the null case ever happen?
-		ITemplate template = m_asgn.getTemplate();
-		if(template != null)
-			numHoursPerBlock = template.getPreferredConsecutiveHours();
-
-
+		
 		//Try the best case assumption - that blocks are able to be split uniformly across the days
 		//that a user is working on an assignment
 		//numBlocksLeft = (int) Math.ceil(m_asgn.getExpectedHours() / numHoursPerBlock);
@@ -121,57 +112,6 @@ public class TimeAllocator {
 			//TODO: Attempt alternate insertion policy here
 			if(!success) {}
 		}
-		
-		//DEBUG added by Eric 
-		System.out.println("MIDDLE-END: TimeAllocator: getting contents of allBlocks");
-		for (ITimeBlockable block : allBlocks) {
-			System.out.println("\t" + block.toString());
-		}
-		System.out.println("");
-		//DEBUG
-		
-//		boolean hasCompactedOnce = false;
-//		Date lastTimePlaced = start;
-//		
-//		while(numBlocksLeft > 0) {
-//			//1. Use find fit function for the next block (BEST-fit search, NOT FIRST FIT)
-//			AssignmentBlock block = findFit(allBlocks, numHoursPerBlock, 
-//					(Date) lastTimePlaced.clone(), (Date) end.clone());
-//
-//			//2. If no fit can be found, try compaction OR break the loop and move on to 
-//			//the next type of insertion policy
-//			if(block == null) {
-//				
-//				if(!hasCompactedOnce){
-//					//Compact existing blocks so that they fit better, and reset the lastTimePlaced
-//					//reference so that it is still accurate
-//					TimeCompactor.compact(allBlocks, start, end, lastTimePlaced);
-//					continue;
-//					//TODO: currently I am compacting all blocks... is a different range better?
-//					
-//				}
-//				else {
-//					System.err.println("Could not insert block, even after compacting -- TODO:"
-//						+ " Try to move blocks contained by other assignments outside of the range\n"
-//						+ " OR use more sophisticated compaction around unmovable blocks\n"
-//						+ " OR return FAIL message to the user\n"
-//						+ " OR try breaking the remaining blocks into half-size pieces\n");
-//					
-//					break;
-//				}
-//			}
-//
-//			//3. If a fit is found, insert the block into the list, decrement the counter
-//			//	 and continue.
-//			int ind = TimeUtilities.indexOfFitLocn(allBlocks, block.getStart());
-//			allBlocks.add(ind, block);
-//			--numBlocksLeft;
-//			
-//			//4. Reset the place that the last block was placed for future searches
-//			lastTimePlaced = block.getStart();
-//		}
-
-
 
 		//TODO: Then, decompact all AssignmentBlocks so that a user may have a break
 		//		from his/her work time.  This decompact() function will consider several

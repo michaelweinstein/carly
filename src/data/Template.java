@@ -41,16 +41,34 @@ public class Template implements ITemplate {
 		_name = name;
 		_uid = DataUtil.generateID();
 		_preferredConsecutiveHours = DataUtil.DEFAULT_CONSECUTIVE_HOURS;
-		_steps = steps;
-	}
-	
+		_steps = new ArrayList<>();
+		// Add steps individually to ensure the names are unique
+		for (ITemplateStep s: steps) 
+			addStep(s);
+	}	
+	/**
+	 * Constructor with both name and preferred consecutive hours, and
+	 * also an initial List of TemplateSteps to populate _steps.
+	 */
+	public Template(final String name, final double hours, final List<ITemplateStep> steps) {
+		_name = name;
+		_preferredConsecutiveHours = hours;
+		_steps = new ArrayList<>();		
+		// Add steps individually to ensure the names are unique
+		for (ITemplateStep s: steps) 
+			addStep(s);
+		_uid = DataUtil.generateID();
+	}	
 	/**
 	 * Constructor used by StorageService to reconstruct the template object
 	 */
 	public Template(String id, String name, List<ITemplateStep> steps, double consecutiveHours) {
 		_uid = id; 
 		_name = name; 
-		_steps = steps; 
+		_steps = new ArrayList<>();
+		// Add steps individually to ensure the names are unique
+		for (ITemplateStep s: steps) 
+			addStep(s);
 		_preferredConsecutiveHours = consecutiveHours; 
 	}
 	

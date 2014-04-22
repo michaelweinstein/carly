@@ -7,7 +7,6 @@ import backend.database.StorageService;
 import backend.database.StorageServiceException;
 import data.ITemplate;
 import data.Template;
-import data.TemplateStep;
 
 // TODO
 public class TemplateList {
@@ -18,11 +17,15 @@ public class TemplateList {
 		_templates = StorageService.getAllTemplates();
 				
 //////////////	print liiiiines
-/*		System.out.println("TemplateList _templates.size(): " + _templates.size());
+/*		System.out.println("_templates.size(): " + _templates.size() + " (TemplateList())");
 		for (ITemplate t: _templates) {
-			System.out.println("TemplateList t: " + t);
-		}*/
-//////^^^^^^^^^^^^^^
+			System.out.println("Template t: " + t);
+			for (ITemplateStep s: t.getAllSteps()) {
+				System.out.println("-- Step s: " + s.getName() + ", " + s.getPercentOfTotal());
+			}
+		}
+		System.out.println();*/
+/////////^^^^^^^^^^^^^^
 	}
 	
 	/**
@@ -44,6 +47,7 @@ public class TemplateList {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+
 		_templates.add(t);
 	}
 	
