@@ -888,13 +888,22 @@ public class StorageService {
 	    	Class.forName("org.h2.Driver");
 	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
 			
+//	    	"INSERT INTO TIME_BLOCK " + 
+//			"(BLOCK_ID, TASK_ID, BLOCK_START, BLOCK_END, BLOCK_MOVABLE) " + 
+//			"(?, ?, ?, ?, ?) ";
+//	    	blockCols.add(concatColumn("BLOCK_ID", "VARCHAR(255) NOT NULL PRIMARY KEY"));
+//	        blockCols.add(concatColumn("TASK_ID", "VARCHAR(255)"));
+//	        blockCols.add(concatColumn("BLOCK_START", "BIGINT"));
+//	        blockCols.add(concatColumn("BLOCK_END", "BIGINT"));
+//	        blockCols.add(concatColumn("BLOCK_MOVABLE", "BOOLEAN"));
+	    	
 	        con.setAutoCommit(false);
 	        statement = con.prepareStatement(Utilities.INSERT_TIME_BLOCK);
             Utilities.setValues(statement, block.getId(), block.getTaskId(), block.getStart().getTime(),
             		block.getEnd().getTime(), block.isMovable());
             statement.execute();
                         
-            //TODO: Check to see if associated task is stored in db and either throw exception or add/update it
+            //TODO: If task isn't already stored, store it --> MERGE 
                         
             //commit to the database
             con.commit();

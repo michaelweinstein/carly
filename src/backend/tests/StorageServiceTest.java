@@ -30,7 +30,7 @@ public class StorageServiceTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		StorageService.initialize(true);
+		StorageService.initialize(false);
 		try {
 			_con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
 			Class.forName("org.h2.Driver");
