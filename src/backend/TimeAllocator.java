@@ -270,8 +270,10 @@ public class TimeAllocator {
 		if(blockList.size() == 0) {
 			bestStart = start;
 			bestEnd = new Date(bestStart.getTime() + convertHoursToMillis(blockLength));
-			
-			ITask task = new Task(m_asgn.getName() + ":" + step.getName(), step.getPercentOfTotal(), m_asgn.getID());
+
+			//Get the corresponding task from the Assignment member variable
+			ITask task = m_asgn.getTasks().get(step.getStepNumber());
+			//ITask task = new Task(m_asgn.getName() + ":" + step.getName(), step.getPercentOfTotal(), m_asgn.getID());
 			return new AssignmentBlock(bestStart, bestEnd, task, true);
 		}
 
