@@ -4,6 +4,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import backend.database.StorageService;
+import backend.database.StorageServiceException;
+
 import data.Assignment;
 import data.AssignmentBlock;
 import data.ITimeBlockable;
@@ -29,21 +32,30 @@ public class MainTimeAllocator {
 				new Date(due.getTime() + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS)),
 				createAnotherTemplate(), 21);
 		
-		//Add the assignments to the db
-		StorageService.addAssignment(asgn);
-		StorageService.addAssignment(asgn2);
-		
-		//Add the templates to the db
-		StorageService.addTemplate(asgn.getTemplate());
-		StorageService.addTemplate(asgn2.getTemplate());
-		
+		try {
+			//Add the assignments to the db
+			StorageService.addAssignment(asgn);
+			StorageService.addAssignment(asgn2);
+			//Add the templates to the db
+			StorageService.addTemplate(asgn.getTemplate());
+			StorageService.addTemplate(asgn2.getTemplate());
+		} catch (StorageServiceException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		}
 		
 		//Add some unavailable blocks to the db
 		UnavailableBlock ub1 = new UnavailableBlock((Date) start.clone(), new Date(start.getTime() + 14400000), null, false);
 		UnavailableBlock ub2 = new UnavailableBlock(new Date(start.getTime() + 86400000),
 				new Date(start.getTime() + 104400000), null, false);
-		StorageService.addTimeBlock(ub1);
-		StorageService.addTimeBlock(ub2);
+		
+		try {
+			StorageService.addTimeBlock(ub1);
+			StorageService.addTimeBlock(ub2);
+		} catch (StorageServiceException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		
 		TimeAllocator talloc = new TimeAllocator(asgn);
 		talloc.insertAsgn();
@@ -53,9 +65,16 @@ public class MainTimeAllocator {
 		System.out.println("First talloc block set call");
 		for(int i = 0; i < results.size(); ++i) {
 			System.out.println(results.get(i).toString());
-			StorageService.addTimeBlock(results.get(i));
+			
+			try {
+				StorageService.addTimeBlock(results.get(i));
+			} catch (StorageServiceException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		System.out.println("results size 1: " + results.size());
+		
 		talloc = new TimeAllocator(asgn2);
 		talloc.insertAsgn();
 		
@@ -64,7 +83,13 @@ public class MainTimeAllocator {
 		System.out.println("Second talloc block set call");
 		for(int i = 0; i < results.size(); ++i) {
 			System.out.println(results.get(i).toString());
-			StorageService.addTimeBlock(results.get(i));
+			
+			try {
+				StorageService.addTimeBlock(results.get(i));
+			} catch (StorageServiceException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		System.out.println("results size 2: " + results.size());
 		

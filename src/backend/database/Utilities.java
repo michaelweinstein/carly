@@ -1,4 +1,4 @@
-package backend;
+package backend.database;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -52,8 +52,6 @@ public abstract class Utilities {
 	
 	protected static final String SELECT_UNAVAILABLE_BLOCKS_BY_DATE = 
 			"SELECT * FROM TIME_BLOCK " + 
-			"INNER JOIN TASK " + 
-			"ON TASK.TASK_ID = TIME_BLOCK.TASK_ID " +
 			"WHERE BLOCK_START >= ? AND BLOCK_END <= ? " + 
 			"AND BLOCK_MOVABLE = FALSE "; 
 	
@@ -107,6 +105,10 @@ public abstract class Utilities {
 			"ON TASK.ASGN_ID = ASSIGNMENT.ASGN_ID " +
 			"WHERE ASSIGNMENT.ASGN_DATE BETWEEN ? AND ? " + 
 			"ORDER BY ASSIGNMENT.ASGN_DATE "; 
+	
+	protected static final String SELECT_TASK_BY_ID = 
+			"SELECT * FROM TASK " +
+			"WHERE TASK_ID = ? "; 
 
 	protected static final String MERGE_TASK = 
 			"MERGE INTO TASK " +
@@ -126,7 +128,11 @@ public abstract class Utilities {
 	protected static final String UPDATE_TEMPLATE = 
 			"UPDATE TEMPLATE " +
 			"SET TEMPLATE_NAME = ?, TEMPLATE_CONSECUTIVE_HOURS = ? " + 
-			"WHERE TEMPLATE_ID = ? ";   
+			"WHERE TEMPLATE_ID = ? ";
+	
+	protected static final String SELECT_TEMPLATE_BY_ID = 
+			"SELECT * FROM TEMPLATE " +
+			"WHERE TEMPLATE_ID = ? "; 
 	
 	protected static final String SELECT_TEMPLATES_AND_STEPS_BY_ID = 
 			"SELECT * FROM TEMPLATE " +

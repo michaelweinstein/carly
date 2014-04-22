@@ -3,8 +3,8 @@ package frontend;
 import java.util.HashMap;
 import java.util.Map;
 
-import backend.StorageService;
-import backend.Utilities;
+import backend.database.StorageService;
+import backend.database.Utilities;
 import frontend.app.App;
 import frontend.app.GUIApp;
 import frontend.app.REPLApp;

@@ -3,7 +3,8 @@ package frontend.view.template_wizard;
 import java.util.ArrayList;
 import java.util.List;
 
-import backend.StorageService;
+import backend.database.StorageService;
+import backend.database.StorageServiceException;
 import data.ITemplate;
 import data.Template;
 import data.TemplateStep;
@@ -37,7 +38,12 @@ public class TemplateList {
 //		System.out.println("Template Added: " + t);
 //		t.addStep(new TemplateStep("Automatically Added Step", 1));
 		
-		StorageService.addTemplate(t);
+		try {
+			StorageService.addTemplate(t);
+		} catch (StorageServiceException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		_templates.add(t);
 	}
 	

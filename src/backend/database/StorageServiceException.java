@@ -1,4 +1,4 @@
-package backend;
+package backend.database;
 
 
 public class StorageServiceException extends Exception {
