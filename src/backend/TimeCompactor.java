@@ -1,9 +1,9 @@
 package backend;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import data.ITimeBlockable;
 
@@ -41,7 +41,7 @@ public class TimeCompactor {
 			}
 			
 			//Compact the block backwards in time
-			long delta = block.getEnd().getTime() - block.getStart().getTime();
+			long delta = block.getLength();
 			Date newEnd = new Date(timeToPushTo.getTime() + delta);
 			
 			//Reset the value in time that the "lastTimePlaced" reference points
@@ -68,9 +68,6 @@ public class TimeCompactor {
 		//See if there is a block already there.  If not, try to move it there.  If so,
 		//try to switch (in the case of either Pareto improvement or indifference on one end.)
 		
-		ITimeBlockable pred = null;
-		ITimeBlockable succ = null;
-		
 		long timeUnavailableMillis = 0;
 		long freeTimeBankMillis = 0;
 		long avgFreeTimeMillis = 0;
@@ -96,7 +93,7 @@ public class TimeCompactor {
 					break;
 				}
 				else {
-					timeUnavailableMillis += block.getEnd().getTime() - block.getStart().getTime();
+					timeUnavailableMillis += block.getLength();
 				}
 			}
 			else {
@@ -105,14 +102,16 @@ public class TimeCompactor {
 			}
 		}
 		
+		//TODO: I HAVE BEEN TWEAKING THE COMMENTS AND STUFF HERE TO TEST DIFFERENT
+		//		LEVELS OF EFFECTIVENESS RE: THE DECOMPACTION ALGORITHM
 		//2. Calculate the amount of available free time in the [start, end] range, and
 		//	 the average amount of space that can be placed between blocks.
 		freeTimeBankMillis = end.getTime() - start.getTime() - timeUnavailableMillis;
-		for(ITimeBlockable itb : asgnBlocks) {
-			freeTimeBankMillis -= itb.getEnd().getTime() - itb.getStart().getTime();
-		}
+//		for(ITimeBlockable itb : asgnBlocks) {
+//			freeTimeBankMillis -= itb.getEnd().getTime() - itb.getStart().getTime();
+//		}
 		
-		avgFreeTimeMillis = freeTimeBankMillis / asgnBlocks.size();
+		avgFreeTimeMillis = freeTimeBankMillis / allBlocks.size();
 		
 		//3. Iterate over the block list in reverse order, trying to place as much free time between
 		//	 AssignmentBlocks as possible		
@@ -123,11 +122,22 @@ public class TimeCompactor {
 			//	 then try to place the block there.
 			//EDGE CASE: What if a block cannot be moved?
 			ITimeBlockable block = asgnBlocks.get(i);
-			long delta = block.getEnd().getTime() - block.getStart().getTime();
+			long delta = block.getLength();
 			long recommendedStart = timeToStartFrom.getTime() - avgFreeTimeMillis - delta;
 			long newStart = getBlockInsertLocation(block, allBlocks, recommendedStart);
-			
 			long newEnd = newStart + delta;
+
+			//TODO: this is a temporary fix - if a time is recommended that is too far in the past,
+			//		then exit this function
+			if(newStart < start.getTime()) {
+				System.err.println("Bad START-insertion attempt!");
+				return;
+			}
+			if(newEnd > end.getTime()) {
+				System.err.println("Bad END-insertion attempt!");
+				return;
+			}
+			
 			
 			
 			//Place the block in its new location and decrement from the time bank
@@ -149,9 +159,6 @@ public class TimeCompactor {
 				timeToStartFrom.setTime(timeToStartFrom.getTime() - delta);
 			}
 			
-
-			
-			
 			//TODO: WILL THIS CASE OCCUR?
 			//5. Track the amount of free time in the free bank - if the bank is too low on time, restart
 			//	 the iteration from the beginning and remove a small amount of free time from between 
@@ -159,15 +166,96 @@ public class TimeCompactor {
 			//	 to place the originally-requested block.
 		}
 		
-		//When iterating, look at the next and previous assignments, and make sure that there
-		//are no long successions of the same assignment (consecutive HOUR-wise, not necessarily
-		//just block-wise)
+		//Try to switch the order of consecutive blocks that are of the same type
+		trySwitchBlockOrder(allBlocks);
 		
-		//Finally, take the new order of the block list, and add a uniform amount of space between
-		//all blocks in the [start,end] range
+		
+		//Try to move assignments to their preferred time-of-day if possible
 		//TODO: tweak how blocks are spaced out -- uniformly is likely not the best way to go
 		
 		
+	}
+	
+	
+	private static void trySwitchBlockOrder(List<ITimeBlockable> allBlocks) {
+		//When iterating, look at the next and previous assignments, and make sure that there
+		//are no long successions of the same assignment (consecutive HOUR-wise, not necessarily
+		//just block-wise)
+				
+		//TODO: tweak this val
+		final long lim = TimeUnit.MILLISECONDS.convert(60, TimeUnit.MINUTES);
+		
+		for(int i = 1; i < allBlocks.size() - 1; ++i) {
+			
+			//Check for (a) 1-2 (b) 2-1 (c) 3 -- look at 1-3-1 if possible  
+			
+			ITimeBlockable prev = allBlocks.get(i - 1);
+			ITimeBlockable curr = allBlocks.get(i);
+			ITimeBlockable next = allBlocks.get(i + 1);
+			
+			String prevID = prev.getTask().getAssignmentID();
+			String currID = curr.getTask().getAssignmentID();
+			String nextID = next.getTask().getAssignmentID();
+			
+			
+			//Check for curr.template == next.template != prev.template
+			if (!prevID.equals(currID) && currID.equals(nextID)) {
+				
+				//Don't switch them if there is a sizable gap between them
+				if(next.getStart().getTime() - curr.getEnd().getTime() > lim)
+					continue;
+				
+				//TODO: Extend this for blocks of differing lengths
+				if(prev.getLength() == curr.getLength()) {
+					Date tempStart = curr.getStart();
+					Date tempEnd = curr.getEnd();
+					
+					curr.setStart(prev.getStart());
+					curr.setEnd(prev.getEnd());
+					prev.setStart(tempStart);
+					prev.setEnd(tempEnd);
+				}
+				
+				//Increment i so that this doesn't get repeated
+				++i;
+			}
+			if (prevID.equals(currID) && !currID.equals(nextID)) {
+				
+				//Don't switch them if there is a sizable gap between them
+				if(curr.getStart().getTime() - prev.getEnd().getTime() > lim)
+					continue;
+				
+				//TODO: Extend this for blocks of differing lengths
+				if(curr.getLength() == next.getLength()) {
+					Date tempStart = curr.getStart();
+					Date tempEnd = curr.getEnd();
+					
+					curr.setStart(next.getStart());
+					curr.setEnd(next.getEnd());
+					next.setStart(tempStart);
+					next.setEnd(tempEnd);
+				}
+				
+				//Increment i so that this doesn't get repeated
+				++i;
+			}
+			if (prevID.equals(currID) && currID.equals(nextID)) {
+				//Try to switch with a prev if possible
+				if(i != 1) {
+					//ITimeBlockable pp = allBlocks.get(i - 2);
+					//TODO
+				}
+				
+				//Try to switch with a next if possible
+				if(i != allBlocks.size() - 2) {
+					//ITimeBlockable nn = allBlocks.get(i + 2);
+					//TODO
+				}
+				
+				i += 2;
+			}
+			
+		}
 	}
 	
 	
@@ -177,7 +265,7 @@ public class TimeCompactor {
 		ITimeBlockable succ = null;
 		
 		long newStart = recommendedStart;
-		long delta = block.getEnd().getTime() - block.getStart().getTime();
+		long delta = block.getLength();
 		long newEnd = newStart + delta;
 		
 

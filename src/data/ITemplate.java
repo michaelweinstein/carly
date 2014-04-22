@@ -64,5 +64,4 @@ public interface ITemplate {
 	 * @return a template step if found or null if not
 	 */
 	public ITemplateStep getStepByName(String stepName);
-	
 }

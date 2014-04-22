@@ -52,7 +52,7 @@ public class Main {
 //		a = (parser.existsFlag(Utilities.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
 //		a.start();
 		 
-//		// Check the arguments for validity and create objects as needed
+		// Check the arguments for validity and create objects as needed
 		try {
 			parser.parse(args);
 		} catch (final IllegalArgumentException e) {
@@ -65,8 +65,8 @@ public class Main {
 		final boolean debug = parser.existsFlag(Utils.DEBUG);
 		a = (parser.existsFlag(Utils.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
 		a.start();
-//		
+		
 		//DEBUG
-		StorageService.setUp();
+		StorageService.initialize(false);
 	}
 }

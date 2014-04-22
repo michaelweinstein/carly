@@ -16,13 +16,19 @@ public abstract class Utilities {
 	protected static final String DB_NAME = "test"; 
 	
 	/*
+	 * Misc SQL statements
+	 */
+	
+	protected static final String DROP_ALL_TABLES = "DROP TABLE IF EXISTS ASSIGNMENT, TASK, TEMPLATE, TEMPLATE_STEP"; 
+	
+	/*
 	 * Assignment SQL statements
 	 */
 	
 	protected static final String INSERT_ASGN = 
 			"INSERT INTO ASSIGNMENT " +
 	        "(ASGN_ID, ASGN_NAME, ASGN_EXPECTED_HOURS, ASGN_DATE, ASGN_TEMPLATE_ID) " + 
-	        "VALUES (?, ?, ?, ?) ";
+	        "VALUES (?, ?, ?, ?, ?) ";
 	protected static final String DELETE_ASGN = 
 			"DELETE FROM ASSIGNMENT " +
 	        "WHERE ASGN_ID = ? ";
@@ -30,12 +36,18 @@ public abstract class Utilities {
 			"UPDATE ASSIGNMENT " +
 			"SET ASGN_NAME = ?, ASGN_EXPECTED_HOURS = ?, ASGN_DATE = ?, ASGN_TEMPLATE_ID = ? " + 
 	        "WHERE ASGN_ID = ? ";
-	protected static final String SELECT_ASGN_TASKS_BY_DATE = 
+	protected static final String SELECT_ASGNS_TASKS_BY_DATE = 
 			"SELECT * FROM ASSIGNMENT " +
 			"INNER JOIN TASK " +
 			"ON TASK.ASGN_ID = ASSIGNMENT.ASGN_ID " +
-			"ORDER BY ASSIGNMENT.ASGN_ID " +
-	        "WHERE ASSIGNMENT.ASGN_DATE BETWEEN ? AND ? ";
+	        "WHERE ASSIGNMENT.ASGN_DATE BETWEEN ? AND ? " + 
+	        "ORDER BY ASSIGNMENT.ASGN_ID "; 
+	protected static final String SELECT_ASGN_BY_ID = 
+			"SELECT * FROM ASSIGNMENT " +
+			"INNER JOIN TASK " +
+			"ON TASK.ASGN_ID = ASSIGNMENT.ASGN_ID " +
+			"WHERE ASSIGNMENT.ASGN_ID = ? " + 
+			"ORDER BY ASSIGNMENT.ASGN_ID "; 
 	
 	/*
 	 * Task SQL statements
@@ -51,9 +63,15 @@ public abstract class Utilities {
 			"SELECT TASK.* FROM TASK " +
 			"INNER JOIN ASSIGNMENT " +
 			"ON TASK.ASGN_ID = ASSIGNMENT.ASGN_ID " +
-			"ORDER BY ASSIGNMENT.ASGN_DATE " +
-		    "WHERE ASSIGNMENT.ASGN_DATE BETWEEN ? AND ? ";
+			"WHERE ASSIGNMENT.ASGN_DATE BETWEEN ? AND ? " + 
+			"ORDER BY ASSIGNMENT.ASGN_DATE "; 
 
+	protected static final String MERGE_TASK = 
+			"MERGE INTO TASK " +
+			"(ASGN_ID, TASK_ID, TASK_NAME, TASK_PERCENT_TOTAL, TASK_PERCENT_COMPLETE, " +
+	        "TASK_TIME_OF_DAY, TASK_SUGGESTED_LENGTH) " + 
+	        "VALUES (?, ?, ?, ?, ?, ?, ?) ";
+	
 	/*
 	 * Template SQL statements
 	 */
@@ -65,7 +83,7 @@ public abstract class Utilities {
 	
 	protected static final String INSERT_TEMPLATE_STEP =  
 			"INSERT INTO TEMPLATE_STEP " +
-			"(TEMPLATE_ID, STEP_NAME, STEP_PERCENT_TOTAL, STEP_STEP_NUMBER, _STEP_NUM_DAYS, " +
+			"(TEMPLATE_ID, STEP_NAME, STEP_PERCENT_TOTAL, STEP_STEP_NUMBER, STEP_NUM_DAYS, " +
 			"STEP_HOURS_PER_DAY, STEP_TIME_OF_DAY) " + 
 			"VALUES (?, ?, ?, ?, ?, ?, ?) ";
 	
@@ -80,14 +98,14 @@ public abstract class Utilities {
 			"STEP_HOURS_PER_DAY, STEP_TIME_OF_DAY) " +
 			"VALUES (?, ?, ?, ?, ?, ?, ?) ";  
 	
-	protected static final String SELECT_TEMPLATE_AND_STEPS_BY_ID = 
+	protected static final String SELECT_TEMPLATES_AND_STEPS_BY_ID = 
 			"SELECT * FROM TEMPLATE " +
 			"INNER JOIN TEMPLATE_STEP " +
 			"ON TEMPLATE.TEMPLATE_ID = TEMPLATE_STEP.TEMPLATE_ID " +
-			"ORDER BY TEMPLATE.TEMPLATE_ID " +
-	        "WHERE TEMPLATE.TEMPLATE_ID = ? ";
+			"WHERE TEMPLATE.TEMPLATE_ID = ? " +
+			"ORDER BY TEMPLATE.TEMPLATE_ID ";
 	
-	protected static final String SELECT_ALL_TEMPLATE_AND_STEPS = 
+	protected static final String SELECT_ALL_TEMPLATES_AND_STEPS = 
 			"SELECT * FROM TEMPLATE " +
 			"INNER JOIN TEMPLATE_STEP " +
 			"ON TEMPLATE.TEMPLATE_ID = TEMPLATE_STEP.TEMPLATE_ID " +
@@ -114,7 +132,7 @@ public abstract class Utilities {
 	 */
 	
 	public static String buildCreateString(String tableName, List<String> columns) {
-		StringBuilder result = new StringBuilder("CREATE TABLE " + tableName + " (");
+		StringBuilder result = new StringBuilder("CREATE TABLE IF NOT EXISTS " + tableName + " (");
 
 		for (String column : columns) {
 			result.append(column + ", "); 
@@ -125,7 +143,9 @@ public abstract class Utilities {
 	}
 	
 	public static void setValues(PreparedStatement preparedStatement, Object... values) throws SQLException {
-	    for (int i = 0; i < values.length; i++) {
+	    System.out.println("Utilities.setValues");
+		for (int i = 0; i < values.length; i++) {
+	    	System.out.println("\tvalues: " + values[i]);
 	        preparedStatement.setObject(i + 1, values[i]);
 	    }
 	}
