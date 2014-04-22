@@ -48,7 +48,7 @@ public class Main {
 //			System.out.println(Utilities.USAGE);
 //			return;
 //		}
-//		
+		
 //		// Create an App, subtype dependent on the GUI command line flag
 //		final boolean debug = parser.existsFlag(Utilities.DEBUG);
 //		a = (parser.existsFlag(Utilities.GUI)) ? new GUIApp(debug) : new REPLApp(debug);

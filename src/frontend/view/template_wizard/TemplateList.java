@@ -32,6 +32,9 @@ public class TemplateList {
 	 * @param t
 	 */
 	public static void addTemplate(Template t) {
+/////
+		System.out.println("Template Added: " + t);
+		
 		StorageService.addTemplate(t);
 		_templates.add(t);
 	}
