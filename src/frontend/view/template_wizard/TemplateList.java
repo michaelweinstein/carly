@@ -6,6 +6,7 @@ import java.util.List;
 import backend.StorageService;
 import data.ITemplate;
 import data.Template;
+import data.TemplateStep;
 
 // TODO
 public class TemplateList {
@@ -16,10 +17,10 @@ public class TemplateList {
 		_templates = StorageService.getAllTemplates();
 				
 //////////////	print liiiiines
-		System.out.println("TemplateList _templates.size(): " + _templates.size());
+/*		System.out.println("TemplateList _templates.size(): " + _templates.size());
 		for (ITemplate t: _templates) {
 			System.out.println("TemplateList t: " + t);
-		}
+		}*/
 //////^^^^^^^^^^^^^^
 	}
 	
@@ -32,6 +33,10 @@ public class TemplateList {
 	 * @param t
 	 */
 	public static void addTemplate(Template t) {
+///////
+//		System.out.println("Template Added: " + t);
+//		t.addStep(new TemplateStep("Automatically Added Step", 1));
+		
 		StorageService.addTemplate(t);
 		_templates.add(t);
 	}
