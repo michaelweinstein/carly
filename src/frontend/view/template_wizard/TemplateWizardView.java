@@ -7,7 +7,9 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.swing.JButton;
@@ -19,7 +21,9 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.JTableHeader;
 import javax.swing.text.JTextComponent;
 
+import data.ITemplateStep;
 import data.Template;
+import data.TemplateStep;
 import frontend.Utils;
 import frontend.view.SettingsView;
 import frontend.view.assignments.StepModel;
@@ -40,6 +44,10 @@ public class TemplateWizardView extends JPanel {
 	
 	// Easy access to input fields, getText inputted by user
 	private Map<String, JTextComponent> _inputMap = new HashMap<>();
+	
+///////////
+	// Stores TemplateSteps inputted by user, passes in to new Template on submit
+	private List<ITemplateStep> _currSteps = new ArrayList<>();
 	
 	/* User Input Label Strings */
 	private static final String new_template 		= "New template";
@@ -106,12 +114,9 @@ public class TemplateWizardView extends JPanel {
 				boolean verified = verifyTemplateData();	
 				if (verified) {
 					// Create and store new instance of Template
-					
 					String name = _inputMap.get(template_name).getText();
 					double hours = Double.parseDouble(_inputMap.get(template_hours).getText());
-					Template t = new Template(name, hours);
-					// Add Template to database
-//					StorageService.addTemplate(t);
+					Template t = new Template(name, hours, _currSteps);
 					// Add Template to StorageService and local list
 					TemplateList.addTemplate(t);
 					
@@ -174,6 +179,7 @@ public class TemplateWizardView extends JPanel {
 	
 // ============ START Visibility Methods ===================
 	// TODO setStepsVisible(boolean), setAllVisible(boolean)
+// ============ END Visibility Methods ====================
 		
 // ============ START Create Panel Methods ==================
 	
@@ -205,8 +211,42 @@ public class TemplateWizardView extends JPanel {
 			@Override
 			public void tableChanged(TableModelEvent e) {
 				// TODO User-edited Step Table
+				
+///////////////
+/*				System.out.println("first row: " + e.getFirstRow());
+				System.out.println("last row: " + e.getLastRow());
+				System.out.println("column: " + e.getColumn());
+				System.out.println("type: " + e.getType());				
+				Object row[] = model.getRowAt(e.getLastRow());
+				System.out.println("row: " + row[e.getColumn()]);
+				System.out.println();*/
+				
+				// Get row that was changed by user
+				int rowNum = e.getLastRow();
+				Object row[] = model.getRowAt(rowNum);
+				// Create Step if row completely filled out; set step number to rowNum
+				ITemplateStep newStep = createStepFromArray(row);
+				if (newStep != null) {
+					newStep.setStepNumber(rowNum);
+					// Add TemplateStep to _currSteps
+					if (_currSteps.size() > rowNum) {
+						// 'set' replaces element at that rowNum (step number)
+						if (_currSteps.get(rowNum).getStepNumber() == rowNum) 
+							_currSteps.set(rowNum, newStep);
+						// If stepNumber does not match index, do not replace
+						else 
+							_currSteps.add(rowNum, newStep);
+					} 
+					// If currSteps too small for step number created, add at next available index
+					else {
+						_currSteps.add(newStep);
+					}
+				}				
+///////////^^^^^^^^^^^^
+				// Create new row if last row is entirely filled
 				if (e.getLastRow() == model.getRowCount() -1) 
-					model.addBlankItem();
+					if (model.getRowAt(e.getLastRow()).length == 2) 
+						model.addBlankItem();
 				model.deleteRowsIfEmpty(e.getFirstRow(), e.getLastRow());
 				revalidate();
 				TemplateWizardView.this.repaint();
@@ -220,7 +260,6 @@ public class TemplateWizardView extends JPanel {
 		c.gridx = 0;
 		c.gridy = 0;
 		c.gridwidth = 1;
-//		c.anchor = GridBagConstraints.CENTER;
 		panel.add(stepLabel, c);
 		
 		// Instantiate StepViewTable 
@@ -285,12 +324,42 @@ public class TemplateWizardView extends JPanel {
 // ============ END Create Panel Methods ==================
 	
 	
+// ============ START Data Structures Methods =============
+	/**
+	 * Creates a TemplateStep from a row array in the StepViewTable,
+	 * where arr[0] is String name and arr[1] is Double percent of total.
+	 * Row passed in as Object array.
+	 * 
+	 * @param arr Object[name (String), % of total (Double)]
+	 * @return new TemplateStep(name, percentOfTotal)
+	 */
+	private TemplateStep createStepFromArray(Object arr[]) {
+		if (arr.length == 2) 
+			if (arr[0] instanceof String && arr[1] instanceof Double) 
+				return new TemplateStep((String)arr[0], ((Double)arr[1])/100.0);
+		return null;
+	}
+// ============= END Data Structures Methods ==============	
+	
+	
 // ============ START Verify Data Methods ==================
+	
+	/**
+	 * Alerts the user of a message or error
+	 * in console.
+	 * 
+	 * @param message, String to print
+	 */
+	private void alertUser(String message) {
+		// TODO Find a way to alert user in GUI?
+		System.out.println("User: " + message);
+	}
 
 	/**
 	 * Verifies that all user input fields have valid input, and that no
 	 * mandatory fields have been left blank -- returns true. 
 	 * Alerts user if a field is invalid or blank, and returns false.
+	 * Displays specific error messages using alertUser calls.
 	 * 
 	 * @return true if all fields valid, else false
 	 */
@@ -298,6 +367,7 @@ public class TemplateWizardView extends JPanel {
 		// Set up validity booleans
 		boolean validName = false;
 		boolean validHours = false;
+		boolean validSteps = false;
 		// Check name
 		if (_inputMap.containsKey(template_name)) {
 			// TODO Check that name is valid
@@ -306,23 +376,40 @@ public class TemplateWizardView extends JPanel {
 			if (!name.isEmpty()) {
 				validName = true;
 			}
+			else
+				alertUser("Invalid Input: " + "Please enter a name for the template.");
 		}
 		// Check consecutive hours
 		if (_inputMap.containsKey(template_hours)) {
-			// TODO Check hours is within range, and Double.parseDouble works
 			String hours = _inputMap.get(template_hours).getText();		
 			if (!hours.isEmpty()) {
 				// Is valid format; can be parsed as double
 				try {
-					Double.parseDouble(hours);
-					validHours = true;
+					double h = Double.parseDouble(hours);
+					// Is positive number of hours
+					if (h > 0) 				
+						validHours = true;
+					else 
+						alertUser("Invalid Input: " + 
+								"Please enter a positive number in consecutive hours field.");
 				} catch (NumberFormatException e) {
 					validHours = false;
+					alertUser("Invalid Input: Please enter a valid number in consecutive hours field.");
 				}
 			}
+			else 
+				alertUser("Invalid Input: Please enter preferred number " + 
+						"of consecutive hours you would like to work on template.");
 		}
-		// TODO Display specific error message to user if something is not valid
-		return validName && validHours;
+		// Check that steps have been added to Template
+		if (!_currSteps.isEmpty()) {
+			// TODO Individual Steps: Is each Step verified before getting added to _currSteps?
+			validSteps = true;
+		}
+		else 
+			alertUser("Invalid Input: Please add Steps to this Template");
+		
+		return validName && validHours && validSteps;
 	}
 	
 // ============ END Verify Data Methods ==================

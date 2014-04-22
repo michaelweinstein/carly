@@ -7,42 +7,64 @@ public class TemplateStep implements ITemplateStep {
 	private double _percentOfTotal = 0;
 	private int _stepNumber = 0;
 	
+	private TimeOfDay _timeOfDay;	
+	
+////////// We are getting rid of these prpoerties of TemplateStep
 	// Aprox number of days this step will take to complete
 	private int _numDays;
 	// Aprox number of hours user per day user will work
 	private double _hoursPerDay;
 	// Preferred time of day to work on this Step
-	private TimeOfDay _timeOfDay;	
+////////////^^^^^^
 	
 	public TemplateStep(String name, double percentOfTemplate) {
 		_name = name;
-		handlePercent(percentOfTemplate);	
+		_percentOfTotal = handlePercent(percentOfTemplate);	
 		setupVars();
 	}
 	public TemplateStep(String name, double percentOfTemplate, int stepNumber) {
 		_name = name;
-		handlePercent(percentOfTemplate);
+		_percentOfTotal = handlePercent(percentOfTemplate);
 		_stepNumber = stepNumber;		
 		setupVars();
 	}
+	
+/////// TODO: To be deleted -- delete this constructor
+	/**
+	 * TO BE DELETED!
+	 * Switch to a constructor without numDays (int) and hoursPerDay (double)
+	 */
+	@Deprecated
 	public TemplateStep(String name, double percentOfTemplate, int stepNumber, 
 			int numDays, double hoursPerDay) {
 		_name = name;
-		handlePercent(percentOfTemplate);
+		_percentOfTotal = handlePercent(percentOfTemplate);
 		_stepNumber = stepNumber;
 		_numDays = numDays;
 		_hoursPerDay = hoursPerDay;
 		_timeOfDay = DataUtil.DEFAULT_TIME_OF_DAY;
 	}
 
-
 	/**
-	 * Constructor used by StorageService to reconstruct the step object
+	 * Constructor used by StorageService to reconstruct step object
 	 */
+	public TemplateStep(String name, double percentTotal, int stepNumber, TimeOfDay tod) {
+		_name = name;
+		_percentOfTotal = handlePercent(percentTotal);
+		_stepNumber = stepNumber;
+		_timeOfDay = tod;
+	}
+	
+//////// TODO: To be deleted -- old constructor used by storage service
+	/**
+	 * TO BE DELETED!
+	 * Switch to a constructor without numDays (int) and hoursPerDay (double).
+	 */
+	@Deprecated
 	public TemplateStep(String name, double percentTotal, int stepNumber, int numDays, 
 			double hoursPerDay, TimeOfDay timeOfDay) {
 		_name = name; 
-		_percentOfTotal = percentTotal; 
+		_percentOfTotal = handlePercent(percentTotal);
 		_stepNumber = stepNumber; 
 		_numDays = numDays; 
 		_hoursPerDay = hoursPerDay; 
@@ -72,13 +94,14 @@ public class TemplateStep implements ITemplateStep {
 	 * 
 	 * @param 0 < percent <= 1
 	 */
-	private void handlePercent(double percent) {
+	private Double handlePercent(double percent) {
 		if (DataUtil.percentRepOK(percent)) {
-			_percentOfTotal = percent;
+			return percent;
 		} 
 		else {
 			System.out.println("ERROR: Percent representation invalid " + percent + ". " + 
 					"Expecting format: 0 < percent <= 1  (TemplateStep.handlePercent)");
+			return null;
 		}
 	}
 	
@@ -127,5 +150,16 @@ public class TemplateStep implements ITemplateStep {
 	public double getHoursPerDay() {
 		// TODO Auto-generated method stub
 		return _hoursPerDay;
+	}
+	
+	/* Holy trinity */
+	
+	/**
+	 * Format: "name, % of total, stepNumber"
+	 * Percent in String returned as [1, 100]
+	 */
+	@Override
+	public String toString() {
+		return new String(_name + ", " + _percentOfTotal*100 + ", " + _stepNumber);
 	}
 }
