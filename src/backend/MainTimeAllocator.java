@@ -50,7 +50,9 @@ public class MainTimeAllocator {
 		
 		//Push to db
 		List<ITimeBlockable> results = talloc.getEntireBlockSet();
+		System.out.println("First talloc block set call");
 		for(int i = 0; i < results.size(); ++i) {
+			System.out.println(results.get(i).toString());
 			StorageService.addTimeBlock(results.get(i));
 		}
 		System.out.println("results size 1: " + results.size());
@@ -59,7 +61,9 @@ public class MainTimeAllocator {
 		
 		//Push to db
 		results = talloc.getEntireBlockSet();
+		System.out.println("Second talloc block set call");
 		for(int i = 0; i < results.size(); ++i) {
+			System.out.println(results.get(i).toString());
 			StorageService.addTimeBlock(results.get(i));
 		}
 		System.out.println("results size 2: " + results.size());

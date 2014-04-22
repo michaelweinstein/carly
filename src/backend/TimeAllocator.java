@@ -85,6 +85,14 @@ public class TimeAllocator {
 		//		reset to the end of the last time block of that Task type to ensure
 		//		chronological correctness.
 		
+		//DEBUG added by Eric 
+		System.out.println("MIDDLE: TimeAllocator: getting contents of allBlocks");
+		for (ITimeBlockable block : allBlocks) {
+			System.out.println("\t" + block.toString());
+		}
+		System.out.println("");
+		//DEBUG
+		
 		List<ITemplateStep> tempSteps = template.getAllSteps();
 		Date lastTimePlaced = start;
 		boolean success = false;
@@ -127,6 +135,14 @@ public class TimeAllocator {
 		//Assign the value of this field so it may be accessed by the "getter"
 		//function in this class
 		m_localChangesToBlocks = allBlocks;
+		
+		//DEBUG added by Eric 
+		System.out.println("END: TimeAllocator: getting contents of allBlocks");
+		for (ITimeBlockable block : allBlocks) {
+			System.out.println("\t" + block.toString());
+		}
+		System.out.println("");
+		//DEBUG
 
 	}
 	
@@ -245,6 +261,15 @@ public class TimeAllocator {
 		int unavailInd = 0;
 		int asgnInd = 0;
 
+		//DEBUG added by Eric
+		System.out.println("\nTimeAllocator: zipTimeBlockLists: printing out assignment blocks");
+		for (AssignmentBlock block : curr_asgns) {
+			System.out.println("\t" + block.toString());
+		}
+		System.out.println("");
+		//DEBUG
+		
+		
 		//Iterate over the contents of these two arrays, then return a zipped list containing
 		//the contents of both lists, in sorted order
 		UnavailableBlock[] unavail = new UnavailableBlock[unavailable.size()];

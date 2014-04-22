@@ -19,7 +19,7 @@ public abstract class Utilities {
 	 * Misc SQL statements
 	 */
 	
-	protected static final String DROP_ALL_TABLES = "DROP TABLE IF EXISTS ASSIGNMENT, TASK, TEMPLATE, TEMPLATE_STEP"; 
+	protected static final String DROP_ALL_TABLES = "DROP TABLE IF EXISTS ASSIGNMENT, TASK, TEMPLATE, TEMPLATE_STEP, TIME_BLOCK"; 
 	
 	/*
 	 * ITimeBlockable SQL insertion statements 

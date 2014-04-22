@@ -201,31 +201,31 @@ public class StorageServiceTest {
 //	 * Testing Assignment related functionality 
 //	 */
 //	
-	@Test
-	public void storeAndRetrieveOneAssignment() {
-		Date dueDate = new Date(); 
-		Template template = new Template("Template 1"); 		
-		template.addStep(new TemplateStep("Step 1", 1.0)); 
-		Assignment asgn = new Assignment("Assignment 1", dueDate, template); 
-		asgn.addTask(new Task("Task 1", 1, asgn.getID())); 
-		
-		String asgnId = asgn.getID(); 
-		
-		StorageService.addTemplate(template); //TODO: handle case where you try to add asgn without template, need to catch the error that is thrown! 
-		StorageService.addAssignment(asgn); 
-		
-		Assignment afterAsgn = StorageService.getAssignmentById(asgnId); 
-		
-		System.out.println("\nTemplate Id: " + asgn.getTemplate().getID());
-		System.out.println("Template BEFORE: " + template.fullString());
-		System.out.println("Template AFTER: " + ((Template)afterAsgn.getTemplate()).fullString());
-		
-		assertEquals(template.fullString(), ((Template)afterAsgn.getTemplate()).fullString());
-		assertTrue(template.equals(afterAsgn.getTemplate())); 
-		System.out.println("\nBEFORE: " + asgn.fullString());
-		System.out.println("AFTER: " + afterAsgn.fullString()); 
-		assertEquals(asgn.fullString(), afterAsgn.fullString()); 
-	}
+//	@Test
+//	public void storeAndRetrieveOneAssignment() {
+//		Date dueDate = new Date(); 
+//		Template template = new Template("Template 1"); 		
+//		template.addStep(new TemplateStep("Step 1", 1.0)); 
+//		Assignment asgn = new Assignment("Assignment 1", dueDate, template); 
+//		asgn.addTask(new Task("Task 1", 1, asgn.getID())); 
+//		
+//		String asgnId = asgn.getID(); 
+//		
+//		StorageService.addTemplate(template); //TODO: handle case where you try to add asgn without template, need to catch the error that is thrown! 
+//		StorageService.addAssignment(asgn); 
+//		
+//		Assignment afterAsgn = StorageService.getAssignmentById(asgnId); 
+//		
+//		System.out.println("\nTemplate Id: " + asgn.getTemplate().getID());
+//		System.out.println("Template BEFORE: " + template.fullString());
+//		System.out.println("Template AFTER: " + ((Template)afterAsgn.getTemplate()).fullString());
+//		
+//		assertEquals(template.fullString(), ((Template)afterAsgn.getTemplate()).fullString());
+//		assertTrue(template.equals(afterAsgn.getTemplate())); 
+//		System.out.println("\nBEFORE: " + asgn.fullString());
+//		System.out.println("AFTER: " + afterAsgn.fullString()); 
+//		assertEquals(asgn.fullString(), afterAsgn.fullString()); 
+//	}
 //	
 //	@Test
 //	public void removeAssignment() {
@@ -300,16 +300,16 @@ public class StorageServiceTest {
 //	public void getAllTemplates() {
 //		
 //	}
-//	
-//	/*
-//	 * Testing Time Block (generic block) related functionality 
-//	 */
-//	
-//	@Test
-//	public void addTimeBlock() {
-//		
-//	}
-//	
+	
+	/*
+	 * Testing Time Block (generic block) related functionality 
+	 */
+	
+	@Test
+	public void addTimeBlock() {
+		
+	}
+	
 //	@Test
 //	public void addAllTimeBlocks() {
 //		
