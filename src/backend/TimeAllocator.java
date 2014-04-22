@@ -47,20 +47,20 @@ public class TimeAllocator {
 		//Note that these lists are in sorted order.
 		Date start = new Date();
 		Date end = m_asgn.getDueDate();
-		List<UnavailableBlock> unavailable = new ArrayList<>();
-				//StorageService.getAllUnavailableBlocksWithinRange(start, end);
+		List<UnavailableBlock> unavailable = //new ArrayList<>();
+				StorageService.getAllUnavailableBlocksWithinRange(start, end);
 		
 		//TODO: AS A TEMPORARY TEST - inserting some stuff into the unavailable list
 		/************************************************************/
-		UnavailableBlock ub1 = new UnavailableBlock((Date) start.clone(), new Date(start.getTime() + 14400000), null, false);
-		UnavailableBlock ub2 = new UnavailableBlock(new Date(start.getTime() + 86400000),
-				new Date(start.getTime() + 104400000), null, false);
-		unavailable.add(ub1);
-		unavailable.add(ub2);
+//		UnavailableBlock ub1 = new UnavailableBlock((Date) start.clone(), new Date(start.getTime() + 14400000), null, false);
+//		UnavailableBlock ub2 = new UnavailableBlock(new Date(start.getTime() + 86400000),
+//				new Date(start.getTime() + 104400000), null, false);
+//		unavailable.add(ub1);
+//		unavailable.add(ub2);
 		/************************************************************/
 
-		List<AssignmentBlock> curr_asgns = new ArrayList<>();
-				//StorageService.getAllAssignmentBlocksWithinRange(start, end);
+		List<AssignmentBlock> curr_asgns = //new ArrayList<>();
+				StorageService.getAllAssignmentBlocksWithinRange(start, end);
 		List<ITimeBlockable> allBlocks = zipTimeBlockLists(unavailable, curr_asgns);
 
 		//If there are not enough free hours in the range specified by the new Assignment,
@@ -308,7 +308,8 @@ public class TimeAllocator {
 
 
 		//Create the task to give in the AssignmentBlock constructor
-		ITask task = new Task(m_asgn.getName() + ":" + step.getName(), step.getPercentOfTotal(), m_asgn.getID());
+		//ITask task = new Task(m_asgn.getName() + ":" + step.getName(), step.getPercentOfTotal(), m_asgn.getID());
+		ITask task = m_asgn.getTasks().get(step.getStepNumber());
 		return new AssignmentBlock(bestStart, bestEnd, task, true);
 	}
 
