@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import backend.StorageService;
+import backend.Utilities;
 import frontend.app.App;
 import frontend.app.GUIApp;
 import frontend.app.REPLApp;
@@ -37,7 +38,8 @@ public class Main {
 	 */
 	public static void main(final String[] args) {
 		final ArgParser parser = createFlagParser();
-//		
+
+///////////// THIS BLOCK HAS ERRORS, IF YOU DON'T NEED THIS DELETE IT (WHOEVER'S THIS IS)
 //		// Check the arguments for validity and create objects as needed
 //		try {
 //			parser.parse(args);
@@ -51,7 +53,9 @@ public class Main {
 //		final boolean debug = parser.existsFlag(Utilities.DEBUG);
 //		a = (parser.existsFlag(Utilities.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
 //		a.start();
+////////////////^^^^^^^^^^^^^^^^^^^^^
 		 
+/////// THIS BLOCK IS CURRENT VALID CODE; Please let it execute for GUI to run
 		// Check the arguments for validity and create objects as needed
 		try {
 			parser.parse(args);
@@ -65,6 +69,10 @@ public class Main {
 		final boolean debug = parser.existsFlag(Utils.DEBUG);
 		a = (parser.existsFlag(Utils.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
 		a.start();
+		
+		/* For StorageService.initialize(false||true):
+		 * Set 'true' if you want to drop old tables at the start of every run
+		 * Set 'false' for persistence */
 		
 		//DEBUG
 		StorageService.initialize(false);

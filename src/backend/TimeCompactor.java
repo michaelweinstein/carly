@@ -131,14 +131,12 @@ public class TimeCompactor {
 			//		then exit this function
 			if(newStart < start.getTime()) {
 				System.err.println("Bad START-insertion attempt!");
-				return;
+				break;
 			}
 			if(newEnd > end.getTime()) {
 				System.err.println("Bad END-insertion attempt!");
-				return;
+				break;
 			}
-			
-			
 			
 			//Place the block in its new location and decrement from the time bank
 			block.getStart().setTime(newStart);
@@ -167,12 +165,11 @@ public class TimeCompactor {
 		}
 		
 		//Try to switch the order of consecutive blocks that are of the same type
+		
 		trySwitchBlockOrder(allBlocks);
 		
 		
 		//Try to move assignments to their preferred time-of-day if possible
-		//TODO: tweak how blocks are spaced out -- uniformly is likely not the best way to go
-		
 		
 	}
 	
@@ -192,6 +189,10 @@ public class TimeCompactor {
 			ITimeBlockable prev = allBlocks.get(i - 1);
 			ITimeBlockable curr = allBlocks.get(i);
 			ITimeBlockable next = allBlocks.get(i + 1);
+			
+			//Don't attempt a switch if one of these blocks is unmovable
+			if(!prev.isMovable() || !curr.isMovable() || !next.isMovable())
+				continue;
 			
 			String prevID = prev.getTask().getAssignmentID();
 			String currID = curr.getTask().getAssignmentID();
@@ -259,6 +260,16 @@ public class TimeCompactor {
 	}
 	
 	
+	private static void optimizePreferredTime(List<ITimeBlockable> allBlocks) {
+		//TODO: try to put blocks in their preferred time of day, if possible
+		
+		for(int i = 0; i < allBlocks.size(); ++i) {
+			
+		}
+		
+	}
+	
+	
 	private static long getBlockInsertLocation(ITimeBlockable block, List<ITimeBlockable> allBlocks, 
 			long recommendedStart) {
 		ITimeBlockable pred = null;
@@ -270,7 +281,6 @@ public class TimeCompactor {
 		
 
 		while(true) {
-			//TODO: I don't like how inefficient a linear traversal here is at every step...
 			int indFit = TimeUtilities.indexOfFitLocn(allBlocks, new Date(newStart));
 			pred = (indFit == 0 ? null : allBlocks.get(indFit - 1));
 			succ = (indFit >= allBlocks.size() - 1 ? null : allBlocks.get(indFit));

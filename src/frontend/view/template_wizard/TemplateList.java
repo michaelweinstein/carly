@@ -10,20 +10,29 @@ import data.Template;
 // TODO
 public class TemplateList {
 	
-	private static List<ITemplate> _templates;
+	private static List<ITemplate> _templates = new ArrayList<>();
 	
 	public TemplateList() {
 		_templates = StorageService.getAllTemplates();
-///// Until StorageService method is written
-		if (_templates == null) 
-			_templates = new ArrayList<ITemplate>();
+				
+//////////////	print liiiiines
+		System.out.println("TemplateList _templates.size(): " + _templates.size());
+		for (ITemplate t: _templates) {
+			System.out.println("TemplateList t: " + t);
+		}
+//////^^^^^^^^^^^^^^
 	}
 	
 	/**
+	 * Add Template to local list and to the SQL
+	 * database. Storing in a local list saves 
+	 * having to query a second time to get all
+	 * templates to display to user in TemplateWizardView.
 	 * 
 	 * @param t
 	 */
 	public static void addTemplate(Template t) {
+		StorageService.addTemplate(t);
 		_templates.add(t);
 	}
 	
