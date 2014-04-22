@@ -54,27 +54,31 @@ public class Main {
 //		a = (parser.existsFlag(Utilities.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
 //		a.start();
 ////////////////^^^^^^^^^^^^^^^^^^^^^
-		 
-/////// THIS BLOCK IS CURRENT VALID CODE; Please let it execute for GUI to run
-		// Check the arguments for validity and create objects as needed
-		try {
-			parser.parse(args);
-		} catch (final IllegalArgumentException e) {
-			Utils.printError(e.getMessage());
-			System.out.println(Utils.USAGE);
-			return;
-		}
 		
-		// Create an App, subtype dependent on the GUI command line flag
-		final boolean debug = parser.existsFlag(Utils.DEBUG);
-		a = (parser.existsFlag(Utils.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
-		a.start();
-		
-		/* For StorageService.initialize(false||true):
-		 * Set 'true' if you want to drop old tables at the start of every run
-		 * Set 'false' for persistence */
+		/*
+		 * Eric: I've commented out this valid code block below so I can just test Storage Service 
+		 * without having the GUI start. Feel free to uncomment it if you need it. 
+		 */
+///////// THIS BLOCK IS CURRENT VALID CODE; Please let it execute for GUI to run
+//		// Check the arguments for validity and create objects as needed
+//		try {
+//			parser.parse(args);
+//		} catch (final IllegalArgumentException e) {
+//			Utils.printError(e.getMessage());
+//			System.out.println(Utils.USAGE);
+//			return;
+//		}
+//		
+//		// Create an App, subtype dependent on the GUI command line flag
+//		final boolean debug = parser.existsFlag(Utils.DEBUG);
+//		a = (parser.existsFlag(Utils.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
+//		a.start();
+//		
+//		/* For StorageService.initialize(false||true):
+//		 * Set 'true' if you want to drop old tables at the start of every run
+//		 * Set 'false' for persistence */
 		
 		//DEBUG
-		StorageService.initialize(false);
+		StorageService.initialize(true);
 	}
 }
