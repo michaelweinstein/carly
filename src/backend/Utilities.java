@@ -55,7 +55,7 @@ public abstract class Utilities {
 			"INNER JOIN TASK " + 
 			"ON TASK.TASK_ID = TIME_BLOCK.TASK_ID " +
 			"WHERE BLOCK_START >= ? AND BLOCK_END <= ? " + 
-			"AND BLOCK_MOVABLE = TRUE "; 
+			"AND BLOCK_MOVABLE = FALSE "; 
 	
 	/*
 	 * Assignment SQL statements

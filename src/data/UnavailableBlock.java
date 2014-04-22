@@ -73,12 +73,14 @@ public class UnavailableBlock implements ITimeBlockable {
 
 	@Override
 	public ITask getTask() {
+		//TODO: return null?
 		return m_task;
 	}
 
 	@Override
 	public String getTaskId() {
-		return m_task.getTaskID();
+		//TODO: Should an UnavailableBlock ever have a Task?
+		return "";
 	}
 
 	@Override
