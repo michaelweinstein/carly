@@ -1165,6 +1165,10 @@ public class StorageService {
 	    return temp; 
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public static synchronized List<ITemplate> getAllTemplates() {
 		ArrayList<ITemplate> results = new ArrayList<>(); 
 		HashMap<String,Template> _idToTemplate = new HashMap<>(); 
