@@ -54,7 +54,11 @@ public class Main {
 //		a = (parser.existsFlag(Utilities.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
 //		a.start();
 ////////////////^^^^^^^^^^^^^^^^^^^^^
-		 
+		
+		/*
+		 * Eric: I've commented out this valid code block below so I can just test Storage Service 
+		 * without having the GUI start. Feel free to uncomment it if you need it. 
+		 */
 /////// THIS BLOCK IS CURRENT VALID CODE; Please let it execute for GUI to run
 		// Check the arguments for validity and create objects as needed
 		try {
@@ -75,6 +79,6 @@ public class Main {
 		 * Set 'false' for persistence */
 		
 		//DEBUG
-		StorageService.initialize(false);
+		StorageService.initialize(true);
 	}
 }

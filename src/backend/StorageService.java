@@ -45,6 +45,7 @@ public class StorageService {
 			Class.forName("org.h2.Driver");
 			
 			if (dropTables) {
+				System.out.println("StorageService: initialize: dropping tables...");
 			    try (Statement stmt = con.createStatement()) {
 			        stmt.execute(Utilities.DROP_ALL_TABLES);
 			    }
@@ -896,6 +897,28 @@ public class StorageService {
 //	        blockCols.add(concatColumn("BLOCK_START", "BIGINT"));
 //	        blockCols.add(concatColumn("BLOCK_END", "BIGINT"));
 //	        blockCols.add(concatColumn("BLOCK_MOVABLE", "BOOLEAN"));
+//	    	//DEBUG
+//	        String query = "SHOW COLUMNS FROM TIME_BLOCK"; 
+//		    try (Statement stmt = con.createStatement()) {
+//	
+//		        ResultSet rs = stmt.executeQuery(query);
+//		        
+//		        ResultSetMetaData rsmd = rs.getMetaData();
+//		        int columnCount = rsmd.getColumnCount();
+//
+//		        System.out.println("Column names are: ");
+//		        // The column count starts from 1
+//		        for (int i = 1; i < columnCount + 1; i++ ) {
+//		          String name = rsmd.getColumnName(i);
+//		          System.out.println("\t" + name);
+//		        }
+//	
+//		        System.out.println("Processing results.");
+//		        while (rs.next()) {
+//		        	System.out.println("\t" + rs.getString("COLUMN_NAME"));
+//		        }
+//		    }
+//		    //DEBUG
 	    	
 	        con.setAutoCommit(false);
 	        statement = con.prepareStatement(Utilities.INSERT_TIME_BLOCK);
@@ -909,15 +932,15 @@ public class StorageService {
             con.commit();
 	    } 
 	    catch (ClassNotFoundException e) {
-			Utilities.printException("StorageService: addTemplate: db drive class not found", e);
+			Utilities.printException("StorageService: addTimeBlock: db drive class not found", e);
 		} 
 	    catch (SQLException e) {
-	        Utilities.printSQLException("StorageService: addTemplate: attempting to roll back transaction", e);
+	        Utilities.printSQLException("StorageService: addTimeBlock: attempting to roll back transaction", e);
 	        if (con != null) {
 	            try {
 	                con.rollback();
 	            } catch(SQLException x) {
-	                Utilities.printSQLException("StorageService: addTemplate: could not roll back transaction", x);
+	                Utilities.printSQLException("StorageService: addTimeBlock: could not roll back transaction", x);
 	            }
 	        }
 	    } 
@@ -1142,6 +1165,10 @@ public class StorageService {
 	    return temp; 
 	}
 	
+	/**
+	 * 
+	 * @return
+	 */
 	public static synchronized List<ITemplate> getAllTemplates() {
 		ArrayList<ITemplate> results = new ArrayList<>(); 
 		HashMap<String,Template> _idToTemplate = new HashMap<>(); 
