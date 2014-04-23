@@ -8,7 +8,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import backend.TimeUtilities;
+import backend.time.TimeUtilities;
 import data.AssignmentBlock;
 import data.ITimeBlockable;
 import data.UnavailableBlock;

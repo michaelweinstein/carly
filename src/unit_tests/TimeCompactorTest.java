@@ -9,9 +9,9 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-import backend.TimeAllocator;
-import backend.TimeCompactor;
-import backend.TimeUtilities;
+import backend.time.TimeAllocator;
+import backend.time.TimeCompactor;
+import backend.time.TimeUtilities;
 import data.Assignment;
 import data.AssignmentBlock;
 import data.ITimeBlockable;

@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
-import backend.TimeAllocator;
+import backend.time.TimeAllocator;
 import data.Assignment;
 import data.ITimeBlockable;
 import data.Template;
@@ -20,8 +20,8 @@ public class TimeAllocatorTest {
 	
 	@Test
 	public void testAllocation() {
-		Date due = new Date();
-		due.setTime(due.getTime() + TimeUnit.MILLISECONDS.convert(3, TimeUnit.DAYS));
+		Date start = new Date();
+		Date due = new Date(start.getTime() + TimeUnit.MILLISECONDS.convert(3, TimeUnit.DAYS));
 		
 		//Create a template for the assignment
 		String name = "Basic Template";
@@ -41,7 +41,7 @@ public class TimeAllocatorTest {
 		Assignment asgn2 = new Assignment("Asgn2", 
 				new Date(due.getTime() + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS)), t2, 21);
 		TimeAllocator talloc = new TimeAllocator(asgn);
-		talloc.insertAsgn();
+		talloc.insertAsgn(start, due);
 		
 		List<ITimeBlockable> results = talloc.getEntireBlockSet();
 	}

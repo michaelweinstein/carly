@@ -1,4 +1,4 @@
-package backend;
+package backend.time;
 
 import java.util.Date;
 import java.util.List;
@@ -122,7 +122,8 @@ public class TimeUtilities {
 		}
 		
 		
-		//TODO : check to see if one longer than other - look at its immediate neighbors in list (maybe possible)
+		//TODO : check to see if blocks are of varying lengths - look at its immediate
+		//		neighbors in list (maybe possible)
 		
 		//Return true if the insertion was successful
 		return true;
