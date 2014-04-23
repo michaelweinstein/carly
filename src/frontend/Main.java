@@ -79,6 +79,6 @@ public class Main {
 		 * Set 'false' for persistence */
 		
 		//DEBUG
-		StorageService.initialize(false);
+		StorageService.initialize(true);
 	}
 }

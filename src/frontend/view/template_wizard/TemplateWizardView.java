@@ -61,7 +61,7 @@ public class TemplateWizardView extends JPanel {
 	// Easy access to input fields, getText inputted by user
 	private Map<String, JTextComponent> _inputMap = new HashMap<>();
 	// Stores TemplateSteps inputted by user, passes in to new Template on submit
-	private List<ITemplateStep> _currSteps = new ArrayList<>();
+//	private List<ITemplateStep> _currSteps = new ArrayList<>();
 
 	/* Data structures */
 	private final JComboBox<ITemplate> _templatePicker;
@@ -150,16 +150,48 @@ public class TemplateWizardView extends JPanel {
 					// Create and store new instance of Template
 					String name = _inputMap.get(template_name).getText();
 					double hours = Double.parseDouble(_inputMap.get(template_hours).getText());
-					Template t = new Template(name, hours, _currSteps);
 					
-					// Add Template to StorageService and local list
-					TemplateList.addTemplate(t);
-					// Add item to JComboBox
-					addItemToTemplatePicker(t);
-					// Clear _currSteps list
-					_currSteps.clear();
-					// Hides all elements
-					hideAll();
+					
+					// Get all TemplateSteps from table and pass list to new Template
+					List<ITemplateStep> currSteps = getStepsFromTable();
+					// Check that Steps are not empty, and valid
+					if (verifyStepData(currSteps)) {
+						// Instantiate Template based on name, hours, steps data
+						Template t = new Template(name, hours, currSteps);
+											
+						// 'Custom' template, addTemplate (Custom always last element in ComboBox)
+						if (_templatePicker.getSelectedIndex() == _templatePicker.getItemCount()-1) {								
+							// Add Template to StorageService and local list
+							TemplateList.addTemplate(t);
+							// Add item to JComboBox
+							addItemToTemplatePicker(t);
+						}
+						// Pre-Existing template, updateTemplate
+						else {
+/////////////////////
+							// TODO: Remove this block and printline
+							// 	TEMPORARY
+							TemplateList.addTemplate(t);
+							addItemToTemplatePicker(t);
+/////////////
+							System.out.println("TEMPORARILY Adds new Template instead of " + 
+									"updating Existing Template, still debugging. " + 
+									"(TemplateWizard().submitBtn.ActionListener)");
+/////////////////^^^^^^
+							
+							// TODO: Update existing template
+								//////Getting errors on TemplateList.updateTemplate()
+							
+/*							// Update template in StorageService
+							TemplateList.updateTemplate(t);
+							// Remove current item from _templatePicker JComboBox
+							_templatePicker.removeItem(_templatePicker.getSelectedIndex());
+							// Add updated Template to _templatePicker JComboBox
+							addItemToTemplatePicker(t);*/
+						}
+						// Hides all elements
+						hideAll();
+					}
 				}
 			}
 		});
@@ -223,11 +255,47 @@ public class TemplateWizardView extends JPanel {
 	
 	
 // ============ START Visibility Methods ===================
-	// TODO setStepsVisible(boolean), setAllVisible(boolean)
+	/**
+	 * Called on 'Edit' button, and on 'Custom'
+	 * Template selected from _templatePicker etc...
+	 * Shows all template field elements:
+	 * name panel, hours panel, steps table
+	 * and "Submit Template" button.
+	 * Disables 'Edit' button because elements
+	 * are already visible. Enables 'Hide' button.
+	 */
+	private void showAll() {
+		// Show four elements
+		_namePanel.setVisible(true);
+		_hoursPanel.setVisible(true);
+		_submitTemplateBtn.setVisible(true);
+		_stepPanel.setVisible(true);		
+		// Enable 'Hide', disable 'Edit' (visible state)
+		_editBtn.setEnabled(false);			
+		_hideBtn.setEnabled(true);
+	}
+	
+	/**
+	 * Called on 'Hide' button, etc...
+	 * Hides four template field elements.
+	 * Disables 'Hide' button, since panels
+	 * are already hidden. Enables 'Edit' button,
+	 * to make visible again.
+	 */
+	private void hideAll() {
+		// Hide four elements
+		_namePanel.setVisible(false);
+		_hoursPanel.setVisible(false);
+		_submitTemplateBtn.setVisible(false);
+		_stepPanel.setVisible(false);	
+		// Enable 'Edit', disable 'Hide' (hidden state)
+		_editBtn.setEnabled(true);			
+		_hideBtn.setEnabled(false);
+	}
 // ============ END Visibility Methods ====================
 		
+	
 // ============ START Create Panel Methods ==================
-
 	/**
 	 * Creates and returns a JPanel with JTable
 	 * for user to input and view the TemplateSteps
@@ -259,10 +327,10 @@ public class TemplateWizardView extends JPanel {
 			@Override
 			public void tableChanged(TableModelEvent e) {
 				// Get row that was changed by user
-				int rowNum = e.getLastRow();
+/*				int rowNum = e.getLastRow();
 				Object row[] = model.getRowAt(rowNum);
-				// INSERT or EDIT
-				if (e.getType() == TableModelEvent.INSERT || e.getType() == TableModelEvent.UPDATE){ 
+				// INSERT or UPDATE
+				if (e.getType() == TableModelEvent.INSERT || e.getType() == TableModelEvent.UPDATE) { 
 					// Create Step if row completely filled out; set step number to rowNum
 					ITemplateStep newStep = createStepFromArray(row);
 					if (newStep != null) {
@@ -281,11 +349,7 @@ public class TemplateWizardView extends JPanel {
 							_currSteps.add(newStep);
 						}
 					}			
-				}
-				// UPDATE
-				else if (e.getType() == TableModelEvent.DELETE) {
-					_currSteps.remove(rowNum);
-				}
+				}*/
 				// Create new row if last row is entirely filled
 				if (e.getLastRow() == model.getRowCount() -1) 
 					if (model.getRowAt(e.getLastRow()).length == 2) 
@@ -372,30 +436,27 @@ public class TemplateWizardView extends JPanel {
 	
 // ============ START Data Structures Methods =============
 	
-//////////	
-	private void showAll() {
-		// TODO Comment
-		_namePanel.setVisible(true);
-		_hoursPanel.setVisible(true);
-		_submitTemplateBtn.setVisible(true);
-		_stepPanel.setVisible(true);
-		
-		// Elements visible, so disable 'Edit'
-		_editBtn.setEnabled(false);			
-		_hideBtn.setEnabled(true);
+	/**
+	 * Returns a List of TemplateSteps generated from current
+	 * data in StepViewTable _tableModel.
+	 * 
+	 * @return List of Steps created from current TableModel
+	 */
+	private List<ITemplateStep> getStepsFromTable() {
+		List<ITemplateStep> currSteps = new ArrayList<>();
+		for (int i=0; i<_tableModel.getRowCount(); i++) {
+			Object row[] = _tableModel.getRowAt(i);						
+			if (!row[0].toString().isEmpty() && !row[1].toString().isEmpty()) {
+				// Creates ITemplateStep from Object arr[2] {name, %}
+				ITemplateStep s = createStepFromRow(row);
+				// Set stepNumber to row number
+				s.setStepNumber(i);
+				// Add to List
+				currSteps.add(s);
+			}
+		}
+		return currSteps;
 	}
-	private void hideAll() {
-		// TODO Comment
-		_namePanel.setVisible(false);
-		_hoursPanel.setVisible(false);
-		_submitTemplateBtn.setVisible(false);
-		_stepPanel.setVisible(false);
-		
-		// Elements hidden, so enable buttons
-		_editBtn.setEnabled(true);			
-		_hideBtn.setEnabled(false);
-	}
-//////////^^^^^^
 
 	/**
 	 * Gets Template currently selected in JComboBox _templatePicker.
@@ -419,43 +480,57 @@ public class TemplateWizardView extends JPanel {
 		_inputMap.get(template_name).setText(name);
 		_inputMap.get(template_hours).setText(hours);
 
-		// TODO: Not Fully Functional: Populate step table!
-////////////////
-		System.out.println("Steps not loaded into table yet; " + 
-				"feature commented out as I am working on a bug. " +
-				"(@TemplateWizardView.populateFields())");
-/////////////// Feature almost fully functional, but still a couple bugs
-/*		if (_tableModel != null) {
+		// Load template data into StepsViewTable; clear all if 'Custom'
+		populateStepsViewTable(t, custom);
+	}
+	
+	/**
+	 * Populates StepsViewTable with data from specified ITemplate t
+	 * in _templatePicker JComboBox. First clear _currSteps List, which is the
+	 * List of ITemplateSteps that gets passed to new Template on submit. Also
+	 * clears all data from table on resetStepsViewTable, to repopulate from scratch.
+	 * If clear is false, it repopulates _currSteps and StepsTableModel with each
+	 * step from specified ITemplate t. Then alerts listener that rows have been updated.
+	 * Listener automatically deletes empty rows and adds empty row at end.
+	 * 
+	 * @param ITemplate t, boolean clear
+	 */
+	private void populateStepsViewTable(ITemplate t, boolean clear) {
+		// Clear StepsViewTable for repopulation
+		resetStepsViewTable();
+		if (_tableModel != null) {
 			// Get steps from currently selected Template
 			List<ITemplateStep> allSteps = t.getAllSteps();
-			// 'Custom' Clear table
-			if (custom) {
-				// TODO: Edit/Clear _currSteps; OR populate with _currSteps
-				_tableModel.setValueAt("", 0, 0);
-				_tableModel.setValueAt("", 0, 1);
-			} 
-			// Load steps into table
-			else {
-				int numRow = _tableModel.getRowCount();
+			// Repopulate with current template data
+			if (!clear) {
+				// Fill _tableModel data with current data
 				int numSteps = allSteps.size();
 				for (int i=0; i<numSteps; i++) {
 					ITemplateStep s = allSteps.get(i);
+					// Populate row with each step
 					_tableModel.setValueAt(s.getName(), i, 0);
-					_tableModel.setValueAt(s.getPercentOfTotal(), i, 1);
-/////
-//					System.out.println(i + ": " + s.getName());
-//					System.out.println(i + ": " + s.getPercentOfTotal());
+					_tableModel.setValueAt(s.getPercentOfTotal()*100, i, 1);
 				}
-				// Fires Event: Rows [0, # steps] updated
-				_tableModel.fireTableRowsUpdated(0, numSteps-1);
-				
-				// TODO: Do I need to manually get rid of rows not filled?
-				// Fires Event: Rows [# steps, # rows] deleted
-				if (numSteps < numRow) 
-					_tableModel.fireTableRowsDeleted(numSteps, _tableModel.getRowCount()-1);
+				// Fires UDPATE Event: Rows [0, # steps] updated
+				_tableModel.fireTableRowsUpdated(0, /*numSteps-1*/_tableModel.getRowCount()-1);
 			}
-		}*/
-//////////////^^^^^^^^^^^^^^^^^^^
+		}
+	}
+	
+	/**
+	 * Clears data from StepsViewTable. Just sets value
+	 * of each cell in each row to empty string "". Alerts
+	 * TableModelListener that all rows have been updated.
+	 * Then TableModelListener (in createStepsPanel()) automatically
+	 * removes empty rows and adds an empty row at the end.
+	 * This is called before every time StepsViewTable is repopulated.
+	 */
+	private void resetStepsViewTable() {
+		for (int i=0; i<_tableModel.getRowCount()-1; i++) {
+			_tableModel.setValueAt("", i, 0);
+			_tableModel.setValueAt("", i, 1);
+		}
+		_tableModel.fireTableRowsUpdated(0, _tableModel.getRowCount()-1);
 	}
 	
 	/**
@@ -466,7 +541,7 @@ public class TemplateWizardView extends JPanel {
 	 * @param arr Object[name (String), % of total (Double)]
 	 * @return new TemplateStep(name, percentOfTotal)
 	 */
-	private static TemplateStep createStepFromArray(Object arr[]) {
+	private static TemplateStep createStepFromRow(Object arr[]) {
 		if (arr.length == 2) 
 			if (arr[0] instanceof String && arr[1] instanceof Double) 
 				return new TemplateStep((String)arr[0], ((Double)arr[1])/100.0);
@@ -506,6 +581,8 @@ public class TemplateWizardView extends JPanel {
 	 * mandatory fields have been left blank -- returns true. 
 	 * Alerts user if a field is invalid or blank, and returns false.
 	 * Displays specific error messages using alertUser calls.
+	 * Does NOT verify StepViewTable data (optimization so that
+	 * getStepsFromTable does not have to be called twice on Submit).
 	 * 
 	 * @return true if all fields valid, else false
 	 */
@@ -513,7 +590,6 @@ public class TemplateWizardView extends JPanel {
 		// Set up validity booleans
 		boolean validName = false;
 		boolean validHours = false;
-		boolean validSteps = false;
 		// Check name
 		if (_inputMap.containsKey(template_name)) {
 			String name = _inputMap.get(template_name).getText();
@@ -546,15 +622,24 @@ public class TemplateWizardView extends JPanel {
 				alertUser("Invalid Input: Please enter preferred number " + 
 						"of consecutive hours you would like to work on template.");
 		}
-		// Check that steps have been added to Template
-		if (!_currSteps.isEmpty()) {
-			// TODO Individual Steps: Is each Step verified before getting added to _currSteps?
-			validSteps = true;
-		}
-		else 
+		return validName && validHours;
+	}
+	
+	/**
+	 * Verifies TemplateStep data in specified List steps, which should be
+	 * generated from getStepsFromTable. Checks that step data exists.
+	 * Has List parameter so getStepsFromTable does not need to be called twice. 
+	 * 
+	 * @param steps, List of TemplateSteps from StepViewTable
+	 * @return boolean, whether or not step data is valid
+	 */
+	private boolean verifyStepData(List<ITemplateStep> steps) {
+		// TODO: Check validity of name, hours and stepNumber also?
+		if (steps.isEmpty()) {
 			alertUser("Invalid Input: Please add Steps to this Template");
-		
-		return validName && validHours && validSteps;
+			return false;
+		}
+		return true;
 	}
 	
 // ============ END Verify Data Methods ==================

@@ -37,18 +37,25 @@ public class TemplateList {
 	 * @param t
 	 */
 	public static void addTemplate(Template t) {
-///////
-//		System.out.println("Template Added: " + t);
-//		t.addStep(new TemplateStep("Automatically Added Step", 1));
-		
 		try {
 			StorageService.addTemplate(t);
 		} catch (StorageServiceException e) {
-			// TODO Auto-generated catch block
+			// TODO Handle
+			System.out.println("StorageServiceException for template " + t + " (TemplateList.addTemplate)");
 			e.printStackTrace();
 		}
 
 		_templates.add(t);
+	}
+	
+	public static void updateTemplate(Template t) {
+		try {
+			StorageService.updateTemplate(t);
+		} catch (StorageServiceException e) {
+			// TODO: Handle
+			System.out.println("StorageServiceException for template " + t + " (TemplateList.updateTemplate)");
+			e.printStackTrace();
+		}
 	}
 	
 	/**
