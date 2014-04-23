@@ -2,6 +2,7 @@ package data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import frontend.Utils;
 
@@ -43,33 +44,38 @@ public class Template implements ITemplate {
 		_preferredConsecutiveHours = DataUtil.DEFAULT_CONSECUTIVE_HOURS;
 		_steps = new ArrayList<>();
 		// Add steps individually to ensure the names are unique
-		for (ITemplateStep s: steps) 
+		for (final ITemplateStep s : steps) {
 			addStep(s);
-	}	
+		}
+	}
+	
 	/**
-	 * Constructor with both name and preferred consecutive hours, and
-	 * also an initial List of TemplateSteps to populate _steps.
+	 * Constructor with both name and preferred consecutive hours, and also an initial List of TemplateSteps to populate
+	 * _steps.
 	 */
 	public Template(final String name, final double hours, final List<ITemplateStep> steps) {
 		_name = name;
 		_preferredConsecutiveHours = hours;
-		_steps = new ArrayList<>();		
+		_steps = new ArrayList<>();
 		// Add steps individually to ensure the names are unique
-		for (ITemplateStep s: steps) 
+		for (final ITemplateStep s : steps) {
 			addStep(s);
+		}
 		_uid = DataUtil.generateID();
-	}	
+	}
+	
 	/**
 	 * Constructor used by StorageService to reconstruct the template object
 	 */
-	public Template(String id, String name, List<ITemplateStep> steps, double consecutiveHours) {
-		_uid = id; 
-		_name = name; 
+	public Template(final String id, final String name, final List<ITemplateStep> steps, final double consecutiveHours) {
+		_uid = id;
+		_name = name;
 		_steps = new ArrayList<>();
 		// Add steps individually to ensure the names are unique
-		for (ITemplateStep s: steps) 
+		for (final ITemplateStep s : steps) {
 			addStep(s);
-		_preferredConsecutiveHours = consecutiveHours; 
+		}
+		_preferredConsecutiveHours = consecutiveHours;
 	}
 	
 	/* ITemplate step manipulation */
@@ -171,33 +177,37 @@ public class Template implements ITemplate {
 	
 	@Override
 	public String fullString() {
-		StringBuilder builder = new StringBuilder(); 
-		builder.append ("[uid: ");
-		builder.append(_uid); 
+		final StringBuilder builder = new StringBuilder();
+		builder.append("[uid: ");
+		builder.append(_uid);
 		builder.append(", name: ");
-		builder.append(_name); 
+		builder.append(_name);
 		builder.append(", preferredConsecutiveHours: ");
-		builder.append(_preferredConsecutiveHours); 
+		builder.append(_preferredConsecutiveHours);
 		builder.append(", steps: {");
 		
-		for (ITemplateStep step : _steps) {
-			builder.append(step.fullString() + ", "); 
+		for (final ITemplateStep step : _steps) {
+			builder.append(step.fullString() + ", ");
 		}
-		builder.replace(builder.length() - 2, builder.length() - 1, "}]"); 
-		return builder.toString().trim(); 
+		builder.replace(builder.length() - 2, builder.length() - 1, "}]");
+		return builder.toString().trim();
 	}
 	
 	@Override
-	public boolean equals(Object other) {
+	public boolean equals(final Object other) {
 		if (!(other instanceof Template)) {
-			return false; 
+			return false;
 		}
 		try {
-			Template comp = (Template) other;
-			return (comp.fullString().contains(this.fullString())) ? true : false;
+			final Template comp = (Template) other;
+			return (comp.fullString().contains(fullString())) ? true : false;
+		} catch (final ClassCastException x) {
+			return false;
 		}
-		catch (ClassCastException x) {
-			return false; 
-		}
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(fullString());
 	}
 }
