@@ -1,6 +1,5 @@
 package frontend.view.calendar;
 
-import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Font;
 
@@ -9,6 +8,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.border.EmptyBorder;
 
 import frontend.Utils;
@@ -23,16 +23,13 @@ public class WeekView extends JScrollPane {
 	private static final long	serialVersionUID	= -4485951680510823881L;
 	private JPanel				_timePanel;
 	private JPanel				_centerPanel;
-	private final JPanel		_parentContainer;
+	private final JSplitPane	_parentContainer;
 	
 	public WeekView() {
-		_parentContainer = new JPanel();
-		_parentContainer.add(createLeftPane(), BorderLayout.WEST);
-		_parentContainer.add(createCenterPane(), BorderLayout.CENTER);
+		_parentContainer = new JSplitPane(JSplitPane.VERTICAL_SPLIT, createLeftPane(), createCenterPane());
 		setViewportView(_parentContainer);
 		
 		themeAll();
-		_parentContainer.setPreferredSize(_parentContainer.getPreferredSize());
 	}
 	
 	/**
@@ -51,16 +48,6 @@ public class WeekView extends JScrollPane {
 		Utils.padComponent(_parentContainer, 0, 0);
 		Utils.padComponent(_centerPanel, 0, 0);
 		Utils.padComponent(_timePanel, 0, 0);
-	}
-	
-	@Override
-	public void revalidate() {
-		if (_timePanel != null) {
-			final Dimension ts = _timePanel.getSize();
-			_parentContainer.setSize(new Dimension(getSize().width, getSize().height));
-			_centerPanel.setSize(new Dimension(getSize().width - ts.width, ts.height));
-		}
-		super.revalidate();
 	}
 	
 	/**
