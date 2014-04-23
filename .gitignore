@@ -19,6 +19,8 @@
  .settings/
  .loadpath
  .classpath
+ .project
+ .externalToolBuilders/
 
 ## External tool builders
  .externalToolBuilders/
