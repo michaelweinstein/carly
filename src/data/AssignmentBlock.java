@@ -99,6 +99,11 @@ public class AssignmentBlock implements ITimeBlockable {
 	public String toString() {
 		return "Assigned: [" + m_start.toString() + ", " + m_end.toString() + "]";
 	}
+	
+	public String fullString() {
+		return "Assigned: [" + m_uniqueId + ", "+ m_start.toString() + ", " + m_end.toString() + ", " + 
+				m_task.toString() + ", " + m_isMovable + "]";
+	}
 
 
 	@Override

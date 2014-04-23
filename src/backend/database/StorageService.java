@@ -13,7 +13,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 import data.Assignment;
 import data.AssignmentBlock;
 import data.IAssignment;
@@ -133,26 +132,86 @@ public class StorageService {
 	 * ================================================================
 	 */
 
+	/**
+	 * Gets all Unavailable Blocks within the specified range
+	 * 
+	 * @param date1 Lower bound for the date range
+	 * @param date2 Upper bound for the date range
+	 * @return List of all the blocks that fall COMPLETELY within these bounds 
+	 */
 	public static synchronized List<UnavailableBlock> getAllUnavailableBlocksWithinRange(Date date1, Date date2) {
 		return TimeBlockStorage.getAllUnavailableBlocksWithinRange(date1, date2); 
 	}
 	
+	/**
+	 * Gets all Assignment Blocks within the specified range
+	 * 
+	 * @param date1 Lower bound for the date range
+	 * @param date2 Upper bound for the date range
+	 * @return List of all the blocks that fall COMPLETELY within these bounds 
+	 */
 	public static synchronized List<AssignmentBlock> getAllAssignmentBlocksWithinRange(Date date1, Date date2) {
 		return TimeBlockStorage.getAllAssignmentBlocksWithinRange(date1, date2); 
 	}
+	
+	/**
+	 * Gets an Assignment Block
+	 * 
+	 * @param blockId Id of the Assignment Block in question 
+	 * @return AssignmentBlock corresponding to the given id 
+	 */
+	public static synchronized AssignmentBlock getAssignmentBlock(String blockId) {
+		return TimeBlockStorage.getAssignmentBlock(blockId); 
+	}
+	
+	/**
+	 * Get an Unavailable Block
+	 * 
+	 * @param blockId Block id of the unavailable block
+	 * @return UnavailableBlock found corresponding to the given id 
+	 */
+	public static synchronized UnavailableBlock getUnavailableBlock(String blockId) {
+		return TimeBlockStorage.getUnavailableBlock(blockId); 
+	}
 
+	/**
+	 * Adds a Time Block
+	 * 
+	 * @param block Block to be stored in the database
+	 * @throws StorageServiceException When the TimeBlock's associated Task is not in the database 
+	 */
 	public static synchronized void addTimeBlock(ITimeBlockable block) throws StorageServiceException {
 		TimeBlockStorage.addTimeBlock(block); 
 	}
 	
-	public static synchronized void mergeAllTimeBlocks(List<ITimeBlockable> block) {
-		TimeBlockStorage.mergeAllTimeBlocks(block); 
+	/**
+	 * Adds VALID TimeBlocks if they don't already exist in the database
+	 * Updates any TimeBlocks that already have been stored in the database
+	 * 
+	 * @param blockList
+	 * @return A list of INVALID TimeBlocks (that is, those whose associated Task cannot be found in the database) that were NOT added/updated
+	 */
+	public static synchronized List<ITimeBlockable> mergeAllTimeBlocks(List<ITimeBlockable> blockList) {
+		return TimeBlockStorage.mergeAllTimeBlocks(blockList); 
 	}
 	
-	public static synchronized ITimeBlockable updateTimeBlock(ITimeBlockable block) {
+	/**
+	 * Update TimeBlock with new start date, end date and associated task values
+	 * 
+	 * @param block Updated block
+	 * @return Block that was passed in, for chaining calls
+	 * @throws StorageServiceException Thrown when the TimeBlock's associated Task cannot be found in the database
+	 */
+	public static synchronized ITimeBlockable updateTimeBlock(ITimeBlockable block) throws StorageServiceException {
 		return TimeBlockStorage.updateTimeBlock(block); 
 	}
 	
+	/**
+	 * Remove TimeBlock from the database
+	 * 
+	 * @param block Block to remove from the database
+	 * @return Block that was removed, for chaining calls
+	 */
 	public static synchronized ITimeBlockable removeTimeBlock(ITimeBlockable block) {
 		return TimeBlockStorage.removeTimeBlock(block); 
 	}

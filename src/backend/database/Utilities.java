@@ -30,6 +30,11 @@ public abstract class Utilities {
 			"(BLOCK_ID, TASK_ID, BLOCK_START, BLOCK_END, BLOCK_MOVABLE) " + 
 			"VALUES (?, ?, ?, ?, ?) ";
 	
+	protected static final String MERGE_TIME_BLOCK = 
+			"MERGE INTO TIME_BLOCK " + 
+			"(BLOCK_ID, TASK_ID, BLOCK_START, BLOCK_END, BLOCK_MOVABLE) " + 
+			"VALUES (?, ?, ?, ?, ?) ";
+	
 	protected static final String UPDATE_TIME_BLOCK = 
 			"UPDATE TIME_BLOCK " +
 			"SET BLOCK_START = ?, BLOCK_END = ?, TASK_ID = ? " + 
@@ -43,11 +48,21 @@ public abstract class Utilities {
 	 * AssignmentBlock and UnavailableBlock SQL retrieval statements
 	 */
 	
+	protected static final String SELECT_ASSIGNMENT_BLOCK_BY_ID = 
+			"SELECT * FROM TIME_BLOCK " + 
+			"INNER JOIN TASK " + 
+			"ON TASK.TASK_ID = TIME_BLOCK.TASK_ID " +
+			"WHERE BLOCK_ID = ? "; 
+	
+	protected static final String SELECT_UNAVAILABLE_BLOCK_BY_ID = 
+			"SELECT * FROM TIME_BLOCK " + 
+			"WHERE BLOCK_ID = ? "; 
+	
 	protected static final String SELECT_ASSIGNMENT_BLOCKS_BY_DATE = 
 			"SELECT * FROM TIME_BLOCK " + 
 			"INNER JOIN TASK " + 
 			"ON TASK.TASK_ID = TIME_BLOCK.TASK_ID " +
-			"WHERE BLOCK_START >= ? AND BLOCK_END <= ? " + 
+			"WHERE BLOCK_START >= ? AND BLOCK_END <= ? " + //TODO: include blocks where only one end in range?
 			"AND BLOCK_MOVABLE = TRUE ";  
 	
 	protected static final String SELECT_UNAVAILABLE_BLOCKS_BY_DATE = 

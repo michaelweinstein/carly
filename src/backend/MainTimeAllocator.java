@@ -33,12 +33,12 @@ public class MainTimeAllocator {
 				createAnotherTemplate(), 21);
 		
 		try {
-			//Add the assignments to the db
-			StorageService.addAssignment(asgn);
-			StorageService.addAssignment(asgn2);
 			//Add the templates to the db
 			StorageService.addTemplate(asgn.getTemplate());
 			StorageService.addTemplate(asgn2.getTemplate());
+			//Add the assignments to the db
+			StorageService.addAssignment(asgn);
+			StorageService.addAssignment(asgn2);
 		} catch (StorageServiceException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();

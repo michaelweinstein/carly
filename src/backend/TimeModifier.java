@@ -3,6 +3,8 @@ package backend;
 import java.util.Date;
 import java.util.List;
 
+import backend.database.StorageService;
+import backend.database.StorageServiceException;
 import data.ITimeBlockable;
 
 
@@ -18,13 +20,23 @@ public class TimeModifier {
 		//Shortening a block from the top
 		if(currStart.compareTo(newStart) < 0 && currEnd.compareTo(newEnd) == 0) {
 			block.setStart(newStart);
-			StorageService.updateTimeBlock(block);
+			try {
+				StorageService.updateTimeBlock(block);
+			} catch (StorageServiceException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			//TODO: re-optimize schedule to take advantage of this new empty space?
 		}
 		//Shortening a block from the bottom
 		else if(currStart.compareTo(newStart) == 0 && currEnd.compareTo(newEnd) > 0) {
 			block.setEnd(newEnd);
-			StorageService.updateTimeBlock(block);
+			try {
+				StorageService.updateTimeBlock(block);
+			} catch (StorageServiceException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			//TODO: re-optimize schedule to take advantage of this new empty space?
 		}
 		//Lengthening a block from the top
@@ -43,7 +55,12 @@ public class TimeModifier {
 			}
 			else {
 				block.setStart(newStart);
-				StorageService.updateTimeBlock(block);
+				try {
+					StorageService.updateTimeBlock(block);
+				} catch (StorageServiceException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 			
 			

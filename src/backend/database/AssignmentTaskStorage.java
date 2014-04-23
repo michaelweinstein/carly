@@ -66,14 +66,12 @@ public class AssignmentTaskStorage {
         	String assignmentId = assignment.getID(); 
         	
         	//insert assignment
-        	System.out.println("INSERT_ASGN calling setValues()");
             Utilities.setValues(assignmentStatement, assignmentId, assignment.getName(), 
             		assignment.getExpectedHours(), assignment.getDueDate().getTime(), assignment.getTemplate().getID());
             assignmentStatement.execute();
             
             //insert associated tasks
             for (ITask task : assignment.getTasks()) {
-            	System.out.println("INSERT_TASK calling setValues()");
             	Utilities.setValues(taskStatement, assignmentId, task.getTaskID(), task.getName(), 
             			task.getPercentOfTotal(), task.getPercentComplete(), 
             			task.getPreferredTimeOfDay().name(), task.getSuggestedBlockLength());
@@ -274,7 +272,6 @@ public class AssignmentTaskStorage {
 			
 	    	System.out.println("preparing statement!");
 	        assignmentStatement = con.prepareStatement(Utilities.SELECT_ASGN_BY_ID); 
-        	System.out.println("SELECT_ASGN_BY_ID calling setValues()");
 	        Utilities.setValues(assignmentStatement, toBeFoundId);
         	ResultSet asgnTaskResults = assignmentStatement.executeQuery();
 
@@ -337,7 +334,6 @@ public class AssignmentTaskStorage {
     			template = templates.get(templateId); 
     		}
     		else {
-    			System.out.println("SELECT_TEMPLATE_AND_STEPS_BY_ID calling setValues()");
     			Utilities.setValues(templateStatement, templateId);
         		ResultSet templateStepResults =  templateStatement.executeQuery();
         		

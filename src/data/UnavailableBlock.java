@@ -101,6 +101,11 @@ public class UnavailableBlock implements ITimeBlockable {
 		return "Unavailable: [" + m_start.toString() + ", " + m_end.toString() + "]";
 	}
 
+	public String fullString() {
+		return "Unavailable: [" + m_uniqueId + ", "+ m_start.toString() + ", " + m_end.toString() + 
+				", " + m_isMovable + "]";
+	}
+	
 	@Override
 	public long getLength() {
 		return m_end.getTime() - m_start.getTime();
