@@ -107,6 +107,7 @@ public class Template implements ITemplate {
 	 * @param stepToAdd to end of list
 	 * @return true if successfully added
 	 */
+	@Override
 	public boolean addStep(final ITemplateStep stepToAdd) {
 		return addStep(stepToAdd, null);
 	}
@@ -168,6 +169,7 @@ public class Template implements ITemplate {
 		return _name;
 	}
 	
+	@Override
 	public String fullString() {
 		StringBuilder builder = new StringBuilder(); 
 		builder.append ("[uid: ");
@@ -176,12 +178,12 @@ public class Template implements ITemplate {
 		builder.append(_name); 
 		builder.append(", preferredConsecutiveHours: ");
 		builder.append(_preferredConsecutiveHours); 
-		builder.append(", steps: ");
+		builder.append(", steps: {");
 		
 		for (ITemplateStep step : _steps) {
-			builder.append("\n" + step.getName()); 
+			builder.append(step.fullString() + ", "); 
 		}
-		builder.append("]"); 
+		builder.replace(builder.length() - 2, builder.length() - 1, "}]"); 
 		return builder.toString().trim(); 
 	}
 	

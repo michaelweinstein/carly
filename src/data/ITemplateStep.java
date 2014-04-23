@@ -61,4 +61,11 @@ public interface ITemplateStep {
 	 * @return number of hours per day
 	 */
 	public double getHoursPerDay();
+	
+	/**
+	 * Full String representation of this class
+	 * 
+	 * @return String representing all aspects of this class 
+	 */
+	public String fullString(); 
 }

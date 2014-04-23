@@ -33,7 +33,7 @@ import data.UnavailableBlock;
  */
 public class StorageService {
 	
-	private static Cache<Template> _templates; 
+	private static Cache<ITemplate> _templates; 
 	
 	/**
 	 * Called each time application starts up 
@@ -127,7 +127,7 @@ public class StorageService {
 	/*
 	 * ================================================================
 	 * 
-	 * CRUD and dynamic queries for Time Blocks 
+	 * CRUD and dynamic queries for TimeBlocks 
 	 *  
 	 * ================================================================
 	 */
@@ -224,20 +224,55 @@ public class StorageService {
 	 * ================================================================
 	 */
 	
-	public static synchronized Template getTemplate(String id) {
+	/**
+	 * Get Template corresponding to the provided Id
+	 * 
+	 * @param id Id of the template to be found
+	 * @return Found template
+	 */
+	public static synchronized ITemplate getTemplate(String id) {
 		return TemplateStepStorage.getTemplate(id, _templates); 
 	}
+
+	/**
+	 * Get all templates stored in the database
+	 * 
+	 * @return List containing all templates stored in the database
+	 */	
+	public static synchronized List<ITemplate> getAllTemplates() {
+		return TemplateStepStorage.getAllTemplates();
+	}
 	
+	/**
+	 * Add a template to the database
+	 * 
+	 * @param temp Template to be added
+	 * @return Template that was added, for chaining calls
+	 * @throws StorageServiceException Thrown when the Template has zero TemplateSteps
+	 */
 	public static synchronized ITemplate addTemplate(ITemplate temp) throws StorageServiceException {
 		return TemplateStepStorage.addTemplate(temp); 
 	}
-	
-	public static synchronized ITemplate updateTemplate(ITemplate temp) {
-		return TemplateStepStorage.updateTemplate(temp); 
+
+	/**
+	 * Update a template already existing in the database
+	 * 
+	 * @param temp Template to be updated
+	 * @return Template that was updated, for chaining calls
+	 * @throws StorageServiceException Thrown when the Template has zero TemplateSteps
+	 */	
+	public static synchronized ITemplate updateTemplate(ITemplate temp) throws StorageServiceException {
+		return TemplateStepStorage.updateTemplate(temp, _templates); 
 	}
 	
-	public static synchronized List<ITemplate> getAllTemplates() {
-		return TemplateStepStorage.getAllTemplates();
+	/**
+	 * Remove a template from the database
+	 * 
+	 * @param temp Template to be removed
+	 * @return Template that was removed, for chaining method calls
+	 */
+	public static synchronized ITemplate removeTemplate(ITemplate temp) {
+		return TemplateStepStorage.removeTemplate(temp); 
 	}
 	
 	/*

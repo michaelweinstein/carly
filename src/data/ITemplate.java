@@ -43,6 +43,15 @@ public interface ITemplate {
 	public boolean addStep(ITemplateStep stepToAdd, ITemplateStep stepBefore);
 	
 	/**
+	 * Adds a new step to the template. Names
+	 * of Steps in template must be unique
+	 * to be successfully added. 
+	 * 
+	 * @param step Step to be added
+	 */
+	public boolean addStep(ITemplateStep step); 
+	
+	/**
 	 * Removes a step from the template
 	 * 
 	 * @param stepToRemove a step to take out
@@ -64,4 +73,11 @@ public interface ITemplate {
 	 * @return a template step if found or null if not
 	 */
 	public ITemplateStep getStepByName(String stepName);
+	
+	/**
+	 * Full String representation of this class
+	 * 
+	 * @return String representing all aspects of this class 
+	 */
+	public String fullString();
 }

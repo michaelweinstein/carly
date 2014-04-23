@@ -16,6 +16,7 @@ import java.util.Map;
 import data.Assignment;
 import data.IAssignment;
 import data.ITask;
+import data.ITemplate;
 import data.ITemplateStep;
 import data.ITimeBlockable;
 import data.Task;
@@ -156,7 +157,6 @@ public class AssignmentTaskStorage {
 	        assignmentStatement = con.prepareStatement(Utilities.DELETE_ASGN);
         	String assignmentId = assignment.getID(); 
         	
-        	//Tasksinsert assignment
             Utilities.setValues(assignmentStatement, assignmentId);
             assignmentStatement.execute();
             
@@ -205,7 +205,6 @@ public class AssignmentTaskStorage {
         	String assignmentId = assignment.getID(); 
         	List<ITask> taskList = assignment.getTasks(); 
         	
-        	//insert assignment
         	Utilities.setValues(assignmentStatement, assignment.getName(), 
 	            		assignment.getExpectedHours(), assignment.getDueDate().getTime(), 
 	            		assignment.getTemplate().getID(), assignmentId);
@@ -257,13 +256,13 @@ public class AssignmentTaskStorage {
 	    return assignment; 
 	}
 	
-	protected static synchronized Assignment getAssignmentById(String toBeFoundId, Cache<Template> templates) {
+	protected static synchronized Assignment getAssignmentById(String toBeFoundId, Cache<ITemplate> templates) {
 		System.out.println("StorageService.getAssignmentById");
 		PreparedStatement assignmentStatement = null;
 		PreparedStatement templateStatement = null; 
 	    Connection con = null;
 	    Assignment result = null; 
-	    Template template = null;
+	    ITemplate template = null;
 	    String templateId = "";
 	    
 	    try {
@@ -356,14 +355,12 @@ public class AssignmentTaskStorage {
             		String stepName = templateStepResults.getString("STEP_NAME");
             		double stepPercentTotal = templateStepResults.getDouble("STEP_PERCENT_TOTAL");
             		int stepStepNumber = templateStepResults.getInt("STEP_STEP_NUMBER");
-            		int stepNumDays = templateStepResults.getInt("STEP_NUM_DAYS");
-            		double stepHoursPerDay = templateStepResults.getDouble("STEP_HOURS_PER_DAY");
             		String timeOfDay = templateStepResults.getString("STEP_TIME_OF_DAY");
             		TimeOfDay stepTimeOfDay = TimeOfDay.valueOf(timeOfDay); 
             		
             		String templId = templateStepResults.getString("TEMPLATE.TEMPLATE_ID");  
-            		TemplateStep step = new TemplateStep(stepName, stepPercentTotal, stepStepNumber, 
-            				stepNumDays, stepHoursPerDay, stepTimeOfDay);
+            		TemplateStep step = new TemplateStep(stepName, stepPercentTotal, 
+            				stepStepNumber, stepTimeOfDay);
             		
             		if (template == null) {
             			String templateName = templateStepResults.getString("TEMPLATE_NAME");
@@ -406,7 +403,7 @@ public class AssignmentTaskStorage {
 		return result; 
 	}
 	
-	protected static synchronized List<Assignment> getAllAssignmentsWithinRange(Date date1, Date date2, Cache<Template> templates) {
+	protected static synchronized List<Assignment> getAllAssignmentsWithinRange(Date date1, Date date2, Cache<ITemplate> templates) {
 		PreparedStatement assignmentStatement = null;
 		PreparedStatement templateStatement = null; 
 	    Connection con = null; 
@@ -498,14 +495,12 @@ public class AssignmentTaskStorage {
                 		String stepName = templateStepResults.getString("STEP_NAME");
                 		double stepPercentTotal = templateStepResults.getDouble("STEP_PERCENT_TOTAL");
                 		int stepStepNumber = templateStepResults.getInt("STEP_STEP_NUMBER");
-                		int stepNumDays = templateStepResults.getInt("STEP_NUM_DAYS");
-                		double stepHoursPerDay = templateStepResults.getDouble("STEP_HOURS_PER_DAY");
                 		String timeOfDay = templateStepResults.getString("STEP_TIME_OF_DAY");
                 		TimeOfDay stepTimeOfDay = TimeOfDay.valueOf(timeOfDay); 
                 		
                 		String templateId = templateStepResults.getString("TEMPLATE.TEMPLATE_ID");  
-                		TemplateStep step = new TemplateStep(stepName, stepPercentTotal, stepStepNumber, 
-                				stepNumDays, stepHoursPerDay, stepTimeOfDay);
+                		TemplateStep step = new TemplateStep(stepName, stepPercentTotal, 
+                				stepStepNumber, stepTimeOfDay);
                 		
                 		if (!idToTemplate.containsKey(templateId)) {
                 			String templateName = templateStepResults.getString("TEMPLATE_NAME");

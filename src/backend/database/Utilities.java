@@ -19,7 +19,8 @@ public abstract class Utilities {
 	 * Misc SQL statements
 	 */
 	
-	protected static final String DROP_ALL_TABLES = "DROP TABLE IF EXISTS ASSIGNMENT, TASK, TEMPLATE, TEMPLATE_STEP, TIME_BLOCK"; 
+	protected static final String DROP_ALL_TABLES = 
+			"DROP TABLE IF EXISTS ASSIGNMENT, TASK, TEMPLATE, TEMPLATE_STEP, TIME_BLOCK"; 
 	
 	/*
 	 * ITimeBlockable SQL insertion statements 
@@ -88,7 +89,6 @@ public abstract class Utilities {
 			"SET ASGN_NAME = ?, ASGN_EXPECTED_HOURS = ?, ASGN_DATE = ?, ASGN_TEMPLATE_ID = ? " + 
 	        "WHERE ASGN_ID = ? ";
 	
-	//TODO: test how changing dates to longs has affected the search
 	protected static final String SELECT_ASGNS_TASKS_BY_DATE = 
 			"SELECT * FROM ASSIGNMENT " +
 			"INNER JOIN TASK " +
@@ -113,7 +113,6 @@ public abstract class Utilities {
 	        "TASK_TIME_OF_DAY, TASK_SUGGESTED_LENGTH) " + 
 	        "VALUES (?, ?, ?, ?, ?, ?, ?) ";
 	
-	//TODO: test how changing dates to longs has affected the search
 	protected static final String SELECT_TASKS_BY_DATE = 
 			"SELECT TASK.* FROM TASK " +
 			"INNER JOIN ASSIGNMENT " +
@@ -145,6 +144,10 @@ public abstract class Utilities {
 			"SET TEMPLATE_NAME = ?, TEMPLATE_CONSECUTIVE_HOURS = ? " + 
 			"WHERE TEMPLATE_ID = ? ";
 	
+	protected static final String DELETE_TEMPLATE = 
+			"DELETE FROM TEMPLATE " +
+	        "WHERE TEMPLATE_ID = ? ";
+	
 	protected static final String SELECT_TEMPLATE_BY_ID = 
 			"SELECT * FROM TEMPLATE " +
 			"WHERE TEMPLATE_ID = ? "; 
@@ -168,15 +171,13 @@ public abstract class Utilities {
 	
 	protected static final String INSERT_TEMPLATE_STEP =  
 			"INSERT INTO TEMPLATE_STEP " +
-			"(TEMPLATE_ID, STEP_NAME, STEP_PERCENT_TOTAL, STEP_STEP_NUMBER, STEP_NUM_DAYS, " +
-			"STEP_HOURS_PER_DAY, STEP_TIME_OF_DAY) " + 
-			"VALUES (?, ?, ?, ?, ?, ?, ?) ";
+			"(TEMPLATE_ID, STEP_NAME, STEP_PERCENT_TOTAL, STEP_STEP_NUMBER, STEP_TIME_OF_DAY) " + 
+			"VALUES (?, ?, ?, ?, ?) ";
 	
 	protected static final String MERGE_TEMPLATE_STEP = 
 			"MERGE INTO TEMPLATE_STEP " +
-			"(TEMPLATE_ID, STEP_NAME, STEP_PERCENT_TOTAL, STEP_STEP_NUMBER, _STEP_NUM_DAYS, " +
-			"STEP_HOURS_PER_DAY, STEP_TIME_OF_DAY) " +
-			"VALUES (?, ?, ?, ?, ?, ?, ?) ";
+			"(TEMPLATE_ID, STEP_NAME, STEP_PERCENT_TOTAL, STEP_STEP_NUMBER, STEP_TIME_OF_DAY) " +
+			"VALUES (?, ?, ?, ?, ?) ";
 	
 	protected static final String DELETE_TEMPLATE_STEPS_BY_ID = 
 			"DELETE FROM TEMPLATE_STEP " +
@@ -214,9 +215,7 @@ public abstract class Utilities {
 	}
 	
 	public static void setValues(PreparedStatement preparedStatement, Object... values) throws SQLException {
-//	    System.out.println("Utilities.setValues");
 		for (int i = 0; i < values.length; i++) {
-//	    	System.out.println("\tvalues: " + values[i]);
 	        preparedStatement.setObject(i + 1, values[i]);
 	    }
 	}
