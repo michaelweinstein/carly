@@ -64,7 +64,7 @@ public class TimeAllocator {
 
 		//If there are not enough free hours in the range specified by the new Assignment,
 		//exit this function
-		if(!TimeUtilities.existsPossibleFit(allBlocks, m_asgn))
+		if(!TimeUtilities.existsPossibleFit(allBlocks, m_asgn, start))
 			return;
 		
 		//Get the number of subtasks for this assignment, determine how many chunks to break into
@@ -126,6 +126,8 @@ public class TimeAllocator {
 			System.out.println("Start: " + itb.getStart() + " || End: " + itb.getEnd());
 		}
 		
+		//TODO: CAREFUL WITH THIS CALL!!! I don't want to decompact blocks from *other* assignments
+		//		past their due dates - so I'm going to have to do a check for each block's due date
 		TimeCompactor.decompact(allBlocks, start, end);
 			
 		System.out.println("DEBUG - printing out the time ranges of all blocks");	

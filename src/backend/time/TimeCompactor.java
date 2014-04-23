@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import data.ITask;
 import data.ITimeBlockable;
 
 
@@ -208,13 +209,19 @@ public class TimeCompactor {
 				
 				//TODO: Extend this for blocks of differing lengths
 				if(prev.getLength() == curr.getLength()) {
-					Date tempStart = curr.getStart();
-					Date tempEnd = curr.getEnd();
 					
-					curr.setStart(prev.getStart());
-					curr.setEnd(prev.getEnd());
-					prev.setStart(tempStart);
-					prev.setEnd(tempEnd);
+					//TODO: Will this cause persistence issues with the database???
+					ITask t1 = prev.getTask();
+					ITask t2 = curr.getTask();
+					prev.setTask(t2);
+					curr.setTask(t1);
+									
+//					Date tempStart = curr.getStart();
+//					Date tempEnd = curr.getEnd();
+//					curr.setStart(prev.getStart());
+//					curr.setEnd(prev.getEnd());
+//					prev.setStart(tempStart);
+//					prev.setEnd(tempEnd);
 				}
 				
 				//Increment i so that this doesn't get repeated
@@ -228,13 +235,19 @@ public class TimeCompactor {
 				
 				//TODO: Extend this for blocks of differing lengths
 				if(curr.getLength() == next.getLength()) {
-					Date tempStart = curr.getStart();
-					Date tempEnd = curr.getEnd();
 					
-					curr.setStart(next.getStart());
-					curr.setEnd(next.getEnd());
-					next.setStart(tempStart);
-					next.setEnd(tempEnd);
+					//TODO: Will this cause persistence issues with the database???
+					ITask t1 = curr.getTask();
+					ITask t2 = next.getTask();
+					curr.setTask(t2);
+					next.setTask(t1);
+					
+//					Date tempStart = curr.getStart();
+//					Date tempEnd = curr.getEnd();
+//					curr.setStart(next.getStart());
+//					curr.setEnd(next.getEnd());
+//					next.setStart(tempStart);
+//					next.setEnd(tempEnd);
 				}
 				
 				//Increment i so that this doesn't get repeated

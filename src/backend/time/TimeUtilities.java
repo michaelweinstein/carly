@@ -75,17 +75,28 @@ public class TimeUtilities {
 	}
 	
 	
-	public static boolean existsPossibleFit(List<ITimeBlockable> allBlocks, IAssignment asgn) {
+	public static boolean existsPossibleFit(List<ITimeBlockable> allBlocks, IAssignment asgn, Date start) {
 		long amtFreeTime = 0;
 		
+		//Add time between start and first block
+		if(allBlocks.size() > 0)
+			amtFreeTime += allBlocks.get(0).getStart().getTime() - start.getTime();
+		
+		//Add time between blocks
 		for(int i = 0; i < allBlocks.size() - 1; ++i) {
 			ITimeBlockable b1 = allBlocks.get(i);
 			ITimeBlockable b2 = allBlocks.get(i + 1);
 			amtFreeTime += b2.getStart().getTime() - b1.getEnd().getTime();
 		}
 		
+		//Add time between last block and end
+		if(allBlocks.size() > 0) {
+			amtFreeTime += asgn.getDueDate().getTime()
+					- allBlocks.get(allBlocks.size() - 1).getEnd().getTime();
+		}
+		
 		double numFreeHours = TimeUnit.HOURS.convert(amtFreeTime, TimeUnit.MILLISECONDS);
-		return (numFreeHours <= (double) asgn.getExpectedHours());
+		return (numFreeHours >= (double) asgn.getExpectedHours());
 	}
 	
 	
