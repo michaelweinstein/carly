@@ -1,4 +1,4 @@
-package backend;
+package backend.time;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,7 +35,7 @@ public class TimeAllocator {
 
 
 
-	public void insertAsgn() {
+	public void insertAsgn(Date start, Date end) {
 		double numHoursPerBlock;
 		int numBlocksLeft; //the number of blocks left to place
 
@@ -44,8 +44,8 @@ public class TimeAllocator {
 		//Get the current set of blocks that have been marked by the user as either unavailable
 		//or currently occupied by another assignment
 		//Note that these lists are in sorted order.
-		Date start = new Date();
-		Date end = m_asgn.getDueDate();
+		//Date start = new Date();
+		//Date end = m_asgn.getDueDate();
 		List<UnavailableBlock> unavailable = //new ArrayList<>();
 				StorageService.getAllUnavailableBlocksWithinRange(start, end);
 		

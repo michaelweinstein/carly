@@ -1,4 +1,4 @@
-package backend;
+package backend.time;
 
 import java.util.Date;
 import java.util.List;
@@ -33,12 +33,12 @@ public class MainTimeAllocator {
 				createAnotherTemplate(), 21);
 		
 		try {
-			//Add the assignments to the db
-			StorageService.addAssignment(asgn);
-			StorageService.addAssignment(asgn2);
 			//Add the templates to the db
 			StorageService.addTemplate(asgn.getTemplate());
 			StorageService.addTemplate(asgn2.getTemplate());
+			//Add the assignments to the db
+			StorageService.addAssignment(asgn);
+			StorageService.addAssignment(asgn2);
 		} catch (StorageServiceException e2) {
 			// TODO Auto-generated catch block
 			e2.printStackTrace();
@@ -58,16 +58,18 @@ public class MainTimeAllocator {
 		}
 		
 		TimeAllocator talloc = new TimeAllocator(asgn);
-		talloc.insertAsgn();
+		talloc.insertAsgn(start, due);
 		
 		//Push to db
 		List<ITimeBlockable> results = talloc.getEntireBlockSet();
 		System.out.println("First talloc block set call");
 		for(int i = 0; i < results.size(); ++i) {
-			System.out.println(results.get(i).toString());
+			ITimeBlockable block = results.get(i);
+			System.out.println(block.toString());
 			
 			try {
-				StorageService.addTimeBlock(results.get(i));
+				if(block.isMovable()) //Temp fix -- use MERGE functions or ADDALL functions later
+					StorageService.addTimeBlock(block);
 			} catch (StorageServiceException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -76,7 +78,7 @@ public class MainTimeAllocator {
 		System.out.println("results size 1: " + results.size());
 		
 		talloc = new TimeAllocator(asgn2);
-		talloc.insertAsgn();
+		talloc.insertAsgn(start, due);
 		
 		//Push to db
 		results = talloc.getEntireBlockSet();
