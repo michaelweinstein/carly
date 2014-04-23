@@ -7,12 +7,15 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -21,6 +24,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.JTableHeader;
 import javax.swing.text.JTextComponent;
 
+import data.ITemplate;
 import data.ITemplateStep;
 import data.Template;
 import data.TemplateStep;
@@ -42,15 +46,10 @@ public class TemplateWizardView extends JPanel {
 //	private static final int	title_size			= 19;
 	private static final int	padding				= 10;
 	
-	// Easy access to input fields, getText inputted by user
-	private Map<String, JTextComponent> _inputMap = new HashMap<>();
-	
-///////////
-	// Stores TemplateSteps inputted by user, passes in to new Template on submit
-	private List<ITemplateStep> _currSteps = new ArrayList<>();
-	
 	/* User Input Label Strings */
-	private static final String new_template 		= "New template";
+	private static final String new_template 		= "Custom";
+	private static final String edit_template		= "Edit";
+	private static final String hide_template 		= "Hide";
 	private static final String template_name 		= "Name";
 	private static final String template_hours 		= "Consecutive hours you want to work";
 	private static final String submit_template 	= "Submit template";	
@@ -59,7 +58,25 @@ public class TemplateWizardView extends JPanel {
 	private static final String step_percent 		= "% of total";
 	private static final String steps_list 			= "Steps";
 	
-	// TODO Store panels/buttons as instance variables, factor out some code (change order of constructor listeners)
+	// Easy access to input fields, getText inputted by user
+	private Map<String, JTextComponent> _inputMap = new HashMap<>();
+	// Stores TemplateSteps inputted by user, passes in to new Template on submit
+	private List<ITemplateStep> _currSteps = new ArrayList<>();
+
+	/* Data structures */
+	private final JComboBox<ITemplate> _templatePicker;
+	/* Inputs */
+	private StepModel _tableModel;
+	/* Top Buttons ('Hide', 'Show') */
+	private final JButton _editBtn = new JButton(edit_template);
+	private final JButton _hideBtn = new JButton(hide_template);
+	/* Panels (Show/Hide block) */
+	private JPanel _namePanel = new JPanel();
+	private JPanel _hoursPanel = new JPanel();
+	private JPanel _stepPanel = new JPanel();
+	private final JButton _submitTemplateBtn = new JButton(submit_template);
+	
+	
 	
 	/**
 	 * Constructor creates all input fields and labels, and 
@@ -74,40 +91,57 @@ public class TemplateWizardView extends JPanel {
 		Utils.addBorderFull(this);
 		Utils.padComponentWithBorder(this, padding, padding);
 				
-////////
-		// Get list of Templates and store it in TemplateList (in constructor)
-		new TemplateList();
-
-		// TODO: List current templates and resize when grabbing on far left
+		// Construct list of current Templates in db
+		new TemplateList();		// all methods static
 		
-		/* "New template" button (Listener below) */
-		final JButton newTemplateBtn = new JButton(new_template);
-		newTemplateBtn.setFocusPainted(false);
-		newTemplateBtn.setPreferredSize(new Dimension(170, 20));
-		newTemplateBtn.setVisible(true);
+		// Size of 'Edit' and 'Hide' buttons
+		Dimension btnSize = new Dimension(45, 20);
+		
+	// ====== Instantiating Elements ======
+		
+		/* 'Edit' button (Listener below) */
+		_editBtn.setFocusPainted(false);
+		_editBtn.setPreferredSize(btnSize);
+		_editBtn.setVisible(true);
+		
+		/* 'Hide' button (Listener below) */
+		_hideBtn.setFocusPainted(false);
+		_hideBtn.setPreferredSize(btnSize);
+		_hideBtn.setEnabled(false);
+		_hideBtn.setVisible(true);
+		
+		/* JComboBox TemplatePicker (ItemListener below) */
+		boolean show = false;
+		_templatePicker = new JComboBox<>(TemplateList.getAllTemplates());
+		if (_templatePicker.getItemCount() == 0) 
+			show = true;
+		_templatePicker.addItem(new Template(new_template));
 		
 		/* Name: (code in newNamePanel()) */
-		final JPanel namePanel = newNamePanel(template_name);
+		_namePanel = newNamePanel(template_name);
 		
-		/* Consecutive Hours: */
-		final JPanel hoursPanel = newNumberPanel(template_hours);
+		/* Consecutive Hours: (code in newNumberPanel()) */
+		_hoursPanel = newNumberPanel(template_hours);
+	
+		/* Steps table (code in createStepsPanel()) */
+		_stepPanel = createStepsPanel();
+		_stepPanel.setVisible(false);
 		
-		
-		//TODO List current TemplateSteps and grab on left to move around
-		
-		final JPanel stepPanel = createStepsPanel();
-		stepPanel.setVisible(false);
-		
-		/* --- End of TemplateStep Wizard --- */
-
-				
 		/* "Submit template" button */
-		final JButton submitTemplateBtn = new JButton(submit_template);
-		submitTemplateBtn.setForeground(Color.RED);
-		submitTemplateBtn.setFocusPainted(false);
-		submitTemplateBtn.setPreferredSize(new Dimension(300, 30));
-		submitTemplateBtn.setVisible(false);
-		submitTemplateBtn.addActionListener(new ActionListener() {
+//		final JButton submitTemplateBtn = new JButton(submit_template);
+		_submitTemplateBtn.setForeground(Color.RED);
+		_submitTemplateBtn.setFocusPainted(false);
+		_submitTemplateBtn.setPreferredSize(new Dimension(300, 30));
+		_submitTemplateBtn.setVisible(false);
+		
+	// ====== End of Instantiating Elements ======
+		// Start on 'Custom', make visible
+		if (show) 
+			showAll();
+	// ============= Listeners =============
+		
+		/* --- 'Submit template' Listener === */
+		_submitTemplateBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				// Verify form data
@@ -117,76 +151,89 @@ public class TemplateWizardView extends JPanel {
 					String name = _inputMap.get(template_name).getText();
 					double hours = Double.parseDouble(_inputMap.get(template_hours).getText());
 					Template t = new Template(name, hours, _currSteps);
+					
 					// Add Template to StorageService and local list
 					TemplateList.addTemplate(t);
-					
-					// GUI Response if template successfully created
-					
-					newTemplateBtn.setEnabled(true);
+					// Add item to JComboBox
+					addItemToTemplatePicker(t);
+					// Clear _currSteps list
+					_currSteps.clear();
 					// Hides all elements
-					namePanel.setVisible(false);
-					hoursPanel.setVisible(false);
-					
-//					createStepBtn.setVisible(false);					
-					
-					submitTemplateBtn.setVisible(false);
-					// Hide step inputs if they are still showing
-					stepPanel.setVisible(false);
+					hideAll();
 				}
 			}
 		});
 
-		/* TOP: "New template" Listener */
-		newTemplateBtn.addActionListener(new ActionListener() {
+		/* --- 'Edit' Listener */
+		_editBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(final ActionEvent e) {
+				// Populate fields with selected template data before making visible
+				populateFields();		
 				
 				// Dislays all elements		
-				namePanel.setVisible(true);
-				hoursPanel.setVisible(true);
-				submitTemplateBtn.setVisible(true);
-				stepPanel.setVisible(true);
-				
-				// Disable "New template" btn while form is open
-				newTemplateBtn.setEnabled(false);
+				showAll();
 				// Repaint panel
 				TemplateWizardView.this.repaint();
 			}
 		});
 		
-		/* --- End of Main Listener --- */
+		/* --- 'Hide' Listener --- */
+		_hideBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				hideAll();
+				// If 'Hide' is called on 'Custom' Template
+				if (_templatePicker.getSelectedIndex() == _templatePicker.getItemCount()-1) {
+					// Set selected index to 0
+					_templatePicker.setSelectedIndex(0);
+				}
+				TemplateWizardView.this.repaint();
+			}
+		});
 		
-		/* Adds all elements of Template Wizard form */
-////////////////////////////////////////////////	
-		this.add(newTemplateBtn);
-//		this.add(Box.createVerticalStrut(10));
-/////^^^^^^^^^^
+		/* --- JComboBox Listener --- */
+		_templatePicker.addItemListener(new ItemListener() {
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				ITemplate t = (ITemplate) _templatePicker.getSelectedItem();				
+				// Populate fields data based on current selected item
+				populateFields();			
+				// 'Custom' Item listener
+				if (t.getName().equals(new_template)) 
+					showAll();
+				// Repaint wizard panel
+				TemplateWizardView.this.repaint();
+			}	
+		});
 		
-		this.add(namePanel);
-		this.add(hoursPanel);
+	// ============= End of Listeners =============
 		
-//		this.add(createStepBtn);
-		// Step inputs
-//		this.add(stepNamePanel);
-//		this.add(stepPercentPanel);
-//		this.add(submitStepBtn);
-		
-//////////////////StepViewTable
-		this.add(stepPanel);
-		
-		this.add(submitTemplateBtn);
+	// === Adding Elements ===	
+		this.add(_editBtn);
+		this.add(_hideBtn);	
+		this.add(_templatePicker);	
+		/* Panels */
+		this.add(_namePanel);
+		this.add(_hoursPanel);
+		this.add(_stepPanel);
+		this.add(_submitTemplateBtn);
+	// === End of Adding Elements ===
 	}
+	
 	
 // ============ START Visibility Methods ===================
 	// TODO setStepsVisible(boolean), setAllVisible(boolean)
 // ============ END Visibility Methods ====================
 		
 // ============ START Create Panel Methods ==================
-	
+
 	/**
 	 * Creates and returns a JPanel with JTable
 	 * for user to input and view the TemplateSteps
-	 * of a Template.
+	 * of a Template. Includes 'Steps' label, 
+	 * 'Step Name, % total' header, and rows of steps. 
+	 * Adds an empty row to the end if one is not there.
 	 * 
 	 * @return JPanel ( {steps, % of total} list )
 	 */
@@ -208,41 +255,37 @@ public class TemplateWizardView extends JPanel {
 		final StepModel model = new StepModel(dataValues, colNames);
 		// Step data verified automatically
 		model.addTableModelListener(new TableModelListener() {
+			// --- Step Table Listener ---
 			@Override
 			public void tableChanged(TableModelEvent e) {
-				// TODO User-edited Step Table
-				
-///////////////
-/*				System.out.println("first row: " + e.getFirstRow());
-				System.out.println("last row: " + e.getLastRow());
-				System.out.println("column: " + e.getColumn());
-				System.out.println("type: " + e.getType());				
-				Object row[] = model.getRowAt(e.getLastRow());
-				System.out.println("row: " + row[e.getColumn()]);
-				System.out.println();*/
-				
 				// Get row that was changed by user
 				int rowNum = e.getLastRow();
 				Object row[] = model.getRowAt(rowNum);
-				// Create Step if row completely filled out; set step number to rowNum
-				ITemplateStep newStep = createStepFromArray(row);
-				if (newStep != null) {
-					newStep.setStepNumber(rowNum);
-					// Add TemplateStep to _currSteps
-					if (_currSteps.size() > rowNum) {
-						// 'set' replaces element at that rowNum (step number)
-						if (_currSteps.get(rowNum).getStepNumber() == rowNum) 
-							_currSteps.set(rowNum, newStep);
-						// If stepNumber does not match index, do not replace
-						else 
-							_currSteps.add(rowNum, newStep);
-					} 
-					// If currSteps too small for step number created, add at next available index
-					else {
-						_currSteps.add(newStep);
-					}
-				}				
-///////////^^^^^^^^^^^^
+				// INSERT or EDIT
+				if (e.getType() == TableModelEvent.INSERT || e.getType() == TableModelEvent.UPDATE){ 
+					// Create Step if row completely filled out; set step number to rowNum
+					ITemplateStep newStep = createStepFromArray(row);
+					if (newStep != null) {
+						newStep.setStepNumber(rowNum);
+						// Add TemplateStep to _currSteps
+						if (_currSteps.size() > rowNum) {
+							// 'set' replaces element at that rowNum (step number)
+							if (_currSteps.get(rowNum).getStepNumber() == rowNum) 
+								_currSteps.set(rowNum, newStep);
+							// If stepNumber does not match index, do not replace
+							else 
+								_currSteps.add(rowNum, newStep);
+						} 
+						// If currSteps too small for step number created, add at next available index
+						else {
+							_currSteps.add(newStep);
+						}
+					}			
+				}
+				// UPDATE
+				else if (e.getType() == TableModelEvent.DELETE) {
+					_currSteps.remove(rowNum);
+				}
 				// Create new row if last row is entirely filled
 				if (e.getLastRow() == model.getRowCount() -1) 
 					if (model.getRowAt(e.getLastRow()).length == 2) 
@@ -251,7 +294,10 @@ public class TemplateWizardView extends JPanel {
 				revalidate();
 				TemplateWizardView.this.repaint();
 			}
+			// --- End of Step Table Listener ---
 		});
+		// Assign _tableModel 
+		_tableModel = model;
 		
 		// 'Steps: ' label
 		final JLabel stepLabel = new JLabel(steps_list + ": ");
@@ -313,7 +359,7 @@ public class TemplateWizardView extends JPanel {
 		final JLabel hoursLabel = new JLabel(name + ": ");
 		Utils.themeComponentInverse(hoursLabel);
 		final JTextField hoursInput = new JTextField();
-		hoursInput.setPreferredSize(new Dimension(30, 20));
+		hoursInput.setPreferredSize(new Dimension(40, 20));
 		hoursPanel.add(hoursLabel);
 		hoursPanel.add(hoursInput);
 		hoursPanel.setVisible(false);
@@ -325,6 +371,93 @@ public class TemplateWizardView extends JPanel {
 	
 	
 // ============ START Data Structures Methods =============
+	
+//////////	
+	private void showAll() {
+		// TODO Comment
+		_namePanel.setVisible(true);
+		_hoursPanel.setVisible(true);
+		_submitTemplateBtn.setVisible(true);
+		_stepPanel.setVisible(true);
+		
+		// Elements visible, so disable 'Edit'
+		_editBtn.setEnabled(false);			
+		_hideBtn.setEnabled(true);
+	}
+	private void hideAll() {
+		// TODO Comment
+		_namePanel.setVisible(false);
+		_hoursPanel.setVisible(false);
+		_submitTemplateBtn.setVisible(false);
+		_stepPanel.setVisible(false);
+		
+		// Elements hidden, so enable buttons
+		_editBtn.setEnabled(true);			
+		_hideBtn.setEnabled(false);
+	}
+//////////^^^^^^
+
+	/**
+	 * Gets Template currently selected in JComboBox _templatePicker.
+	 * Populates the 'Name' field with template.getName().
+	 * Populates the 'Hours' field with template.getPreferredConsecutiveHours().
+	 * Clears then populates Step View Table with elements in template.getAllSteps().
+	 */
+	private void populateFields() {
+		// Populate based on data from current selected Template
+		ITemplate t = (ITemplate) _templatePicker.getSelectedItem();
+		// Set name and preferred consecutive hours fields
+		String name = t.getName();
+		String hours = t.getPreferredConsecutiveHours() + "";
+		boolean custom = name.equals(new_template);
+		// If 'Custom Template', set fields to blank
+		if (custom) {
+			name = "";
+			hours = "";
+		}
+		// Set 'Name', 'Hours' fields using _inputMap
+		_inputMap.get(template_name).setText(name);
+		_inputMap.get(template_hours).setText(hours);
+
+		// TODO: Not Fully Functional: Populate step table!
+////////////////
+		System.out.println("Steps not loaded into table yet; " + 
+				"feature commented out as I am working on a bug. " +
+				"(@TemplateWizardView.populateFields())");
+/////////////// Feature almost fully functional, but still a couple bugs
+/*		if (_tableModel != null) {
+			// Get steps from currently selected Template
+			List<ITemplateStep> allSteps = t.getAllSteps();
+			// 'Custom' Clear table
+			if (custom) {
+				// TODO: Edit/Clear _currSteps; OR populate with _currSteps
+				_tableModel.setValueAt("", 0, 0);
+				_tableModel.setValueAt("", 0, 1);
+			} 
+			// Load steps into table
+			else {
+				int numRow = _tableModel.getRowCount();
+				int numSteps = allSteps.size();
+				for (int i=0; i<numSteps; i++) {
+					ITemplateStep s = allSteps.get(i);
+					_tableModel.setValueAt(s.getName(), i, 0);
+					_tableModel.setValueAt(s.getPercentOfTotal(), i, 1);
+/////
+//					System.out.println(i + ": " + s.getName());
+//					System.out.println(i + ": " + s.getPercentOfTotal());
+				}
+				// Fires Event: Rows [0, # steps] updated
+				_tableModel.fireTableRowsUpdated(0, numSteps-1);
+				
+				// TODO: Do I need to manually get rid of rows not filled?
+				// Fires Event: Rows [# steps, # rows] deleted
+				if (numSteps < numRow) 
+					_tableModel.fireTableRowsDeleted(numSteps, _tableModel.getRowCount()-1);
+			}
+		}*/
+//////////////^^^^^^^^^^^^^^^^^^^
+	}
+	
 	/**
 	 * Creates a TemplateStep from a row array in the StepViewTable,
 	 * where arr[0] is String name and arr[1] is Double percent of total.
@@ -333,11 +466,24 @@ public class TemplateWizardView extends JPanel {
 	 * @param arr Object[name (String), % of total (Double)]
 	 * @return new TemplateStep(name, percentOfTotal)
 	 */
-	private TemplateStep createStepFromArray(Object arr[]) {
+	private static TemplateStep createStepFromArray(Object arr[]) {
 		if (arr.length == 2) 
 			if (arr[0] instanceof String && arr[1] instanceof Double) 
 				return new TemplateStep((String)arr[0], ((Double)arr[1])/100.0);
 		return null;
+	}
+	
+	/**
+	 * Inserts the specified ITemplate object to JComboBox
+	 * at second-to-last index (last index reserved for 'Custom').
+	 * Then sets currently selected item to newly added Template.
+	 * 
+	 * @param t, ITemplate to add and set selected
+	 */
+	private void addItemToTemplatePicker(ITemplate t) {
+		int index = _templatePicker.getItemCount()-1;
+		_templatePicker.insertItemAt(t, index);
+		_templatePicker.setSelectedIndex(index);
 	}
 // ============= END Data Structures Methods ==============	
 	
@@ -370,7 +516,6 @@ public class TemplateWizardView extends JPanel {
 		boolean validSteps = false;
 		// Check name
 		if (_inputMap.containsKey(template_name)) {
-			// TODO Check that name is valid
 			String name = _inputMap.get(template_name).getText();
 			// Is not empty string
 			if (!name.isEmpty()) {

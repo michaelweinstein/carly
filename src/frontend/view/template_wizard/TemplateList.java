@@ -52,11 +52,15 @@ public class TemplateList {
 	}
 	
 	/**
-	 * 
+	 * Returns an array of ITemplate objects.
+	 * Uses array, instead of List, because it is
+	 * passed into constructor of JComboBox in TemplateWizard.
 	 * @return
 	 */
-	public static List<ITemplate> getAllTemplates() {
-		return _templates;
+	public static ITemplate[] getAllTemplates() {
+		ITemplate[] templates = new ITemplate[_templates.size()];
+		templates = _templates.toArray(templates);
+		return templates;
 	}
 	
 }
