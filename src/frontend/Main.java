@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import backend.database.StorageService;
-import backend.database.Utilities;
 import frontend.app.App;
 import frontend.app.GUIApp;
 import frontend.app.REPLApp;
@@ -55,6 +54,7 @@ public class Main {
 //		a.start();
 ////////////////^^^^^^^^^^^^^^^^^^^^^
 		
+		// Michael: Yayy Eric, thanks for commenting!
 		/*
 		 * Eric: I've commented out this valid code block below so I can just test Storage Service 
 		 * without having the GUI start. Feel free to uncomment it if you need it. 

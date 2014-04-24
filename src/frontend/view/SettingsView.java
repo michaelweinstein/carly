@@ -2,7 +2,6 @@ package frontend.view;
 
 import java.awt.Dimension;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -21,27 +20,33 @@ public class SettingsView extends JDialog {
 		this.setPreferredSize(new Dimension(500, 500));
 		
 		final JPanel mainPanel = new JPanel();
-		// Set theme of page
+		/* Theme/Styling Main */
 		mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 		Utils.themeComponent(mainPanel);
 		Utils.padComponent(mainPanel, 50, 50);
 
+		
+		/* Instantiate Elements */
+		
 		// Make title of Settings
 		final JLabel title = new JLabel("Settings");
 		Utils.setFont(title, 30);
 		Utils.themeComponent(title);
 		
-		// Add title label
-		mainPanel.add(Box.createVerticalStrut(20));
-		mainPanel.add(title);
+		// Make TemplateWizard
+		TemplateWizardView templateWizard = new TemplateWizardView();
 		
-		// Add templateWizard
-		mainPanel.add(Box.createVerticalStrut(10));
-		mainPanel.add(new TemplateWizardView(this));
+		
+		/* Adding Elements to MainPanel*/
+		
+		mainPanel.add(title);
+		mainPanel.add(templateWizard);
 
+		
+		/* Add MainPanel to Settings */
+		
 		this.add(mainPanel);
-		// Add scroll pane
-		// this.add(Box.createVerticalStrut(15));
-		// this.add(scroller);
+		
+		// TODO: Add scroll pane?
 	}
 }

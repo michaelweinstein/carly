@@ -43,10 +43,7 @@ public class Template implements ITemplate {
 		_uid = DataUtil.generateID();
 		_preferredConsecutiveHours = DataUtil.DEFAULT_CONSECUTIVE_HOURS;
 		_steps = new ArrayList<>();
-		// Add steps individually to ensure the names are unique
-		for (final ITemplateStep s : steps) {
-			addStep(s);
-		}
+		addAllSteps(steps);
 	}
 	
 	/**
@@ -57,10 +54,7 @@ public class Template implements ITemplate {
 		_name = name;
 		_preferredConsecutiveHours = hours;
 		_steps = new ArrayList<>();
-		// Add steps individually to ensure the names are unique
-		for (final ITemplateStep s : steps) {
-			addStep(s);
-		}
+		addAllSteps(steps);
 		_uid = DataUtil.generateID();
 	}
 	
@@ -71,11 +65,23 @@ public class Template implements ITemplate {
 		_uid = id;
 		_name = name;
 		_steps = new ArrayList<>();
+		addAllSteps(steps);
+		_preferredConsecutiveHours = consecutiveHours;
+	}
+	
+	/* Private methods */
+	
+	/**
+	 * Adds steps individually (instead of setting _steps = steps)
+	 * because addStep() checks that names are unique.
+	 * 
+	 * @param steps, list of steps to add
+	 */
+	private void addAllSteps(List<ITemplateStep> steps) {
 		// Add steps individually to ensure the names are unique
 		for (final ITemplateStep s : steps) {
 			addStep(s);
 		}
-		_preferredConsecutiveHours = consecutiveHours;
 	}
 	
 	/* ITemplate step manipulation */
@@ -153,6 +159,21 @@ public class Template implements ITemplate {
 		return null;
 	}
 	
+	/**
+	 * Clears all TemplateSteps from _steps list, 
+	 * and returns old _steps. Call this and then
+	 * addAllSteps to simulate a replaceSteps method.
+	 * 
+	 * @return old List of TemplateSteps
+	 */
+	// TODO: Do I need to declare clearSteps to ITemplate interface?
+	public List<ITemplateStep> clearSteps() {
+		List<ITemplateStep> oldSteps = _steps;
+		_steps.clear();
+		return oldSteps;
+	}
+	
+	
 	/* ITemplate accessors (Commented in interface) */
 	
 	@Override
@@ -169,6 +190,8 @@ public class Template implements ITemplate {
 	public double getPreferredConsecutiveHours() {
 		return _preferredConsecutiveHours;
 	}
+	
+	/* Holy Trinity (+ fullString())*/
 	
 	@Override
 	public String toString() {
