@@ -34,7 +34,7 @@ public class MainFrame extends JFrame {
 	public MainFrame(final ViewController vc) {
 		super(Utils.APP_NAME);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-		setMinimumSize(new Dimension(600, 550));
+		setMinimumSize(new Dimension(850, 500));
 		setResizable(true);
 		
 		// Make child views and add them

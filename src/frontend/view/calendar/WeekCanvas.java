@@ -31,7 +31,7 @@ public class WeekCanvas extends JPanel {
 	private static final long			serialVersionUID	= 1L;
 	private static final double			DAYS				= 7;
 	private static final double			HRS					= 24;
-	private static final int			X_OFFSET			= 56;
+	public static final int				X_OFFSET			= 56;
 	private static final double			Y_PAD				= 10;
 	private final List<ITimeBlockable>	timeBlocks			= new ArrayList<>();
 	
