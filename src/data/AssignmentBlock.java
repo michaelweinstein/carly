@@ -2,110 +2,102 @@ package data;
 
 import java.util.Date;
 
-
 public class AssignmentBlock implements ITimeBlockable {
-
-	//TODO: Is the "m_isMovable" boolean trivial?  i.e. the AssignmentBlock class should
-	//always support movable blocks, and the UnavailableBlock class should never.
-	//TODO: Proposed solution - continue to store the member variable, but do not need
-	//the extra parameter to the constructor
-	private final String m_uniqueId;
-	private Date m_start;
-	private Date m_end;
-	private ITask m_task;
-	private boolean m_isMovable;
 	
-	public AssignmentBlock(Date start, Date end, ITask task, boolean movable) {
-		this.m_uniqueId = DataUtil.generateID();
-		this.m_start = start;
-		this.m_end = end;
-		this.m_task = task;
-		this.m_isMovable = movable;
+	private final String	m_uniqueId;
+	private Date			m_start;
+	private Date			m_end;
+	private ITask			m_task;
+	private final boolean	m_isMovable;
+	
+	public AssignmentBlock(final Date start, final Date end, final ITask task) {
+		m_uniqueId = DataUtil.generateID();
+		m_start = start;
+		m_end = end;
+		m_task = task;
+		m_isMovable = true;
 	}
 	
 	/**
 	 * Constructor used by StorageService to reconstruct this object
 	 * 
-	 * @param id 		Unique identifier for this block
-	 * @param start		Starting date of block
-	 * @param end		Ending date of block
-	 * @param task		Task associated with this block 
-	 * @param movable	Whether this block is movable
+	 * @param id Unique identifier for this block
+	 * @param start Starting date of block
+	 * @param end Ending date of block
+	 * @param task Task associated with this block
+	 * @param movable Whether this block is movable
 	 */
-	public AssignmentBlock(String id, Date start, Date end, ITask task, boolean movable) {
-		this.m_uniqueId = id;
-		this.m_start = start;
-		this.m_end = end;
-		this.m_task = task;
-		this.m_isMovable = movable;
+	public AssignmentBlock(final String id, final Date start, final Date end, final ITask task, final boolean movable) {
+		m_uniqueId = id;
+		m_start = start;
+		m_end = end;
+		m_task = task;
+		m_isMovable = movable;
 	}
 	
 	@Override
 	public String getId() {
-		return m_uniqueId; 
+		return m_uniqueId;
 	}
 	
 	@Override
-	public void setStart(Date d) {
+	public void setStart(final Date d) {
 		m_start = d;
 	}
-
+	
 	@Override
-	public void setEnd(Date d) {
+	public void setEnd(final Date d) {
 		m_end = d;
 	}
-
+	
 	@Override
 	public Date getStart() {
 		return m_start;
 	}
-
-
+	
 	@Override
 	public Date getEnd() {
 		return m_end;
 	}
-
+	
 	@Override
-	public void setTask(ITask t) {
+	public void setTask(final ITask t) {
 		m_task = t;
 	}
-
+	
 	@Override
 	public ITask getTask() {
 		return m_task;
 	}
-
+	
 	@Override
 	public String getTaskId() {
 		return m_task.getTaskID();
 	}
-
+	
 	@Override
 	public boolean isMovable() {
 		return m_isMovable;
 	}
-
-
+	
 	@Override
-	public int compareTo(ITimeBlockable o) {
-		//Thought process behind comparing starts: the start time of an assignment
-		//is always *now*, which is for all intensive purposes a unique time.
-		//Therefore, no two time blocks should have the same start time.
+	public int compareTo(final ITimeBlockable o) {
+		// Thought process behind comparing starts: the start time of an assignment
+		// is always *now*, which is for all intensive purposes a unique time.
+		// Therefore, no two time blocks should have the same start time.
 		return m_start.compareTo(o.getStart());
 	}
-
+	
 	@Override
 	public String toString() {
 		return "Assigned: [" + m_start.toString() + ", " + m_end.toString() + "]";
 	}
 	
 	public String fullString() {
-		return "Assigned: [" + m_uniqueId + ", "+ m_start.toString() + ", " + m_end.toString() + ", " + 
-				m_task.toString() + ", " + m_isMovable + "]";
+		return "Assigned: [" + m_uniqueId + ", " + m_start.toString() + ", " + m_end.toString() + ", "
+			+ m_task.toString() + ", " + m_isMovable + "]";
 	}
-
-
+	
 	@Override
 	public long getLength() {
 		return m_end.getTime() - m_start.getTime();

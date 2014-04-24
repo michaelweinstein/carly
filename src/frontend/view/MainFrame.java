@@ -16,7 +16,7 @@ import frontend.view.calendar.CalendarView;
  * 
  * @author dgattey
  */
-public class MainView extends JFrame {
+public class MainFrame extends JFrame {
 	
 	// Child views
 	private final CalendarView		calendar;
@@ -31,7 +31,7 @@ public class MainView extends JFrame {
 	 * 
 	 * @param vc the view controller in control
 	 */
-	public MainView(final ViewController vc) {
+	public MainFrame(final ViewController vc) {
 		super(Utils.APP_NAME);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(600, 550));
@@ -49,6 +49,7 @@ public class MainView extends JFrame {
 		add(toolbar, BorderLayout.NORTH);
 		Utils.padComponent(calendar, 10, 10);
 		Utils.themeComponent(mainPanel);
+		pack();
 	}
 	
 	/**

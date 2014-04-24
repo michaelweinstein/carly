@@ -40,7 +40,7 @@ public class WeekView extends JScrollPane {
 	
 	@Override
 	public Dimension getPreferredSize() {
-		return new Dimension(600, 400);
+		return new Dimension(600, 500);
 	}
 	
 	@Override
