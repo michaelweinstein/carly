@@ -15,6 +15,7 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -30,7 +31,9 @@ import frontend.Utils;
 public class WeekCanvas extends JPanel {
 	
 	private static final long	serialVersionUID	= 1L;
-	private final CalendarView	cv;
+	private final CalendarView	_cv;
+	private Date				_weekStartDate;
+	private Date				_weekEndDate;
 	
 	/**
 	 * Constructor for a week canvas
@@ -38,7 +41,7 @@ public class WeekCanvas extends JPanel {
 	 * @param cv the calendar view containing this
 	 */
 	public WeekCanvas(final CalendarView cv) {
-		this.cv = cv;
+		_cv = cv;
 	}
 	
 	/**
@@ -86,32 +89,16 @@ public class WeekCanvas extends JPanel {
 			}
 		}
 		
+		// Reloads week start and end date
+		_weekStartDate = _cv.getCurrentWeekStartDate();
+		_weekEndDate = _cv.getCurrentWeekEndDate();
+		
 		// Gets all time blocks and converts them to real blocks
 		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 12));
-		for (final ITimeBlockable t : cv.getTimeBlocks()) {
+		for (final ITimeBlockable t : _cv.getTimeBlocks()) {
 			placeAndDrawBlock(brush, t);
 		}
 		
-	}
-	
-	/**
-	 * Simply calculates a y position from a number of hours (double for min inclusion)
-	 * 
-	 * @param time an hour/min time
-	 * @return a value to set for Y
-	 */
-	private int getYPos(final double time) {
-		return (int) ((time / HRS) * (getHeight() - Y_PAD) + Y_PAD);
-	}
-	
-	/**
-	 * Simply calculates an x position from a number of hours (double for min inclusion)
-	 * 
-	 * @param time an hour/min time
-	 * @return a value to set for X
-	 */
-	private int getXPos(final double time) {
-		return (int) ((time / DAYS) * (getWidth() - X_OFFSET) + X_OFFSET);
 	}
 	
 	/**
@@ -191,54 +178,85 @@ public class WeekCanvas extends JPanel {
 	}
 	
 	/**
+	 * Simply calculates a y position from a number of hours (double for min inclusion)
+	 * 
+	 * @param time an hour/min time
+	 * @return a value to set for Y
+	 */
+	private int getYPos(final double time) {
+		return (int) ((time / HRS) * (getHeight() - Y_PAD) + Y_PAD);
+	}
+	
+	/**
+	 * Simply calculates an x position from a day
+	 * 
+	 * @param day an hour/min time
+	 * @return a value to set for X
+	 */
+	private int getXPos(final double day) {
+		return (int) ((day / DAYS) * (getWidth() - X_OFFSET) + X_OFFSET);
+	}
+	
+	/**
 	 * Draws a block to canvas
 	 * 
 	 * @param brush the brush for the canvas
 	 * @param t a time blockable to draw
 	 */
 	private void placeAndDrawBlock(final Graphics2D brush, final ITimeBlockable t) {
-		final Calendar c = CalendarView.getCalendarInstance();
-		c.setTime(t.getStart());
-		final double startTime = c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0);
-		int currDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
-		c.setTime(t.getEnd());
-		final double endTime = c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0);
-		final int endDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
+		// Checks bounds so we know not to place line if dates don't match up
+		if (t.getStart().after(_weekEndDate) || t.getEnd().before(_weekStartDate)) {
+			return;
+		}
 		
 		// Shared measurements
 		final double dayWidth = (getWidth() - X_OFFSET) / DAYS;
-		int x = getXPos(currDay);
+		final Calendar c = CalendarView.getCalendarInstance();
+		c.setTime(t.getStart());
+		final Date startDate = c.getTime();
+		final int startDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
+		c.setTime(t.getEnd());
+		final Date endDate = c.getTime();
+		final int endDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
 		
-		// Basic, works
-		if (currDay == endDay && startTime < endTime) {
-			final int y = getYPos(startTime);
-			final int height = (int) (getYPos(endTime - startTime) - Y_PAD);
-			drawBlock(brush, t, new Rectangle2D.Double(x, y, dayWidth, height));
-			
+		// Sets correct start bounds
+		int startX;
+		int startY;
+		if (startDate.before(_weekStartDate)) {
+			startX = getXPos(c.getMinimum(Calendar.DAY_OF_WEEK) - 1);
+			startY = 0;
+		} else {
+			c.setTime(t.getStart());
+			startX = getXPos((int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS));
+			startY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
 		}
 		
-		// Different days, overnight
-		else {
-			// First day
-			final int firstDayHeight = getYPos(HRS - startTime);
-			final int startY = getYPos(startTime);
-			drawBlock(brush, t, new Rectangle2D.Double(x, startY, dayWidth, firstDayHeight));
-			
-			// For literal full days, just draw a huge rectangle and move on
-			currDay++;
-			while (currDay <= DAYS && currDay != endDay) {
-				x = getXPos(currDay);
-				drawBlock(brush, t, new Rectangle2D.Double(x, 0, dayWidth, getHeight()));
-				currDay++;
-			}
-			
-			// If ends during the current week, draw it
-			if (currDay <= DAYS) {
-				x = getXPos(endDay);
-				final int secondDayHeight = getYPos(endTime);
-				drawBlock(brush, t, new Rectangle2D.Double(x, 0, dayWidth, secondDayHeight));
-			}
+		// Sets correct end bounds
+		int endX;
+		int endY;
+		if (endDate.after(_weekEndDate)) {
+			endX = getXPos(c.getMaximum(Calendar.DAY_OF_WEEK) - 1);
+			endY = getHeight();
+		} else {
+			c.setTime(t.getEnd());
+			endX = getXPos((int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS));
+			endY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
 		}
+		
+		// Simple - start and end on same day!
+		if (startX == endX) {
+			final int height = endY - startY;
+			drawBlock(brush, t, new Rectangle2D.Double(startX, startY, dayWidth, height));
+			return;
+		}
+		
+		// For events spanning at least one night
+		drawBlock(brush, t, new Rectangle2D.Double(startX, startY, dayWidth, getHeight() - startY));
+		for (int i = startDay + 1; i < endDay; i++) {
+			// Draw full day
+			drawBlock(brush, t, new Rectangle2D.Double(getXPos(i), 0, dayWidth, getHeight()));
+		}
+		drawBlock(brush, t, new Rectangle2D.Double(endX, 0, dayWidth, endY));
 	}
 	
 	/**

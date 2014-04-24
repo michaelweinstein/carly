@@ -14,6 +14,7 @@ import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -28,8 +29,10 @@ import frontend.Utils;
  */
 public class LineCanvas extends JPanel {
 	
-	private final CalendarView	cv;
-	private int					y;
+	private final CalendarView	_cv;
+	private Date				_weekStartDate;
+	private Date				_weekEndDate;
+	private int					_y;
 	private static final long	serialVersionUID	= 8788849553807412908L;
 	
 	/**
@@ -38,7 +41,7 @@ public class LineCanvas extends JPanel {
 	 * @param cv the calendar view object
 	 */
 	public LineCanvas(final CalendarView cv) {
-		this.cv = cv;
+		_cv = cv;
 		Utils.themeComponent(this);
 	}
 	
@@ -65,23 +68,27 @@ public class LineCanvas extends JPanel {
 		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 15));
 		brush.drawString("WEEK", 8, 56);
 		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 26));
-		brush.drawString(String.valueOf(cv.getWeek()), 8, 80);
+		brush.drawString(String.valueOf(_cv.getCurrentWeek()), 8, 80);
 		
 		// Do the vertical lines
 		brush.setColor(Utils.COLOR_LIGHT_BG);
 		for (int i = 1; i < DAYS; i++) {
-			final double x = (i / DAYS) * (getWidth() - X_OFFSET - cv.getScrollWidth()) + X_OFFSET;
+			final double x = (i / DAYS) * (getWidth() - X_OFFSET - _cv.getScrollWidth()) + X_OFFSET;
 			brush.draw(new Line2D.Double(x, 0, x, getHeight()));
 		}
 		
+		// Reloads week start and end date
+		_weekStartDate = _cv.getCurrentWeekStartDate();
+		_weekEndDate = _cv.getCurrentWeekEndDate();
+		
 		// Draws all lines for the assignment
-		final List<ITimeBlockable> timeBlocks = cv.getTimeBlocks();
-		y = (int) (Y_PAD / 2.0);
+		final List<ITimeBlockable> timeBlocks = _cv.getTimeBlocks();
+		_y = (int) (Y_PAD / 2.0);
 		final int height = (int) ((getHeight() - Y_PAD) / (timeBlocks.size() + 1));
 		final int space = (int) ((getHeight() - Y_PAD) / timeBlocks.size());
 		for (final ITimeBlockable t : timeBlocks) {
 			placeAndDrawLine(brush, t, height);
-			y += space;
+			_y += space;
 		}
 	}
 	
@@ -93,7 +100,7 @@ public class LineCanvas extends JPanel {
 	 * @return a value to set for X
 	 */
 	private int getXPos(final double time, final int day) {
-		double xStart = ((day / DAYS) * (getWidth() - X_OFFSET - cv.getScrollWidth())) + X_OFFSET;
+		double xStart = ((day / DAYS) * (getWidth() - X_OFFSET - _cv.getScrollWidth())) + X_OFFSET;
 		xStart += (time / HRS) * ((getWidth() - X_OFFSET) / DAYS);
 		return (int) xStart;
 	}
@@ -106,25 +113,37 @@ public class LineCanvas extends JPanel {
 	 * @param height the height of the block itself
 	 */
 	private void placeAndDrawLine(final Graphics2D brush, final ITimeBlockable t, final int height) {
-		final Calendar c = CalendarView.getCalendarInstance();
-		c.setTime(t.getStart());
-		final double startTime = c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0);
-		final int startDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
-		c.setTime(t.getEnd());
-		final double endTime = c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0);
-		final int endDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
-		
-		// Shared measurements
-		final int x1 = getXPos(startTime, startDay);
-		int x2 = getXPos(endTime, endDay);
-		
-		// If the end day is after the end of the given week, just make it max width
-		if (endDay < startDay || (endDay == startDay && endTime < startTime)) {
-			x2 = getWidth();
+		// Checks bounds so we know not to place line if dates don't match up
+		if (t.getStart().after(_weekEndDate) || t.getEnd().before(_weekStartDate)) {
+			return;
 		}
 		
-		final int width = Math.max(x2 - x1, 5);
-		final Rectangle2D.Double rect = new Rectangle2D.Double(x1, y, width, height);
+		// Start point - deals with before this week
+		final Calendar c = CalendarView.getCalendarInstance();
+		int startX;
+		if (t.getStart().before(_weekStartDate)) {
+			startX = X_OFFSET;
+		} else {
+			c.setTime(t.getStart());
+			final double startTime = c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0);
+			final int startDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
+			startX = getXPos(startTime, startDay);
+		}
+		
+		// End point - deals with after this week
+		int endX;
+		if (t.getEnd().after(_weekEndDate)) {
+			endX = getWidth();
+		} else {
+			c.setTime(t.getEnd());
+			final double endTime = c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0);
+			final int endDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
+			endX = getXPos(endTime, endDay);
+		}
+		
+		// At minimum, width must be 5 pixels - also set color and rect
+		final int width = Math.max(endX - startX, 5);
+		final Rectangle2D.Double rect = new Rectangle2D.Double(startX, _y, width, height);
 		final Color currColor = CanvasConstants.getColor(t);
 		
 		// Draw block
