@@ -1,7 +1,5 @@
 package frontend.view.calendar;
 
-import java.awt.Dimension;
-
 import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
@@ -36,15 +34,5 @@ public class WeekView extends JScrollPane {
 		setViewportBorder(new EmptyBorder(0, 0, 0, 0));
 		Utils.padComponent(this, 0, 0);
 		Utils.padComponent(_canvas, 0, 0);
-	}
-	
-	@Override
-	public Dimension getPreferredSize() {
-		return new Dimension(600, 500);
-	}
-	
-	@Override
-	public Dimension getMinimumSize() {
-		return new Dimension(400, 300);
 	}
 }
