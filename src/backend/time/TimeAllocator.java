@@ -218,7 +218,7 @@ public class TimeAllocator {
 			//Get the corresponding task from the Assignment member variable
 			ITask task = m_asgn.getTasks().get(step.getStepNumber());
 			//ITask task = new Task(m_asgn.getName() + ":" + step.getName(), step.getPercentOfTotal(), m_asgn.getID());
-			return new AssignmentBlock(bestStart, bestEnd, task, true);
+			return new AssignmentBlock(bestStart, bestEnd, task);
 		}
 
 
@@ -254,7 +254,7 @@ public class TimeAllocator {
 		//Create the task to give in the AssignmentBlock constructor
 		//ITask task = new Task(m_asgn.getName() + ":" + step.getName(), step.getPercentOfTotal(), m_asgn.getID());
 		ITask task = m_asgn.getTasks().get(step.getStepNumber());
-		return new AssignmentBlock(bestStart, bestEnd, task, true);
+		return new AssignmentBlock(bestStart, bestEnd, task);
 	}
 
 
