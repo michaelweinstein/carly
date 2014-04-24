@@ -15,8 +15,13 @@ public class WeekView extends JScrollPane {
 	private static final long	serialVersionUID	= -4485951680510823881L;
 	private final WeekCanvas	_canvas;
 	
-	public WeekView() {
-		_canvas = new WeekCanvas();
+	/**
+	 * Creates things
+	 * 
+	 * @param cv the calendar view that contains this
+	 */
+	public WeekView(final CalendarView cv) {
+		_canvas = new WeekCanvas(cv);
 		setViewportView(_canvas);
 		
 		themeAll();

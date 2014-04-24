@@ -33,13 +33,19 @@ public class WeekCanvas extends JPanel {
 	private static final double			HRS					= 24;
 	public static final int				X_OFFSET			= 56;
 	private static final double			Y_PAD				= 10;
+	private final CalendarView			cv;
 	private final List<ITimeBlockable>	timeBlocks			= new ArrayList<>();
 	
 	/**
-	 * TEST for TimeBlocks
+	 * Constructor for a week canvas
+	 * 
+	 * @param cv the calendar view containing this
 	 */
-	public WeekCanvas() {
-		final Calendar c = Calendar.getInstance();
+	public WeekCanvas(final CalendarView cv) {
+		final Calendar c = CalendarView.getCalendarInstance();
+		this.cv = cv;
+		
+		// TESTING TESTING 1 2 3
 		c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
 		c.set(Calendar.HOUR_OF_DAY, 3);
 		c.set(Calendar.MINUTE, 30);
@@ -108,6 +114,7 @@ public class WeekCanvas extends JPanel {
 		}
 		
 		// Gets all time blocks and converts them to real blocks
+		// TODO: AFTER TESTING: cv.getBlocks();
 		for (final ITimeBlockable t : timeBlocks) {
 			placeAndDrawBlock(brush, t);
 		}
@@ -145,6 +152,8 @@ public class WeekCanvas extends JPanel {
 		final Random r = new Random(t.hashCode());
 		final Color currColor = t.isMovable() ? new Color(r.nextInt(255), r.nextInt(255), r.nextInt(255))
 				: Utils.COLOR_ALTERNATE;
+		
+		// Draw block background
 		g.setColor(currColor);
 		g.fill(rect);
 		g.setColor(Utils.COLOR_FOREGROUND);
@@ -208,7 +217,7 @@ public class WeekCanvas extends JPanel {
 	 * @param t a time blockable to draw
 	 */
 	private void placeAndDrawBlock(final Graphics2D brush, final ITimeBlockable t) {
-		final Calendar c = Calendar.getInstance();
+		final Calendar c = CalendarView.getCalendarInstance();
 		c.setTime(t.getStart());
 		final double startTime = c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0);
 		int currDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
