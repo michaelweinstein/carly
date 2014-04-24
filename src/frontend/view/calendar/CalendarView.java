@@ -88,6 +88,7 @@ public class CalendarView extends JPanel {
 		c.add(Calendar.MINUTE, 30);
 		end = c.getTime();
 		timeBlocks.add(new AssignmentBlock(start, end, new Task("Sunday Brunch", 0.3)));
+		timeBlocks.add(new AssignmentBlock(start, end, new Task("Double Booked!!?", 0.3)));
 		
 		c.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
 		c.set(Calendar.HOUR_OF_DAY, 0);
@@ -97,6 +98,14 @@ public class CalendarView extends JPanel {
 		end = c.getTime();
 		timeBlocks
 				.add(new AssignmentBlock(start, end, new Task("Half Day Saturday Event with a Very Long Title", 0.3)));
+		
+		c.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
+		c.set(Calendar.HOUR_OF_DAY, 10);
+		c.set(Calendar.MINUTE, 47);
+		start = c.getTime();
+		c.add(Calendar.MINUTE, 80000);
+		end = c.getTime();
+		timeBlocks.add(new AssignmentBlock(start, end, new Task("Around the Weekend", 0.3)));
 	}
 	
 	/**

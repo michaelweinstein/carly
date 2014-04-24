@@ -58,10 +58,14 @@ public class LineCanvas extends JPanel {
 		brush.setColor(Utils.COLOR_ACCENT);
 		brush.fill(new Rectangle2D.Double(0, 0, CanvasConstants.X_OFFSET, getHeight()));
 		brush.setColor(Utils.COLOR_BACKGROUND);
+		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 13));
+		brush.drawString("AT A", 8, 20);
+		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 11));
+		brush.drawString("GLANCE", 8, 32);
 		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 15));
-		brush.drawString("WEEK", 8, 40);
+		brush.drawString("WEEK", 8, 56);
 		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 26));
-		brush.drawString(String.valueOf(cv.getWeek()), 8, 64);
+		brush.drawString(String.valueOf(cv.getWeek()), 8, 80);
 		
 		// Do the vertical lines
 		brush.setColor(Utils.COLOR_LIGHT_BG);
@@ -73,10 +77,11 @@ public class LineCanvas extends JPanel {
 		// Draws all lines for the assignment
 		final List<ITimeBlockable> timeBlocks = cv.getTimeBlocks();
 		y = (int) (Y_PAD / 2.0);
-		final int height = (int) ((getHeight() - Y_PAD) / timeBlocks.size());
+		final int height = (int) ((getHeight() - Y_PAD) / (timeBlocks.size() + 1));
+		final int space = (int) ((getHeight() - Y_PAD) / timeBlocks.size());
 		for (final ITimeBlockable t : timeBlocks) {
 			placeAndDrawLine(brush, t, height);
-			y += height;
+			y += space;
 		}
 	}
 	
@@ -118,7 +123,8 @@ public class LineCanvas extends JPanel {
 			x2 = getWidth();
 		}
 		
-		final Rectangle2D.Double rect = new Rectangle2D.Double(x1, y, x2 - x1, height);
+		final int width = Math.max(x2 - x1, 5);
+		final Rectangle2D.Double rect = new Rectangle2D.Double(x1, y, width, height);
 		final Color currColor = CanvasConstants.getColor(t);
 		
 		// Draw block

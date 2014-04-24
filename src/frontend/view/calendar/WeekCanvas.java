@@ -63,7 +63,7 @@ public class WeekCanvas extends JPanel {
 		// Do the vertical lines
 		for (int i = 1; i < DAYS; i++) {
 			final double x = (i / DAYS) * (getWidth() - X_OFFSET) + X_OFFSET;
-			brush.draw(new Line2D.Double(x, 0, x, getHeight()));
+			brush.draw(new Line2D.Double(x, Y_PAD, x, getHeight() - Y_PAD));
 		}
 		
 		for (int i = 0; i <= HRS; i++) {
@@ -210,7 +210,7 @@ public class WeekCanvas extends JPanel {
 		int x = getXPos(currDay);
 		
 		// Basic, works
-		if (currDay == endDay) {
+		if (currDay == endDay && startTime < endTime) {
 			final int y = getYPos(startTime);
 			final int height = (int) (getYPos(endTime - startTime) - Y_PAD);
 			drawBlock(brush, t, new Rectangle2D.Double(x, y, dayWidth, height));
