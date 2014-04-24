@@ -14,7 +14,7 @@ import frontend.app.GUIApp;
 public class ViewController {
 	
 	private final GUIApp			app;
-	private MainView				window;
+	private MainFrame				window;
 	
 	private final List<Assignment>	allAssignments	= new ArrayList<>();	// FOR TESTING ONLY!
 																			
@@ -31,7 +31,7 @@ public class ViewController {
 	 * Makes a new MainView, that itself sets up data
 	 */
 	public void create() {
-		window = new MainView(this);
+		window = new MainFrame(this);
 		
 		// Show it
 		window.pack();

@@ -351,7 +351,7 @@ public class TemplateWizardView extends JPanel {
 		Utils.themeComponent(namePanel);
 		namePanel.setPreferredSize(new Dimension(300, 25));		
 		final JLabel nameLabel = new JLabel(name + ": ");
-		Utils.themeComponentInverse(nameLabel);
+		Utils.themeComponentAlt(nameLabel);
 		final JTextField nameInput = new JTextField();
 		nameInput.setPreferredSize(new Dimension(100, 20));
 		namePanel.add(nameLabel);
@@ -367,7 +367,7 @@ public class TemplateWizardView extends JPanel {
 		Utils.themeComponent(hoursPanel);
 		hoursPanel.setPreferredSize(new Dimension(350, 25));
 		final JLabel hoursLabel = new JLabel(name + ": ");
-		Utils.themeComponentInverse(hoursLabel);
+		Utils.themeComponentAlt(hoursLabel);
 		final JTextField hoursInput = new JTextField();
 		hoursInput.setPreferredSize(new Dimension(40, 20));
 		hoursPanel.add(hoursLabel);

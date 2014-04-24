@@ -1,5 +1,6 @@
 package frontend.view.calendar;
 
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 
 import javax.swing.Box;
@@ -25,11 +26,11 @@ public class CalendarView extends JPanel {
 		weekView = new WeekView();
 		
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-		Utils.themeComponentInverse(this);
+		Utils.themeComponentAlt(this);
 		
-		add(lineView);
+		add(lineView, BorderLayout.NORTH);
 		add(Box.createVerticalStrut(10));
-		add(weekView);
+		add(weekView, BorderLayout.CENTER);
 	}
 	
 	@Override
