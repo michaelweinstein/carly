@@ -13,6 +13,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -81,8 +82,17 @@ public class LineCanvas extends JPanel {
 		_weekStartDate = _cv.getCurrentWeekStartDate();
 		_weekEndDate = _cv.getCurrentWeekEndDate();
 		
-		// Draws all lines for the assignment
+		// Draws all lines for the tasks, but first checks for validity
 		final List<ITimeBlockable> timeBlocks = _cv.getTimeBlocks();
+		final List<ITimeBlockable> deletable = new ArrayList<>();
+		for (final ITimeBlockable t : timeBlocks) {
+			if (t.getStart().after(_weekEndDate) || t.getEnd().before(_weekStartDate)) {
+				deletable.add(t);
+			}
+		}
+		for (final ITimeBlockable t : deletable) {
+			timeBlocks.remove(t);
+		}
 		_y = (int) (Y_PAD / 2.0);
 		final int height = (int) ((getHeight() - Y_PAD) / (timeBlocks.size() + 1));
 		final int space = (int) ((getHeight() - Y_PAD) / timeBlocks.size());

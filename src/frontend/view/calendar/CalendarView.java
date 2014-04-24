@@ -126,6 +126,27 @@ public class CalendarView extends JPanel {
 		c.add(Calendar.HOUR_OF_DAY, 8);
 		end = c.getTime();
 		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Around the Weekend 2", 0.3)));
+		
+		c.setTime(new Date());
+		c.add(Calendar.WEEK_OF_YEAR, -4);
+		start = c.getTime();
+		c.add(Calendar.HOUR_OF_DAY, 8);
+		end = c.getTime();
+		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Shouldn't appear before", 0.3)));
+		
+		c.setTime(new Date());
+		c.add(Calendar.WEEK_OF_YEAR, 4);
+		start = c.getTime();
+		c.add(Calendar.YEAR, 2000);
+		end = c.getTime();
+		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Shouldn't appear after", 0.3)));
+		
+		/*
+		 * TheWorst-DoesFULLWEEKc.setTime(new Date()); c.add(Calendar.YEAR, -1); start = c.getTime();
+		 * c.add(Calendar.YEAR, 2); end = c.getTime(); _timeBlocks.add(new AssignmentBlock(start, end, new
+		 * Task("FULL WEEK", 0.3)));
+		 */
+		
 	}
 	
 	/**

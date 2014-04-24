@@ -102,6 +102,70 @@ public class WeekCanvas extends JPanel {
 	}
 	
 	/**
+	 * Draws a block to canvas
+	 * 
+	 * @param brush the brush for the canvas
+	 * @param t a time blockable to draw
+	 */
+	private void placeAndDrawBlock(final Graphics2D brush, final ITimeBlockable t) {
+		// Checks bounds so we know not to place line if dates don't match up
+		if (t.getStart().after(_weekEndDate) || t.getEnd().before(_weekStartDate)) {
+			return;
+		}
+		
+		// Shared measurements
+		final double dayWidth = (getWidth() - X_OFFSET) / DAYS;
+		final Calendar c = CalendarView.getCalendarInstance();
+		c.setTime(t.getStart());
+		final Date startDate = c.getTime();
+		int startDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
+		c.setTime(t.getEnd());
+		final Date endDate = c.getTime();
+		int endDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
+		
+		// Sets correct start bounds
+		int startX;
+		int startY;
+		if (startDate.before(_weekStartDate)) {
+			startY = 0;
+			startDay = c.getMinimum(Calendar.DAY_OF_WEEK) - 1;
+			startX = getXPos(startDay);
+		} else {
+			c.setTime(t.getStart());
+			startX = getXPos((int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS));
+			startY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
+		}
+		
+		// Sets correct end bounds
+		int endX;
+		int endY;
+		if (endDate.after(_weekEndDate)) {
+			endY = getHeight();
+			endDay = c.getMaximum(Calendar.DAY_OF_WEEK) - 1;
+			endX = getXPos(endDay);
+		} else {
+			c.setTime(t.getEnd());
+			endX = getXPos((int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS));
+			endY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
+		}
+		
+		// Simple - start and end on same day!
+		if (startX == endX) {
+			final int height = endY - startY;
+			drawBlock(brush, t, new Rectangle2D.Double(startX, startY, dayWidth, height));
+			return;
+		}
+		
+		// For events spanning at least one night
+		drawBlock(brush, t, new Rectangle2D.Double(startX, startY, dayWidth, getHeight() - startY));
+		for (int i = startDay + 1; i < endDay; i++) {
+			// Draw full day
+			drawBlock(brush, t, new Rectangle2D.Double(getXPos(i), 0, dayWidth, getHeight()));
+		}
+		drawBlock(brush, t, new Rectangle2D.Double(endX, 0, dayWidth, endY));
+	}
+	
+	/**
 	 * Draws an actual block
 	 * 
 	 * @param g the graphics object
@@ -195,68 +259,6 @@ public class WeekCanvas extends JPanel {
 	 */
 	private int getXPos(final double day) {
 		return (int) ((day / DAYS) * (getWidth() - X_OFFSET) + X_OFFSET);
-	}
-	
-	/**
-	 * Draws a block to canvas
-	 * 
-	 * @param brush the brush for the canvas
-	 * @param t a time blockable to draw
-	 */
-	private void placeAndDrawBlock(final Graphics2D brush, final ITimeBlockable t) {
-		// Checks bounds so we know not to place line if dates don't match up
-		if (t.getStart().after(_weekEndDate) || t.getEnd().before(_weekStartDate)) {
-			return;
-		}
-		
-		// Shared measurements
-		final double dayWidth = (getWidth() - X_OFFSET) / DAYS;
-		final Calendar c = CalendarView.getCalendarInstance();
-		c.setTime(t.getStart());
-		final Date startDate = c.getTime();
-		final int startDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
-		c.setTime(t.getEnd());
-		final Date endDate = c.getTime();
-		final int endDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
-		
-		// Sets correct start bounds
-		int startX;
-		int startY;
-		if (startDate.before(_weekStartDate)) {
-			startX = getXPos(c.getMinimum(Calendar.DAY_OF_WEEK) - 1);
-			startY = 0;
-		} else {
-			c.setTime(t.getStart());
-			startX = getXPos((int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS));
-			startY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
-		}
-		
-		// Sets correct end bounds
-		int endX;
-		int endY;
-		if (endDate.after(_weekEndDate)) {
-			endX = getXPos(c.getMaximum(Calendar.DAY_OF_WEEK) - 1);
-			endY = getHeight();
-		} else {
-			c.setTime(t.getEnd());
-			endX = getXPos((int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS));
-			endY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
-		}
-		
-		// Simple - start and end on same day!
-		if (startX == endX) {
-			final int height = endY - startY;
-			drawBlock(brush, t, new Rectangle2D.Double(startX, startY, dayWidth, height));
-			return;
-		}
-		
-		// For events spanning at least one night
-		drawBlock(brush, t, new Rectangle2D.Double(startX, startY, dayWidth, getHeight() - startY));
-		for (int i = startDay + 1; i < endDay; i++) {
-			// Draw full day
-			drawBlock(brush, t, new Rectangle2D.Double(getXPos(i), 0, dayWidth, getHeight()));
-		}
-		drawBlock(brush, t, new Rectangle2D.Double(endX, 0, dayWidth, endY));
 	}
 	
 	/**
