@@ -21,7 +21,7 @@ public class LineView extends JPanel {
 	
 	@Override
 	public Dimension getPreferredSize() {
-		return new Dimension(300, 200);
+		return new Dimension(300, 100);
 	}
 	
 	@Override

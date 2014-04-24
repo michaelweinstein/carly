@@ -27,7 +27,7 @@ public class TemplateWizardDialogueView extends JPanel {
 	public TemplateWizardDialogueView() {
 		super();
 		// Set theme of dialogue box
-		Utils.themeComponentInverse(this);
+		Utils.themeComponentAlt(this);
 		Utils.addBorderFull(this);
 		
 		// Size of dialogue
