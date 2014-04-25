@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import backend.database.StorageService;
+import data.Assignment;
 import data.ITask;
 import data.ITimeBlockable;
 
@@ -131,15 +133,20 @@ public class TimeCompactor {
 			//SOL'N : to solve this problem, I need to consider all blocks and their INDIVIDUAL
 			//		  start/end times.  Going to need to add some lines here where I use the db 
 			//		  access functions to get the corresponding assignments
+			
+			Assignment blockAsgn = StorageService.getAssignmentById(block.getTask().getAssignmentID());
+			
+			
 			if(newStart < start.getTime()) {
 				System.err.println("Bad START-insertion attempt!");
 				break;
 			}
-			if(newEnd > end.getTime()) {
+			//if(newEnd > end.getTime()) {
+			if(newEnd > blockAsgn.getDueDate().getTime()) {
 				System.err.println("Bad END-insertion attempt!");
 				break;
 			}
-			
+
 			//Place the block in its new location and decrement from the time bank
 			block.getStart().setTime(newStart);
 			block.getEnd().setTime(newEnd);
@@ -208,22 +215,17 @@ public class TimeCompactor {
 				if(next.getStart().getTime() - curr.getEnd().getTime() > lim)
 					continue;
 				
-				//TODO: Extend this for blocks of differing lengths
-				if(prev.getLength() == curr.getLength()) {
-					
-					//TODO: Will this cause persistence issues with the database???
-					ITask t1 = prev.getTask();
-					ITask t2 = curr.getTask();
-					prev.setTask(t2);
-					curr.setTask(t1);
-									
-//					Date tempStart = curr.getStart();
-//					Date tempEnd = curr.getEnd();
-//					curr.setStart(prev.getStart());
-//					curr.setEnd(prev.getEnd());
-//					prev.setStart(tempStart);
-//					prev.setEnd(tempEnd);
+
+				//TODO: What do I want to do with the output of this function?
+				//		Note: this function tries several different ways of switching
+				//		blocks, regardless of their lengths
+				if(TimeUtilities.switchTimeBlocks(allBlocks, prev, curr)) {
+					System.out.println("hooray!");
 				}
+				else {
+					System.out.println("block switch failed");
+				}
+				
 				
 				//Increment i so that this doesn't get repeated
 				++i;
@@ -257,13 +259,13 @@ public class TimeCompactor {
 			if (prevID.equals(currID) && currID.equals(nextID)) {
 				//Try to switch with a prev if possible
 				if(i != 1) {
-					//ITimeBlockable pp = allBlocks.get(i - 2);
+					ITimeBlockable pp = allBlocks.get(i - 2);
 					//TODO
 				}
 				
 				//Try to switch with a next if possible
 				if(i != allBlocks.size() - 2) {
-					//ITimeBlockable nn = allBlocks.get(i + 2);
+					ITimeBlockable nn = allBlocks.get(i + 2);
 					//TODO
 				}
 				

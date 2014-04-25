@@ -49,6 +49,10 @@ public class TimeModifier {
 		}
 		// Otherwise the block has been dragged
 		else {
+			
+			//TODO: Try a switch operation if the starts/ends line up and no due date
+			//		violations occur???
+			
 			final int ind = TimeUtilities.indexOfFitLocn(allBlocks, newStart);
 			
 			final ITimeBlockable prev = (ind > 0 ? allBlocks.get(ind - 1) : null);
@@ -255,8 +259,13 @@ public class TimeModifier {
 	}
 	
 	
+	//Delete a block from the calendar, as per the user's request.
 	public static boolean deleteBlock(final ITimeBlockable block) {
 		StorageService.removeTimeBlock(block);
+		
+		//TODO: Do I need to make a call to "updateBlocksInTask()" here in order to update user
+		//		Task percentages, since they just removed a time block from their calendar...?
+		
 		return true;
 	}
 	

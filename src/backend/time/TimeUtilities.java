@@ -4,7 +4,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import backend.database.StorageService;
+import backend.database.StorageServiceException;
 import data.IAssignment;
+import data.ITask;
 import data.ITimeBlockable;
 
 
@@ -117,24 +120,107 @@ public class TimeUtilities {
 	
 	
 	//Return false and do not modify the list if an insertion is not possible
-	public static boolean switchTimeBlocks(List<ITimeBlockable> allBlocks, ITimeBlockable b1, ITimeBlockable b2) {
+	public static boolean switchTimeBlocks(List<ITimeBlockable> allBlocks, ITimeBlockable source, ITimeBlockable dest) {
+		IAssignment srcAsgn = StorageService.getAssignmentById(source.getTask().getAssignmentID());
+		IAssignment destAsgn = StorageService.getAssignmentById(dest.getTask().getAssignmentID());
+		
+		long srcLen = source.getLength();
+		long destLen = dest.getLength();
 		
 		//Check to see if same length (switch always possible)
-		if(b1.getLength() == b2.getLength()) {
-			Date tempStart = b2.getStart();
-			Date tempEnd = b2.getEnd();
+		if(srcLen == destLen) {
 			
-			b2.setStart(b1.getStart());
-			b2.setEnd(b1.getEnd());
-			b1.setStart(tempStart);
-			b1.setEnd(tempEnd);
+			//Ensure that neither block is switched past its Assignment's due date
+			if(source.getStart().before(dest.getStart()) && 
+					dest.getEnd().after(srcAsgn.getDueDate())) {
+				return false;
+			}
+			else if(dest.getStart().before(source.getStart()) && 
+					source.getEnd().after(destAsgn.getDueDate())) {
+				return false;
+			}
 			
-			return true;
+			//Switch the blocks
+			ITask t1 = source.getTask();
+			ITask t2 = dest.getTask();
+			source.setTask(t2);
+			dest.setTask(t1);
+			
+			//Update the blocks in the database
+			try {
+				StorageService.updateTimeBlock(source);
+				StorageService.updateTimeBlock(dest);
+				return true;
+			}
+			catch(StorageServiceException sse) {
+				sse.printStackTrace();
+			}
+			
+			//ONLY return false here if the database updates/merges failed
+			return false;
 		}
-		
+		else if(srcLen > destLen) {
+			int destInd = allBlocks.indexOf(dest); 
+			
+			//First try to place source's start at dest's start
+			if(destInd == allBlocks.size() - 1) {
+				//TODO: For safety reasons, don't perform a switch -- in order to be the most careful
+				//		with this, I would have to request more of the schedule from the database so
+				//		that I can be sure I don't overlap something that I currently don't see in
+				//		my local segment of the calendar
+				return false;
+			}
+			else {
+				ITimeBlockable afterDest = allBlocks.get(destInd + 1);
+				
+				//TODO: REORGANIZE THIS FUNCTION!
+				//	Optimally, I wouldn't have to handle concerns with both chronology, and the swapping
+				//	locations at the same time.
+				
+				//--Try to push at front	
+				//Ensure that the switch can be made without interfering with due dates and without
+				//pushing the "afterDest"-block
+				if(source.getStart().before(dest.getStart())
+						&& !dest.getEnd().after(srcAsgn.getDueDate())
+						&& afterDest.getStart().after(new Date(dest.getStart().getTime() + source.getLength()))) {
+					
+					ITask t1 = source.getTask();
+					ITask t2 = dest.getTask();
+					
+					//Update the timeblocks
+					source.setEnd(new Date(source.getStart().getTime() + destLen));
+					source.setTask(t2);
+					dest.setEnd(new Date(dest.getStart().getTime() + srcLen));
+					dest.setTask(t1);
+					
+					//Update the blocks in the database
+					try {
+						StorageService.updateTimeBlock(source);
+						StorageService.updateTimeBlock(dest);
+						return true;
+					}
+					catch(StorageServiceException sse) {
+						sse.printStackTrace();
+					}
+					
+					//Only return false if the update failed
+					return false;
+				}
+				
+				//--Then try to place source's end at dest's end
+
+				
+			}
+			
+						
+		}
+		else {
+			
+		}
 		
 		//TODO : check to see if blocks are of varying lengths - look at its immediate
 		//		neighbors in list (maybe possible)
+		
 		
 		//Return true if the insertion was successful
 		return true;

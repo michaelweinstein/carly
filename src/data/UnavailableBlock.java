@@ -101,6 +101,16 @@ public class UnavailableBlock implements ITimeBlockable {
 		return "Unavailable: [" + m_start.toString() + ", " + m_end.toString() + "]";
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if(o == null || !(o instanceof UnavailableBlock))
+			return false;
+		
+		UnavailableBlock ub = (UnavailableBlock) o;
+		
+		return m_start.equals(ub.m_start) && m_end.equals(ub.m_end) && m_uniqueId.equals(ub.m_uniqueId);
+	}
+	
 	public String fullString() {
 		return "Unavailable: [" + m_uniqueId + ", "+ m_start.toString() + ", " + m_end.toString() + 
 				", " + m_isMovable + "]";

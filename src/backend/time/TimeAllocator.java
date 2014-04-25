@@ -80,8 +80,6 @@ public class TimeAllocator {
 			//TODO: Handle cases where the number of hours of a user-submitted Assignment
 			//		is exceedingly low
 			
-			//TODO: Put the insertion stuff here! (Poss abstract insertionPolicy stuff
-			//		to its own function for ease of use here)
 			success = tryUniformInsertion(allBlocks, start, end, lastTimePlaced, step,
 					numBlocksLeft, numHoursPerBlock);
 		
