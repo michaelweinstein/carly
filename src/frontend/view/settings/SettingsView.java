@@ -1,4 +1,4 @@
-package frontend.view;
+package frontend.view.settings;
 
 import java.awt.Dimension;
 
@@ -8,7 +8,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import frontend.Utils;
-import frontend.view.template_wizard.TemplateWizardView;
+import frontend.view.settings.template_wizard.TemplateWizardView;
 
 public class SettingsView extends JDialog {
 	

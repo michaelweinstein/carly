@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 import frontend.Utils;
 import frontend.app.GUIApp;
 import frontend.view.assignments.AddAssignmentDialog;
+import frontend.view.settings.SettingsView;
 
 /**
  * Represents the toolbar at top of the screen

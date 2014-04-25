@@ -1,4 +1,4 @@
-package frontend.view.template_wizard;
+package frontend.view.settings.template_wizard;
 
 import java.awt.Color;
 import java.awt.Dimension;
@@ -50,7 +50,7 @@ public class TemplateWizardView extends JPanel {
 	private static final Color 	submitUpdatedColor	= Color.BLUE;
 	
 	/* User Input Label Strings */
-	private static final String new_template 		= "Custom";
+	private static final String new_template 		= "New template";
 	private static final String edit_template		= "Edit";
 	private static final String hide_template 		= "Hide";
 	private static final String template_name 		= "Name";
