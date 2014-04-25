@@ -58,9 +58,9 @@ public class TemplateWizardView extends JPanel {
 	private static final String submit_new_template = "Submit template";
 	private static final String submit_updated_template = "Update template";
 	// Steps Panel
+	private static final String steps_list 			= "Steps";
 	private static final String step_name 			= "Step name";
 	private static final String step_percent 		= "% of total";
-	private static final String steps_list 			= "Steps";
 	
 	/* Input Elements */
 	private final JComboBox<ITemplate> _templatePicker;
@@ -87,10 +87,12 @@ public class TemplateWizardView extends JPanel {
 		super();
 		// Set theme and layout of wizard
 		Utils.themeComponent(this);
-		Utils.addBorderTop(this);
-		Utils.addBorderBottom(this);
-		Utils.padComponentWithBorder(this, padding, padding);
-				
+//// 	// TODO: Get rid of border if I can get it to look similar for entire SettingsView
+//		Utils.addBorderTop(this);
+//		Utils.addBorderBottom(this);
+//		Utils.padComponentWithBorder(this, padding, padding);
+		Utils.padComponent(this, padding, padding);	
+		
 		// TODO: Removing Templates -- user needs a way to delete an existing Template!
 		
 		// ====== Instantiating Elements ======
@@ -116,6 +118,10 @@ public class TemplateWizardView extends JPanel {
 		boolean custom = (_templatePicker.getItemCount() == 0);
 		// Add empty Template with name 'Custom' (never actually submitted)
 		_templatePicker.addItem(new Template(new_template));
+		// TODO: Starts on 'Custom' and visible no matter what
+		int numItems = _templatePicker.getItemCount();
+		_templatePicker.setSelectedIndex(numItems > 0? numItems-1 : 0);
+		toggleVisibility(true);
 		
 		/* Name: (code in newNamePanel()) */
 		_namePanel = newNamePanel(template_name);
@@ -136,7 +142,9 @@ public class TemplateWizardView extends JPanel {
 		_submitTemplateBtn.setVisible(false);
 		
 		// Sets visibility true if _templatePicker starts on 'Custom'
-		toggleVisibility(custom);
+//		toggleVisibility(custom);
+		// TODO: Keep or delete this? If you keep (true), delete (custom)
+		toggleVisibility(true);
 
 	// ====== End of Instantiating Elements ======
 	

@@ -59,6 +59,6 @@ public class Main {
 		 */
 		
 		// DEBUG
-		StorageService.initialize(true);
+		StorageService.initialize(false);
 	}
 }

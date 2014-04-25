@@ -9,6 +9,8 @@ import javax.swing.JPanel;
 
 import frontend.Utils;
 
+// TODO: Can we delete this class?? Dylan created this already in NewAssignmentDialogue I think.
+
 /**
  * This is the front-end for the pop-up dialogue box to create or choose a Template when creating a new assignment.
  * 
@@ -24,6 +26,11 @@ public class TemplateWizardDialogueView extends JPanel {
 	// Size of Dialogue Box
 	private static final Dimension	dim					= new Dimension(275, 200);
 	
+	/**
+	 * CAN WE DELETE THIS CLASS? If anyone is using it, 
+	 * you can remove the Deprecated tag.
+	 */
+	@Deprecated
 	public TemplateWizardDialogueView() {
 		super();
 		// Set theme of dialogue box
