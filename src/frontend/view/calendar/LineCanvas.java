@@ -13,7 +13,6 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -62,14 +61,14 @@ public class LineCanvas extends JPanel {
 		brush.setColor(Utils.COLOR_ACCENT);
 		brush.fill(new Rectangle2D.Double(0, 0, CanvasConstants.X_OFFSET, getHeight()));
 		brush.setColor(Utils.COLOR_BACKGROUND);
-		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 13));
-		brush.drawString("AT A", 8, 20);
-		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 11));
-		brush.drawString("GLANCE", 8, 32);
 		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 15));
-		brush.drawString("WEEK", 8, 56);
+		brush.drawString("THIS", 8, 25);
+		brush.drawString("WEEK", 8, 40);
+		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 13));
+		brush.drawString("AT A", 8, 65);
+		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 11));
+		brush.drawString("GLANCE", 8, 76);
 		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 26));
-		brush.drawString(String.valueOf(_cv.getCurrentWeek()), 8, 80);
 		
 		// Do the vertical lines
 		brush.setColor(Utils.COLOR_LIGHT_BG);
@@ -84,21 +83,19 @@ public class LineCanvas extends JPanel {
 		
 		// Draws all lines for the tasks, but first checks for validity
 		final List<ITimeBlockable> timeBlocks = _cv.getTimeBlocks();
-		final List<ITimeBlockable> deletable = new ArrayList<>();
+		int size = timeBlocks.size();
 		for (final ITimeBlockable t : timeBlocks) {
 			if (t.getStart().after(_weekEndDate) || t.getEnd().before(_weekStartDate)) {
-				deletable.add(t);
+				--size;
 			}
 		}
-		for (final ITimeBlockable t : deletable) {
-			timeBlocks.remove(t);
-		}
 		_y = (int) (Y_PAD / 2.0);
-		final int height = (int) ((getHeight() - Y_PAD) / (timeBlocks.size() + 1));
-		final int space = (int) ((getHeight() - Y_PAD) / timeBlocks.size());
+		final int height = Math.min((int) ((getHeight() - Y_PAD) / (size + 1)), 18);
+		final int space = (int) ((getHeight() - Y_PAD) / size);
 		for (final ITimeBlockable t : timeBlocks) {
-			placeAndDrawLine(brush, t, height);
-			_y += space;
+			if (placeAndDrawLine(brush, t, height)) {
+				_y += space;
+			}
 		}
 	}
 	
@@ -121,11 +118,12 @@ public class LineCanvas extends JPanel {
 	 * @param brush the graphics object
 	 * @param t the block itself
 	 * @param height the height of the block itself
+	 * @return if it got added
 	 */
-	private void placeAndDrawLine(final Graphics2D brush, final ITimeBlockable t, final int height) {
+	private boolean placeAndDrawLine(final Graphics2D brush, final ITimeBlockable t, final int height) {
 		// Checks bounds so we know not to place line if dates don't match up
 		if (t.getStart().after(_weekEndDate) || t.getEnd().before(_weekStartDate)) {
-			return;
+			return false;
 		}
 		
 		// Start point - deals with before this week
@@ -161,6 +159,7 @@ public class LineCanvas extends JPanel {
 		brush.fill(rect);
 		brush.setColor(Utils.COLOR_LIGHT_BG);
 		brush.draw(rect);
+		return true;
 	}
 	
 	@Override

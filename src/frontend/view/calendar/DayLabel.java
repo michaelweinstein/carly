@@ -13,7 +13,6 @@ import javax.swing.JLabel;
 public class DayLabel extends JLabel {
 	
 	private static final long	serialVersionUID	= 1L;
-	private final String		dayName;
 	
 	/**
 	 * Sets the day of this label, no date
@@ -22,18 +21,6 @@ public class DayLabel extends JLabel {
 	 */
 	public DayLabel(final String dayName) {
 		super(dayName);
-		this.dayName = dayName;
-	}
-	
-	/**
-	 * Sets the text label to include the given date
-	 * 
-	 * @param d the date for the field
-	 */
-	public void setDate(final Date d) {
-		final Calendar c = CalendarView.getCalendarInstance();
-		c.setTime(d);
-		setTextForDate(c);
 	}
 	
 	/**
@@ -42,8 +29,18 @@ public class DayLabel extends JLabel {
 	 * @param dayOfWeek an int for the current week
 	 */
 	public void setDate(final int dayOfWeek) {
+		setDate(dayOfWeek, new Date());
+	}
+	
+	/**
+	 * Sets the text label to include the given date and day of week
+	 * 
+	 * @param dayOfWeek an int for the current day
+	 * @param weekStart the date that starts the week
+	 */
+	public void setDate(final int dayOfWeek, final Date weekStart) {
 		final Calendar c = CalendarView.getCalendarInstance();
-		c.setTime(new Date());
+		c.setTime(weekStart);
 		c.set(Calendar.DAY_OF_WEEK, dayOfWeek);
 		setTextForDate(c);
 	}
@@ -56,6 +53,7 @@ public class DayLabel extends JLabel {
 	private void setTextForDate(final Calendar c) {
 		final int day = c.get(Calendar.DAY_OF_MONTH);
 		final int month = c.get(Calendar.MONTH) + 1;
-		setText(dayName + " " + month + "/" + day);
+		final String dayN = c.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, getLocale());
+		setText(dayN + " " + month + "/" + day);
 	}
 }

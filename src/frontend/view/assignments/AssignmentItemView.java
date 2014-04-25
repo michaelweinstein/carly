@@ -11,7 +11,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import data.Assignment;
+import data.IAssignment;
 import data.ITask;
 import frontend.Utils;
 
@@ -23,16 +23,15 @@ import frontend.Utils;
 public class AssignmentItemView extends JPanel {
 	
 	private static final long	serialVersionUID	= -4869025641418957982L;
-	private final Assignment	assignment;
+	private final IAssignment	assignment;
 	
 	/**
 	 * Constructs a view from an assignment object for use later
 	 * 
-	 * @param assignment an Assignment
+	 * @param a an Assignment
 	 */
-	public AssignmentItemView(final Assignment assignment) {
-		this.assignment = assignment;
-		
+	public AssignmentItemView(final IAssignment a) {
+		assignment = a;
 		createView();
 	}
 	

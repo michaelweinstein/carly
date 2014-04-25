@@ -10,6 +10,7 @@ import javax.swing.JPanel;
 import javax.swing.WindowConstants;
 
 import frontend.Utils;
+import frontend.app.GUIApp;
 import frontend.view.assignments.AssignmentsView;
 import frontend.view.calendar.CalendarView;
 
@@ -33,7 +34,7 @@ public class MainFrame extends JFrame {
 	 * 
 	 * @param vc the view controller in control
 	 */
-	public MainFrame(final ViewController vc) {
+	public MainFrame(final GUIApp app) {
 		super(Utils.APP_NAME);
 		setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
 		setMinimumSize(new Dimension(850, 500));
@@ -41,8 +42,8 @@ public class MainFrame extends JFrame {
 		
 		// Make child views and add them
 		calendar = new CalendarView();
-		toolbar = new ToolbarView(vc);
-		assignmentsView = new AssignmentsView(vc);
+		toolbar = new ToolbarView(app);
+		assignmentsView = new AssignmentsView(app);
 		
 		// Whole view
 		final JPanel mainPanel = new JPanel();
@@ -77,5 +78,14 @@ public class MainFrame extends JFrame {
 			final Method method = clazz.getMethod(methodName, new Class<?>[] { Window.class, boolean.class });
 			method.invoke(null, window, true);
 		} catch (final Throwable t) {} // We don't care if it didn't work (just means non-Apple)
+	}
+	
+	/**
+	 * Returns the calendar
+	 * 
+	 * @return the calendar associated with this view
+	 */
+	public CalendarView getCalendarView() {
+		return calendar;
 	}
 }

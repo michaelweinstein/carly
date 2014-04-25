@@ -1,8 +1,8 @@
 package frontend.view.calendar;
 
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -29,7 +29,7 @@ public class CalendarView extends JPanel {
 	private final LineCanvas			_lineCanvas;
 	private final WeekView				_weekView;
 	private final List<DayLabel>		_dayLabelList;
-	private JLabel						_yearLabel;
+	private JLabel						_weekYearLabel;
 	private final List<ITimeBlockable>	_timeBlocks;
 	
 	// Info for view
@@ -59,10 +59,10 @@ public class CalendarView extends JPanel {
 		final Calendar cal = getCalendarInstance();
 		_currWeek = cal.get(Calendar.WEEK_OF_YEAR);
 		_currYear = cal.get(Calendar.YEAR);
-		
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		Utils.themeComponentAlt(this);
 		
+		add(makeToolbar());
 		add(makeDays());
 		add(_lineCanvas);
 		add(Box.createVerticalStrut(10));
@@ -150,6 +150,74 @@ public class CalendarView extends JPanel {
 	}
 	
 	/**
+	 * Makes the toolbar panel with the buttons and information
+	 * 
+	 * @return the toolbar for changing weeks right above the title
+	 */
+	private JPanel makeToolbar() {
+		final JPanel tools = new JPanel();
+		tools.setLayout(new BoxLayout(tools, BoxLayout.X_AXIS));
+		_weekYearLabel = new JLabel();
+		_weekYearLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.ITALIC, 16));
+		updateWeekYearLabel();
+		Utils.themeComponentAlt(tools);
+		Utils.themeComponent(_weekYearLabel);
+		final ArrowButton left = new ArrowButton(ArrowButton.Direction.LEFT_BUTTON) {
+			
+			private static final long	serialVersionUID	= 1L;
+			
+			@Override
+			public void mouseClicked(final MouseEvent e) {
+				shiftWeekBackward();
+			}
+			
+		};
+		final ArrowButton right = new ArrowButton(ArrowButton.Direction.RIGHT_BUTTON) {
+			
+			private static final long	serialVersionUID	= 1L;
+			
+			@Override
+			public void mouseClicked(final MouseEvent e) {
+				shiftWeekForward();
+			}
+		};
+		tools.add(Box.createHorizontalStrut(10));
+		tools.add(left);
+		tools.add(Box.createHorizontalGlue());
+		tools.add(_weekYearLabel);
+		tools.add(Box.createHorizontalGlue());
+		tools.add(right);
+		tools.add(Box.createHorizontalStrut(10));
+		Utils.padComponent(tools, 0, 5);
+		return tools;
+	}
+	
+	/**
+	 * Updates the week year label with new values read in dynamically
+	 */
+	private void updateWeekYearLabel() {
+		final Calendar cal = getCalendarInstance();
+		cal.setTime(getCurrentWeekStartDate());
+		final String startM = cal.getDisplayName(Calendar.MONTH, Calendar.LONG, getDefaultLocale());
+		final int startY = cal.get(Calendar.YEAR);
+		cal.setTime(getCurrentWeekEndDate());
+		final String endM = cal.getDisplayName(Calendar.MONTH, Calendar.LONG, getDefaultLocale());
+		final int endY = cal.get(Calendar.YEAR);
+		
+		// Set the format string for a normal week
+		String contents = String.format("Week %d (%s %d)", _currWeek, startM, _currYear);
+		if (!startM.equals(endM)) {
+			// Spanning a year as well as a month?
+			if (startY != endY) {
+				contents = String.format("Week %d (%s %d-%s %d)", _currWeek, startM, startY, endM, endY);
+			} else {
+				contents = String.format("Week %d (%s-%s %d)", _currWeek, startM, endM, _currYear);
+			}
+		}
+		_weekYearLabel.setText(contents);
+	}
+	
+	/**
 	 * Makes the days label panel
 	 * 
 	 * @return a new panel with the labels for days
@@ -164,12 +232,6 @@ public class CalendarView extends JPanel {
 		Utils.padComponent(par, 0, 10);
 		
 		final Font ft = new Font(Utils.APP_FONT_NAME, Font.BOLD, 12);
-		_yearLabel = new JLabel(String.valueOf(_currYear));
-		_yearLabel.setFont(ft);
-		_yearLabel.setPreferredSize(new Dimension(CanvasConstants.X_OFFSET, 20));
-		Utils.padComponent(_yearLabel, 10, 0);
-		Utils.themeComponent(_yearLabel);
-		par.add(_yearLabel);
 		
 		_dayLabelList.add(new DayLabel("Sun"));
 		_dayLabelList.add(new DayLabel("Mon"));
@@ -189,6 +251,7 @@ public class CalendarView extends JPanel {
 			dayOfWeek++;
 		}
 		
+		par.add(Box.createHorizontalStrut(CanvasConstants.X_OFFSET));
 		par.add(days);
 		
 		return par;
@@ -200,6 +263,10 @@ public class CalendarView extends JPanel {
 	public void reloadData() {
 		_weekView.repaint();
 		_lineCanvas.repaint();
+		for (int i = 0; i < _dayLabelList.size(); i++) {
+			_dayLabelList.get(i).setDate(i + 1, getCurrentWeekStartDate());
+		}
+		updateWeekYearLabel();
 	}
 	
 	/**
@@ -209,8 +276,8 @@ public class CalendarView extends JPanel {
 		_currWeek++;
 		
 		// Deals with week overflow
-		if (_currWeek > getCalendarInstance().getMaximum(Calendar.WEEK_OF_YEAR)) {
-			_currWeek = getCalendarInstance().getMinimum(Calendar.WEEK_OF_YEAR);
+		if (_currWeek > 52) {
+			_currWeek = 1;
 			_currYear++;
 		}
 		reloadData();
@@ -223,10 +290,20 @@ public class CalendarView extends JPanel {
 		_currWeek--;
 		
 		// Deals with week overflow
-		if (_currWeek < getCalendarInstance().getMinimum(Calendar.WEEK_OF_YEAR)) {
-			_currWeek = getCalendarInstance().getMaximum(Calendar.WEEK_OF_YEAR);
+		if (_currWeek < 1) {
+			_currWeek = 52;
 			_currYear--;
 		}
+		reloadData();
+	}
+	
+	/**
+	 * Simply resets everything to today!
+	 */
+	public void shiftWeekToToday() {
+		final Calendar cal = getCalendarInstance();
+		_currWeek = cal.get(Calendar.WEEK_OF_YEAR);
+		_currYear = cal.get(Calendar.YEAR);
 		reloadData();
 	}
 	

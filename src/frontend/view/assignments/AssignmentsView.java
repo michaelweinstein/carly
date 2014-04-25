@@ -10,9 +10,9 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
-import data.Assignment;
+import data.IAssignment;
 import frontend.Utils;
-import frontend.view.ViewController;
+import frontend.app.GUIApp;
 
 /**
  * Represents all current tasks and their collective data
@@ -21,20 +21,20 @@ import frontend.view.ViewController;
  */
 public class AssignmentsView extends JPanel {
 	
-	private final JScrollPane		scroller;
-	private final ViewController	vc;
-	private final JPanel			assignmentItems;
+	private final JScrollPane	scroller;
+	private final GUIApp		app;
+	private final JPanel		assignmentItems;
 	
 	// Constants
-	private static final long		serialVersionUID	= -3581722774976194311L;
+	private static final long	serialVersionUID	= -3581722774976194311L;
 	
 	/**
 	 * Constructor sets colors and puts the scroll view in place
 	 * 
-	 * @param vc the view controller for this view
+	 * @param app the view controller for this view
 	 */
-	public AssignmentsView(final ViewController vc) {
-		this.vc = vc;
+	public AssignmentsView(final GUIApp app) {
+		this.app = app;
 		
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		Utils.themeComponent(this);
@@ -72,14 +72,14 @@ public class AssignmentsView extends JPanel {
 	 */
 	public void reloadData() {
 		assignmentItems.removeAll();
-		final List<Assignment> ass = vc.getAssignments();
+		final List<IAssignment> ass = app.getAssignments();
 		if (ass.isEmpty()) {
 			final JLabel l = new JLabel("You're free!");
 			Utils.themeComponent(l);
 			l.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 13));
 			assignmentItems.add(l);
 		}
-		for (final Assignment a : ass) {
+		for (final IAssignment a : ass) {
 			assignmentItems.add(new AssignmentItemView(a));
 		}
 	}
