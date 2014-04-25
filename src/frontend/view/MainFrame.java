@@ -2,6 +2,8 @@ package frontend.view;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Window;
+import java.lang.reflect.Method;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -49,6 +51,7 @@ public class MainFrame extends JFrame {
 		add(toolbar, BorderLayout.NORTH);
 		Utils.padComponent(calendar, 10, 10);
 		Utils.themeComponent(mainPanel);
+		tryEnableFullScreenMode(this);
 		pack();
 	}
 	
@@ -58,5 +61,21 @@ public class MainFrame extends JFrame {
 	public void reloadData() {
 		calendar.reloadData();
 		assignmentsView.reloadData();
+	}
+	
+	/**
+	 * For a given JFrame, tries to use Apple APIs to enable native fullscreen mode
+	 * 
+	 * @param window a JFrame window
+	 */
+	public static void tryEnableFullScreenMode(final Window window) {
+		final String className = "com.apple.eawt.FullScreenUtilities";
+		final String methodName = "setWindowCanFullScreen";
+		
+		try {
+			final Class<?> clazz = Class.forName(className);
+			final Method method = clazz.getMethod(methodName, new Class<?>[] { Window.class, boolean.class });
+			method.invoke(null, window, true);
+		} catch (final Throwable t) {} // We don't care if it didn't work (just means non-Apple)
 	}
 }
