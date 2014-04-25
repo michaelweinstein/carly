@@ -14,8 +14,6 @@ public class TimeCompactor {
 	
 	//This function currently compacts all movable blocks in the Date range [start, end]
 	//in order to prevent "external fragmentation" along the client's time stream
-	//TODO: It can probably be improved to be smarter than this, though giving the range
-	//		of compaction as parameters allows for some flexibility.
 	public static void compact(List<ITimeBlockable> allBlocks, Date start, Date end, 
 			Date lastTimePlaced) {
 		
@@ -130,6 +128,9 @@ public class TimeCompactor {
 
 			//TODO: this is a temporary fix - if a time is recommended that is too far in the past,
 			//		then exit this function
+			//SOL'N : to solve this problem, I need to consider all blocks and their INDIVIDUAL
+			//		  start/end times.  Going to need to add some lines here where I use the db 
+			//		  access functions to get the corresponding assignments
 			if(newStart < start.getTime()) {
 				System.err.println("Bad START-insertion attempt!");
 				break;
@@ -152,10 +153,12 @@ public class TimeCompactor {
 			timeToStartFrom = (Date) block.getStart().clone();
 
 			if(recommendedStart != newStart) {
-				//TODO: This is a temp solution, and is assuming that I can back up
-				//		the timeToStartFrom by a fixed amount if this problem occurs...
-				//		pretty sketchy.
-				timeToStartFrom.setTime(timeToStartFrom.getTime() - delta);
+				int insertedLocn = TimeUtilities.indexOfFitLocn(allBlocks, new Date(newStart - 1));
+				ITimeBlockable prevBlock = allBlocks.get(insertedLocn - 1);
+				timeToStartFrom.setTime(prevBlock.getStart().getTime());
+				
+				//THIS is the old temp solution -- back up timeToStartFrom by fixed amt
+				//timeToStartFrom.setTime(timeToStartFrom.getTime() - delta);
 			}
 			
 			//TODO: WILL THIS CASE OCCUR?
@@ -166,12 +169,10 @@ public class TimeCompactor {
 		}
 		
 		//Try to switch the order of consecutive blocks that are of the same type
-		
 		trySwitchBlockOrder(allBlocks);
 		
-		
 		//Try to move assignments to their preferred time-of-day if possible
-		
+		//optimizePreferredTime(allBlocks);
 	}
 	
 	

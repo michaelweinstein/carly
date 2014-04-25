@@ -41,165 +41,11 @@ public class TimeModifier {
 		}
 		// Lengthening a block from the top
 		else if (currStart.compareTo(newStart) > 0 && currEnd.compareTo(newEnd) == 0) {
-			final int ind = TimeUtilities.indexOfFitLocn(allBlocks, newStart);
-			
-			final ITimeBlockable prev = (ind > 0 ? allBlocks.get(ind - 1) : null);
-			final ITimeBlockable curr = allBlocks.get(ind);
-			
-			// In this case, check to see if newStart overlaps prev's end
-			if (prev.getEnd().getTime() > newStart.getTime()) {
-				final long timeDiff = prev.getEnd().getTime() - newStart.getTime();
-				
-				// No block in front of prev -- use the "now" block at the top of this function for comparison
-				if (ind - 1 == 0) {
-					if (prev.getStart().getTime() - now.getTime() >= timeDiff) {
-						// If there is space to push prev back, update its time ranges and reset curr's range
-						final Date newPrevStart = new Date(prev.getStart().getTime() - timeDiff);
-						prev.setStart(newPrevStart);
-						prev.setEnd(new Date(newPrevStart.getTime() + prev.getLength()));
-						curr.setStart(newStart);
-						
-						// Update the blocks in the db
-						try {
-							StorageService.updateTimeBlock(prev);
-							StorageService.updateTimeBlock(curr);
-						} catch (final StorageServiceException sse) {
-							sse.printStackTrace();
-						}
-						return true;
-					}
-					// Not enough space between "now" and "prev" to be able to push "prev" back
-					else {
-						return false;
-					}
-				}
-				// Otherwise, use the block in front of prev for comparison
-				else {
-					final ITimeBlockable pp = allBlocks.get(ind - 2);
-					
-					// TEMP: for now, I just check to see if there is space to push prev back.
-					if (prev.getStart().getTime() - pp.getEnd().getTime() >= timeDiff) {
-						// If there is space to push prev back, update its time ranges and reset curr's range
-						final Date newPrevStart = new Date(prev.getStart().getTime() - timeDiff);
-						prev.setStart(newPrevStart);
-						prev.setEnd(new Date(newPrevStart.getTime() + prev.getLength()));
-						curr.setStart(newStart);
-						
-						// Update the blocks in the db
-						try {
-							StorageService.updateTimeBlock(prev);
-							StorageService.updateTimeBlock(curr);
-						} catch (final StorageServiceException sse) {
-							sse.printStackTrace();
-						}
-						return true;
-					}
-					// Not enough space between "now" and "prev" to be able to push "prev" back
-					else {
-						return false;
-					}
-					
-					// TODO: loop over all sets of previous blocks, pushing them each back as necessary
-					// BE CAREFUL so that I don't update the list in case pushing back is not possible...
-					// while(false) {
-					// System.out.println("todo");
-					// }
-				}
-				
-			}
-			// No overlap occurs, so just update the block in the db
-			else {
-				block.setStart(newStart);
-				
-				try {
-					StorageService.updateTimeBlock(block);
-				} catch (final StorageServiceException e) {
-					e.printStackTrace();
-				}
-			}
-			
+			return pushBlocksBack(allBlocks, block, now, newStart);
 		}
 		// Lengthening a block from the bottom
 		else if (currStart.compareTo(newStart) == 0 && currEnd.compareTo(newEnd) < 0) {
-			final int ind = TimeUtilities.indexOfFitLocn(allBlocks, newStart);
-			
-			final ITimeBlockable curr = allBlocks.get(ind);
-			final ITimeBlockable next = (ind < allBlocks.size() - 1 ? allBlocks.get(ind + 1) : null);
-			
-			// In this case, check to see if newEnd overlaps next's start
-			if (next.getStart().getTime() < newEnd.getTime()) {
-				final long timeDiff = newEnd.getTime() - next.getStart().getTime();
-				
-				// No block after "next" -- use the due date for comparison
-				if (ind + 1 == 0) {
-					final Date due = StorageService.getAssignmentById(curr.getTask().getAssignmentID()).getDueDate();
-					
-					if (due.getTime() - next.getEnd().getTime() >= timeDiff) {
-						// If there is space to push "next" forward, update its time ranges and reset curr's range
-						final Date newNextStart = new Date(next.getStart().getTime() + timeDiff);
-						next.setStart(newNextStart);
-						next.setEnd(new Date(newNextStart.getTime() + next.getLength()));
-						curr.setEnd(newEnd);
-						
-						// Update the blocks in the db
-						try {
-							StorageService.updateTimeBlock(curr);
-							StorageService.updateTimeBlock(next);
-						} catch (final StorageServiceException sse) {
-							sse.printStackTrace();
-						}
-						return true;
-					}
-					// Not enough space between "now" and "prev" to be able to push "prev" back
-					else {
-						return false;
-					}
-				}
-				// Otherwise, use the block after "next" for comparison
-				else {
-					final ITimeBlockable nn = allBlocks.get(ind + 2);
-					
-					// TEMP: for now, I just check to see if there is space to push next forward.
-					if (nn.getStart().getTime() - next.getEnd().getTime() >= timeDiff) {
-						// If there is space to push prev back, update its time ranges and reset curr's range
-						final Date newNextStart = new Date(next.getStart().getTime() + timeDiff);
-						next.setStart(newNextStart);
-						next.setEnd(new Date(newNextStart.getTime() + next.getLength()));
-						curr.setEnd(newEnd);
-						
-						// Update the blocks in the db
-						try {
-							StorageService.updateTimeBlock(curr);
-							StorageService.updateTimeBlock(next);
-						} catch (final StorageServiceException sse) {
-							sse.printStackTrace();
-						}
-						return true;
-					}
-					// Not enough space between "now" and "next" to be able to push "next" forward
-					else {
-						return false;
-					}
-					
-					// TODO: loop over all sets of previous blocks, pushing them each back as necessary
-					// BE CAREFUL so that I don't update the list in case pushing back is not possible...
-					// while(false) {
-					// System.out.println("todo");
-					// }
-				}
-				
-			}
-			// No overlap occurs, so just update the block in the db
-			else {
-				block.setStart(newStart);
-				
-				try {
-					StorageService.updateTimeBlock(block);
-				} catch (final StorageServiceException e) {
-					e.printStackTrace();
-				}
-			}
-			
+			return pushBlocksForward(allBlocks, block, now, newStart, newEnd);
 		}
 		// Otherwise the block has been dragged
 		else {
@@ -207,25 +53,29 @@ public class TimeModifier {
 			
 			final ITimeBlockable prev = (ind > 0 ? allBlocks.get(ind - 1) : null);
 			final ITimeBlockable curr = allBlocks.get(ind);
-			final ITimeBlockable next = (ind < allBlocks.size() - 1 ? allBlocks.get(ind + 1) : null);
 			
-			// TODO: make sure it is not within the bounds of both the prev and next
-			if (prev.getEnd().getTime() > newStart.getTime()) {
-				// TODO: push "prev" back if possible
-			} else if (next.getStart().getTime() < newEnd.getTime()) {
-				// TODO: push "next" forward if possible
-			}
-			// No overlap occurs
-			else {
-				block.setStart(newStart);
-				block.setEnd(newEnd);
-				
-				try {
-					StorageService.updateTimeBlock(block);
-					return true;
-				} catch (final StorageServiceException e) {
-					e.printStackTrace();
+			//Make sure the new block is not overlapping the bounds of "prev" and "curr" -- if so,
+			//push the others backwards/forwards, respectively, to make room.
+			if (prev != null && prev.getEnd().getTime() > newStart.getTime()) {
+				if(!pushBlocksBack(allBlocks, block, now, newStart)) {
+					return false;
 				}
+			} 
+			if (curr.getStart().getTime() < newEnd.getTime()) {
+				if(!pushBlocksForward(allBlocks, block, now, newStart, newEnd)) {
+					return false;
+				}			
+			}
+			
+			//Once any overlapping conflicts are resolved, update the db
+			block.setStart(newStart);
+			block.setEnd(newEnd);
+			
+			try {
+				StorageService.updateTimeBlock(block);
+				return true;
+			} catch (final StorageServiceException e) {
+				e.printStackTrace();
 			}
 			
 		}
@@ -233,11 +83,181 @@ public class TimeModifier {
 		return false;
 	}
 	
-	public static boolean deleteBlock(final ITimeBlockable block) {
+	
+	private static boolean pushBlocksBack(List<ITimeBlockable> allBlocks, ITimeBlockable block,
+			Date now, Date newStart) {
+		final int ind = TimeUtilities.indexOfFitLocn(allBlocks, newStart);
 		
+		final ITimeBlockable prev = (ind > 0 ? allBlocks.get(ind - 1) : null);
+		final ITimeBlockable curr = allBlocks.get(ind);
+		
+		// In this case, check to see if newStart overlaps prev's end
+		if (prev.getEnd().getTime() > newStart.getTime()) {
+			final long timeDiff = prev.getEnd().getTime() - newStart.getTime();
+			
+			// No block in front of prev -- use the "now" block at the top of this function for comparison
+			if (ind - 1 == 0) {
+				if (prev.getStart().getTime() - now.getTime() >= timeDiff) {
+					// If there is space to push prev back, update its time ranges and reset curr's range
+					final Date newPrevStart = new Date(prev.getStart().getTime() - timeDiff);
+					prev.setStart(newPrevStart);
+					prev.setEnd(new Date(newPrevStart.getTime() + prev.getLength()));
+					curr.setStart(newStart);
+					
+					// Update the blocks in the db
+					try {
+						StorageService.updateTimeBlock(prev);
+						StorageService.updateTimeBlock(curr);
+					} catch (final StorageServiceException sse) {
+						sse.printStackTrace();
+					}
+					return true;
+				}
+				// Not enough space between "now" and "prev" to be able to push "prev" back
+				else {
+					return false;
+				}
+			}
+			// Otherwise, use the block in front of prev for comparison
+			else {
+				final ITimeBlockable pp = allBlocks.get(ind - 2);
+				
+				// TEMP: for now, I just check to see if there is space to push prev back.
+				if (prev.getStart().getTime() - pp.getEnd().getTime() >= timeDiff) {
+					// If there is space to push prev back, update its time ranges and reset curr's range
+					final Date newPrevStart = new Date(prev.getStart().getTime() - timeDiff);
+					prev.setStart(newPrevStart);
+					prev.setEnd(new Date(newPrevStart.getTime() + prev.getLength()));
+					curr.setStart(newStart);
+					
+					// Update the blocks in the db
+					try {
+						StorageService.updateTimeBlock(prev);
+						StorageService.updateTimeBlock(curr);
+					} catch (final StorageServiceException sse) {
+						sse.printStackTrace();
+					}
+					return true;
+				}
+				// Not enough space between "now" and "prev" to be able to push "prev" back
+				else {
+					return false;
+				}
+				
+				// TODO: loop over all sets of previous blocks, pushing them each back as necessary
+				// BE CAREFUL so that I don't update the list in case pushing back is not possible...
+				// while(false) {
+				// System.out.println("todo");
+				// }
+			}
+			
+		}
+		// No overlap occurs, so just update the block in the db
+		else {
+			block.setStart(newStart);
+			
+			try {
+				StorageService.updateTimeBlock(block);
+				return true;
+			} catch (final StorageServiceException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return false;
+	}
+	
+	
+	private static boolean pushBlocksForward(List<ITimeBlockable> allBlocks, ITimeBlockable block,
+			Date now, Date newStart, Date newEnd) {
+		final int ind = TimeUtilities.indexOfFitLocn(allBlocks, newStart);
+		
+		final ITimeBlockable curr = allBlocks.get(ind);
+		final ITimeBlockable next = (ind < allBlocks.size() - 1 ? allBlocks.get(ind + 1) : null);
+		
+		// In this case, check to see if newEnd overlaps next's start
+		if (next.getStart().getTime() < newEnd.getTime()) {
+			final long timeDiff = newEnd.getTime() - next.getStart().getTime();
+			
+			// No block after "next" -- use the due date for comparison
+			if (ind + 1 == 0) {
+				final Date due = StorageService.getAssignmentById(curr.getTask().getAssignmentID()).getDueDate();
+				
+				if (due.getTime() - next.getEnd().getTime() >= timeDiff) {
+					// If there is space to push "next" forward, update its time ranges and reset curr's range
+					final Date newNextStart = new Date(next.getStart().getTime() + timeDiff);
+					next.setStart(newNextStart);
+					next.setEnd(new Date(newNextStart.getTime() + next.getLength()));
+					curr.setEnd(newEnd);
+					
+					// Update the blocks in the db
+					try {
+						StorageService.updateTimeBlock(curr);
+						StorageService.updateTimeBlock(next);
+					} catch (final StorageServiceException sse) {
+						sse.printStackTrace();
+					}
+					return true;
+				}
+				// Not enough space between "now" and "prev" to be able to push "prev" back
+				else {
+					return false;
+				}
+			}
+			// Otherwise, use the block after "next" for comparison
+			else {
+				final ITimeBlockable nn = allBlocks.get(ind + 2);
+				
+				// TEMP: for now, I just check to see if there is space to push next forward.
+				if (nn.getStart().getTime() - next.getEnd().getTime() >= timeDiff) {
+					// If there is space to push prev back, update its time ranges and reset curr's range
+					final Date newNextStart = new Date(next.getStart().getTime() + timeDiff);
+					next.setStart(newNextStart);
+					next.setEnd(new Date(newNextStart.getTime() + next.getLength()));
+					curr.setEnd(newEnd);
+					
+					// Update the blocks in the db
+					try {
+						StorageService.updateTimeBlock(curr);
+						StorageService.updateTimeBlock(next);
+					} catch (final StorageServiceException sse) {
+						sse.printStackTrace();
+					}
+					return true;
+				}
+				// Not enough space between "now" and "next" to be able to push "next" forward
+				else {
+					return false;
+				}
+				
+				// TODO: loop over all sets of previous blocks, pushing them each back as necessary
+				// BE CAREFUL so that I don't update the list in case pushing back is not possible...
+				// while(false) {
+				// System.out.println("todo");
+				// }
+			}
+			
+		}
+		// No overlap occurs, so just update the block in the db
+		else {
+			block.setEnd(newEnd);
+			
+			try {
+				StorageService.updateTimeBlock(block);
+				return true;
+			} catch (final StorageServiceException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		return false;
+	
+	}
+	
+	
+	public static boolean deleteBlock(final ITimeBlockable block) {
 		StorageService.removeTimeBlock(block);
 		return true;
-		// TODO: Re-optimize calendar post-deletion??
 	}
 	
 	// This function is called when a user pulls on a slider to convey the message that
