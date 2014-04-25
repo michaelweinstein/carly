@@ -93,6 +93,17 @@ public class AssignmentBlock implements ITimeBlockable {
 		return "Assigned: [" + m_start.toString() + ", " + m_end.toString() + "]";
 	}
 	
+	
+	@Override
+	public boolean equals(Object o) {
+		if(o == null || !(o instanceof AssignmentBlock))
+			return false;
+		
+		AssignmentBlock ab = (AssignmentBlock) o;
+		
+		return m_start.equals(ab.m_start) && m_end.equals(ab.m_end) && m_uniqueId.equals(ab.m_uniqueId);
+	}
+	
 	public String fullString() {
 		return "Assigned: [" + m_uniqueId + ", " + m_start.toString() + ", " + m_end.toString() + ", "
 			+ m_task.toString() + ", " + m_isMovable + "]";

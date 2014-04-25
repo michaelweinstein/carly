@@ -28,13 +28,13 @@ public class TimeCompactorTest {
 		List<ITimeBlockable> allBlocks = new ArrayList<ITimeBlockable>();
 		Date start = new Date();
 		Date end = new Date(start.getTime() + 36000000);
-		AssignmentBlock b1 = new AssignmentBlock(start, new Date(start.getTime() + 1080000), null, true);
+		AssignmentBlock b1 = new AssignmentBlock(start, new Date(start.getTime() + 1080000), null);
 		UnavailableBlock b2 = new UnavailableBlock(new Date(start.getTime() + 1100000), 
 				new Date(start.getTime() + 1800000), null, false);
 		AssignmentBlock b3 = new AssignmentBlock(new Date(start.getTime() + 20000000),
-				new Date(start.getTime() + 25000000), null, true);
+				new Date(start.getTime() + 25000000), null);
 		AssignmentBlock b4 = new AssignmentBlock(new Date(start.getTime() + 28000000),
-				new Date(start.getTime() + 34000000), null, true);
+				new Date(start.getTime() + 34000000), null);
 		
 		//Insert all blocks
 		allBlocks.add(b1);
@@ -57,13 +57,13 @@ public class TimeCompactorTest {
 		List<ITimeBlockable> allBlocks = new ArrayList<ITimeBlockable>();
 		Date start = new Date();
 		Date end = new Date(start.getTime() + 36000000);
-		AssignmentBlock b1 = new AssignmentBlock(start, new Date(start.getTime() + 1080000), null, true);
+		AssignmentBlock b1 = new AssignmentBlock(start, new Date(start.getTime() + 1080000), null);
 		UnavailableBlock b2 = new UnavailableBlock(new Date(start.getTime() + 1100000), 
 				new Date(start.getTime() + 1800000), null, false);
 		AssignmentBlock b3 = new AssignmentBlock(new Date(start.getTime() + 20000000),
-				new Date(start.getTime() + 25000000), null, true);
+				new Date(start.getTime() + 25000000), null);
 		AssignmentBlock b4 = new AssignmentBlock(new Date(start.getTime() + 28000000),
-				new Date(start.getTime() + 34000000), null, true);
+				new Date(start.getTime() + 34000000), null);
 		
 		
 		//Insert all blocks
@@ -96,14 +96,14 @@ public class TimeCompactorTest {
 				new Date(start.getTime() + 104400000), null, false);
 		allBlocks.add(ub1);
 		allBlocks.add(new AssignmentBlock(new Date(start.getTime() + 14400000), 
-				new Date(start.getTime() + 86300000), null, true));
+				new Date(start.getTime() + 86300000), null));
 		allBlocks.add(ub2);
 		allBlocks.add(new AssignmentBlock(new Date(start.getTime() + 104400000), 
-				new Date(start.getTime() + 110000000), null, true));
+				new Date(start.getTime() + 110000000), null));
 		allBlocks.add(new AssignmentBlock(new Date(start.getTime() + 110000000), 
-				new Date(start.getTime() + 130000000), null, true));
+				new Date(start.getTime() + 130000000), null));
 		allBlocks.add(new AssignmentBlock(new Date(start.getTime() + 130000000), 
-				new Date(start.getTime() + 150000000), null, true));
+				new Date(start.getTime() + 150000000), null));
 	
 		System.out.println("Decompact Test 2, (Start, End) = (" + start + ", " + due + ")");
 		System.out.println(TimeUtilities.printSchedule(allBlocks));

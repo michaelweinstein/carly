@@ -1,8 +1,13 @@
 package frontend.app;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.SwingUtilities;
 
-import frontend.view.ViewController;
+import data.IAssignment;
+import frontend.view.MainFrame;
+import frontend.view.calendar.CalendarView;
 
 /**
  * Creates a GUI interface for the Maps program
@@ -11,8 +16,9 @@ import frontend.view.ViewController;
  */
 public class GUIApp extends App {
 	
-	private final ViewController	viewController;
-	
+	private final MainFrame			_window;
+	private final List<IAssignment>	allAssignments	= new ArrayList<>();	// TESTINGONLY
+																			
 	/**
 	 * Uses the App constructor plus gui specific stuff
 	 * 
@@ -20,7 +26,7 @@ public class GUIApp extends App {
 	 */
 	public GUIApp(final boolean debug) {
 		super(debug);
-		viewController = new ViewController(this);
+		_window = new MainFrame(this);
 	}
 	
 	/**
@@ -32,19 +38,45 @@ public class GUIApp extends App {
 			
 			@Override
 			public void run() {
-				
-				viewController.create();
+				_window.pack();
+				_window.setVisible(true);
 			}
 		});
 	}
 	
 	/**
-	 * Public getter for the view controller
+	 * STRICTLY FOR TESTING
 	 * 
-	 * @return the current view controller
+	 * @param a the assignment to add
 	 */
-	public ViewController getViewController() {
-		return viewController;
+	public void addAssignment(final IAssignment a) {
+		allAssignments.add(a);
 	}
 	
+	/**
+	 * STRICTLY FOR TESTING
+	 * 
+	 * @return the list of assignments
+	 */
+	public List<IAssignment> getAssignments() {
+		return allAssignments;
+	}
+	
+	/**
+	 * Redraws whole window
+	 */
+	public void redraw() {
+		_window.reloadData();
+		_window.revalidate();
+		_window.repaint();
+	}
+	
+	/**
+	 * Returns the calendar view of the frame
+	 * 
+	 * @return the view associated with the calendar in the frame
+	 */
+	public CalendarView getCalendarView() {
+		return _window.getCalendarView();
+	}
 }

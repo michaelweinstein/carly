@@ -40,7 +40,6 @@ public class MainTimeAllocator {
 			StorageService.addAssignment(asgn);
 			StorageService.addAssignment(asgn2);
 		} catch (StorageServiceException e2) {
-			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
 		
@@ -53,7 +52,6 @@ public class MainTimeAllocator {
 			StorageService.addTimeBlock(ub1);
 			StorageService.addTimeBlock(ub2);
 		} catch (StorageServiceException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
@@ -71,7 +69,6 @@ public class MainTimeAllocator {
 				if(block.isMovable()) //Temp fix -- use MERGE functions or ADDALL functions later
 					StorageService.addTimeBlock(block);
 			} catch (StorageServiceException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
@@ -91,7 +88,6 @@ public class MainTimeAllocator {
 				if(block.isMovable()) //Temp fix -- use MERGE functions or ADDALL functions later
 					StorageService.addTimeBlock(block);			
 				} catch (StorageServiceException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
