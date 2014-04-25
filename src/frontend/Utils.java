@@ -18,9 +18,9 @@ import javax.swing.border.MatteBorder;
 public abstract class Utils {
 	
 	public static final String	APP_NAME			= "Carly";
-	public static final String	GUI					= "gui";
+	public static final String	REPL				= "repl";
 	public static final String	DEBUG				= "debug";
-	public static final String	USAGE				= "Usage: carly [--gui] [--debug]";
+	public static final String	USAGE				= "Usage: carly [--repl] [--debug]";
 	
 	// GUI Constants
 	public static final Color	COLOR_BACKGROUND	= Color.DARK_GRAY;

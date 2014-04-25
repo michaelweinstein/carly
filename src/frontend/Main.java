@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import backend.database.StorageService;
-import backend.database.Utilities;
 import frontend.app.App;
 import frontend.app.GUIApp;
 import frontend.app.REPLApp;
@@ -26,7 +25,7 @@ public class Main {
 	 */
 	public static ArgParser createFlagParser() {
 		final Map<String, Class<?>> possibleFlags = new HashMap<>();
-		possibleFlags.put(Utils.GUI, null);
+		possibleFlags.put(Utils.REPL, null);
 		possibleFlags.put(Utils.DEBUG, null);
 		return new ArgParser(possibleFlags, 0);
 	}
@@ -38,28 +37,7 @@ public class Main {
 	 */
 	public static void main(final String[] args) {
 		final ArgParser parser = createFlagParser();
-
-///////////// THIS BLOCK HAS ERRORS, IF YOU DON'T NEED THIS DELETE IT (WHOEVER'S THIS IS)
-//		// Check the arguments for validity and create objects as needed
-//		try {
-//			parser.parse(args);
-//		} catch (final IllegalArgumentException e) {
-//			Utilities.printError(e.getMessage());
-//			System.out.println(Utilities.USAGE);
-//			return;
-//		}
 		
-//		// Create an App, subtype dependent on the GUI command line flag
-//		final boolean debug = parser.existsFlag(Utilities.DEBUG);
-//		a = (parser.existsFlag(Utilities.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
-//		a.start();
-////////////////^^^^^^^^^^^^^^^^^^^^^
-		
-		/*
-		 * Eric: I've commented out this valid code block below so I can just test Storage Service 
-		 * without having the GUI start. Feel free to uncomment it if you need it. 
-		 */
-/////// THIS BLOCK IS CURRENT VALID CODE; Please let it execute for GUI to run
 		// Check the arguments for validity and create objects as needed
 		try {
 			parser.parse(args);
@@ -71,14 +49,16 @@ public class Main {
 		
 		// Create an App, subtype dependent on the GUI command line flag
 		final boolean debug = parser.existsFlag(Utils.DEBUG);
-		a = (parser.existsFlag(Utils.GUI)) ? new GUIApp(debug) : new REPLApp(debug);
+		a = (parser.existsFlag(Utils.REPL)) ? new REPLApp(debug) : new GUIApp(debug);
 		a.start();
 		
-		/* For StorageService.initialize(false||true):
-		 * Set 'true' if you want to drop old tables at the start of every run
-		 * Set 'false' for persistence */
+		/**
+		 * For StorageService.initialize(false||true): <br>
+		 * Set 'true' if you want to drop old tables at the start of every run <br>
+		 * Set 'false' for persistence
+		 */
 		
-		//DEBUG
+		// DEBUG
 		StorageService.initialize(true);
 	}
 }
