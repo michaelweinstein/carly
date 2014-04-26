@@ -112,8 +112,8 @@ public class StorageService {
 	    return AssignmentTaskStorage.updateAssignment(assignment); 
 	}
 	
-	public static synchronized Assignment getAssignmentById(String toBeFoundId) {
-		return AssignmentTaskStorage.getAssignmentById(toBeFoundId, _templates); 
+	public static synchronized Assignment getAssignment(String toBeFoundId) {
+		return AssignmentTaskStorage.getAssignment(toBeFoundId, _templates); 
 	}
 	
 	public static synchronized List<Assignment> getAllAssignmentsWithinRange(Date date1, Date date2) {

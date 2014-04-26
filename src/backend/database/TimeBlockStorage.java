@@ -55,7 +55,8 @@ public class TimeBlockStorage {
 	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
 			
 	        statement = con.prepareStatement(Utilities.SELECT_UNAVAILABLE_BLOCKS_BY_DATE); 
-        	Utilities.setValues(statement, earlier.getTime(), later.getTime());
+        	Utilities.setValues(statement, earlier.getTime(), later.getTime(),
+        			earlier.getTime(), later.getTime());
         	ResultSet blockResults = statement.executeQuery();
         	
         	while (blockResults.next()) {
@@ -112,7 +113,8 @@ public class TimeBlockStorage {
 	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
 			
 	        statement = con.prepareStatement(Utilities.SELECT_ASSIGNMENT_BLOCKS_BY_DATE); 
-        	Utilities.setValues(statement, earlier.getTime(), later.getTime());
+        	Utilities.setValues(statement, earlier.getTime(), later.getTime(), 
+        			earlier.getTime(), later.getTime());
         	ResultSet blockResults = statement.executeQuery();
         	
         	while (blockResults.next()) {

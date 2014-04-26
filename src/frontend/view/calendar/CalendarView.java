@@ -2,6 +2,7 @@ package frontend.view.calendar;
 
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -289,6 +290,7 @@ public class CalendarView extends JPanel {
 	 */
 	public void reloadData() {
 		_weekView.repaint();
+		_weekView.getViewport().setViewPosition(new Point(0, 0));
 		_lineCanvas.repaint();
 		for (int i = 0; i < _dayLabelList.size(); i++) {
 			_dayLabelList.get(i).setDate(i + 1, getCurrentWeekStartDate());

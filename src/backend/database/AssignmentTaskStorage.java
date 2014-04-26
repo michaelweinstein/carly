@@ -256,7 +256,7 @@ public class AssignmentTaskStorage {
 	    return assignment; 
 	}
 	
-	protected static synchronized Assignment getAssignmentById(String toBeFoundId, Cache<ITemplate> templates) {
+	protected static synchronized Assignment getAssignment(String toBeFoundId, Cache<ITemplate> templates) {
 		System.out.println("StorageService.getAssignmentById");
 		PreparedStatement assignmentStatement = null;
 		PreparedStatement templateStatement = null; 

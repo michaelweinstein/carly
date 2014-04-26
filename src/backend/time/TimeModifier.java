@@ -185,7 +185,7 @@ public class TimeModifier {
 			
 			// No block after "next" -- use the due date for comparison
 			if (ind + 1 == 0) {
-				final Date due = StorageService.getAssignmentById(curr.getTask().getAssignmentID()).getDueDate();
+				final Date due = StorageService.getAssignment(curr.getTask().getAssignmentID()).getDueDate();
 				
 				if (due.getTime() - next.getEnd().getTime() >= timeDiff) {
 					// If there is space to push "next" forward, update its time ranges and reset curr's range

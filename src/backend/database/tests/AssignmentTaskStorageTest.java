@@ -62,7 +62,7 @@ public class AssignmentTaskStorageTest {
 			fail(e.getMessage()); 
 		} 
 		
-		Assignment afterAsgn = StorageService.getAssignmentById(asgnId); 
+		Assignment afterAsgn = StorageService.getAssignment(asgnId); 
 		
 		System.out.println("\nTemplate Id: " + asgn.getTemplate().getID());
 		System.out.println("Template BEFORE: " + template.fullString());

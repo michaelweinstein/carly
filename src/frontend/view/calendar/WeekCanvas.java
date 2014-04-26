@@ -20,7 +20,9 @@ import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
@@ -37,10 +39,60 @@ import frontend.Utils;
  */
 public class WeekCanvas extends JPanel implements MouseListener {
 	
-	private static final long	serialVersionUID	= 1L;
-	private final CalendarView	_cv;
-	private Date				_weekStartDate;
-	private Date				_weekEndDate;
+	private static final long		serialVersionUID	= 1L;
+	private final CalendarView		_cv;
+	private Date					_weekStartDate;
+	private Date					_weekEndDate;
+	private final List<TimeRect>	_rects;
+	
+	/**
+	 * Class of rectangle to use only for drawing - associates with others of same time automatically
+	 * 
+	 * @author dgattey
+	 */
+	private static final class TimeRect extends Rectangle2D.Double {
+		
+		private static final long									serialVersionUID	= 1L;
+		private static final Map<ITimeBlockable, List<TimeRect>>	blockMap			= new HashMap<>();
+		
+		/**
+		 * Creates a new rectangle with the given size and associates t with this rect
+		 * 
+		 * @param x x pos
+		 * @param y y pos
+		 * @param w width of rect
+		 * @param h height of rect
+		 * @param t the TimeBlockable to associate with this
+		 */
+		public TimeRect(final int x, final int y, final double w, final int h, final ITimeBlockable t) {
+			super(x, y, w, h);
+			
+			// Add this time rect to the global map
+			List<TimeRect> associatedBlocks = blockMap.get(t);
+			if (associatedBlocks == null) {
+				associatedBlocks = new ArrayList<>();
+			}
+			associatedBlocks.add(this);
+			blockMap.put(t, associatedBlocks);
+		}
+		
+		/**
+		 * Returns all rects for a given blockable
+		 * 
+		 * @param t a blockable
+		 * @return a list of time rects associated with the blockable
+		 */
+		public static List<TimeRect> getRectsForBlockable(final ITimeBlockable t) {
+			return blockMap.get(t);
+		}
+		
+		/**
+		 * Clears it out!
+		 */
+		public static void clearMap() {
+			blockMap.clear();
+		}
+	}
 	
 	/**
 	 * Constructor for a week canvas
@@ -50,6 +102,9 @@ public class WeekCanvas extends JPanel implements MouseListener {
 	public WeekCanvas(final CalendarView cv) {
 		_cv = cv;
 		addMouseListener(this);
+		_rects = new ArrayList<>();
+		
+		// Scrolls the view up and down with arrows
 		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "up");
 		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DOWN"), "down");
 		getActionMap().put("up", new AbstractAction() {
@@ -121,9 +176,10 @@ public class WeekCanvas extends JPanel implements MouseListener {
 			}
 		}
 		
-		// Reloads week start and end date
+		// Reloads week start and end date, plus clears the previous rectangle array
 		_weekStartDate = _cv.getCurrentWeekStartDate();
 		_weekEndDate = _cv.getCurrentWeekEndDate();
+		_rects.clear();
 		
 		// Gets all time blocks and converts them to real blocks
 		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 12));
@@ -184,17 +240,17 @@ public class WeekCanvas extends JPanel implements MouseListener {
 		// Simple - start and end on same day!
 		if (startX == endX) {
 			final int height = endY - startY;
-			drawBlock(brush, t, new Rectangle2D.Double(startX, startY, dayWidth, height));
+			drawBlock(brush, t, new TimeRect(startX, startY, dayWidth, height, t));
 			return;
 		}
 		
 		// For events spanning at least one night
-		drawBlock(brush, t, new Rectangle2D.Double(startX, startY, dayWidth, getHeight() - startY));
+		drawBlock(brush, t, new TimeRect(startX, startY, dayWidth, getHeight() - startY, t));
 		for (int i = startDay + 1; i < endDay; i++) {
 			// Draw full day
-			drawBlock(brush, t, new Rectangle2D.Double(getXPos(i), 0, dayWidth, getHeight()));
+			drawBlock(brush, t, new TimeRect(getXPos(i), 0, dayWidth, getHeight(), t));
 		}
-		drawBlock(brush, t, new Rectangle2D.Double(endX, 0, dayWidth, endY));
+		drawBlock(brush, t, new TimeRect(endX, 0, dayWidth, endY, t));
 	}
 	
 	/**
@@ -204,7 +260,7 @@ public class WeekCanvas extends JPanel implements MouseListener {
 	 * @param t the block itself
 	 * @param rect where this block should be drawn
 	 */
-	private static void drawBlock(final Graphics2D g, final ITimeBlockable t, final Rectangle2D.Double rect) {
+	private static void drawBlock(final Graphics2D g, final ITimeBlockable t, final TimeRect rect) {
 		final Color currColor = CanvasConstants.getColor(t);
 		
 		// Draw block background
@@ -213,30 +269,37 @@ public class WeekCanvas extends JPanel implements MouseListener {
 		g.setColor(Utils.COLOR_LIGHT_BG);
 		g.draw(rect);
 		
-		// Make title parts
+		// Draw title
 		g.setColor(contrastingColor(currColor));
 		final List<String> titleParts = new ArrayList<>(4);
 		titleParts.add(t.getTask().getName());
 		int i = 0;
 		
-		// Iterate while i is less than size
-		while (i < titleParts.size() && i < 3) {
+		// Go through the title parts and check the bounds of each word - while too big, put on next line
+		for (i = 0; i < titleParts.size() && i < 3; ++i) {
 			String currPart = titleParts.get(i);
 			while (g.getFontMetrics().getStringBounds(currPart, g).getWidth() >= rect.getWidth() - 10) {
 				
-				// Split the current title part into strings, putting the end on the next line
-				final String part2 = currPart.substring(currPart.length() - 1);
-				currPart = currPart.substring(0, currPart.length() - 1);
-				titleParts.set(i, currPart);
-				
-				// Actually put it on the next line
-				if (titleParts.size() - 1 == i) {
-					titleParts.add(part2);
+				// Split the current title part into words
+				final String[] words = currPart.split("\\s+");
+				if (words.length > 1) {
+					// Put the last word on the next line
+					final String part2 = words[words.length - 1] + " ";
+					currPart = currPart.substring(0, currPart.length() - part2.length());
+					titleParts.set(i, currPart);
+					
+					// Actually put it in the array
+					if (titleParts.size() - 1 == i) {
+						titleParts.add(part2);
+					} else {
+						titleParts.set(i + 1, part2 + titleParts.get(i + 1));
+					}
 				} else {
-					titleParts.set(i + 1, part2 + titleParts.get(i + 1));
+					// Last word is too long to fit on line, but no more left, so just set ...
+					titleParts.set(i, "...");
+					break;
 				}
 			}
-			i++;
 		}
 		// For long titles
 		if (i < titleParts.size()) {

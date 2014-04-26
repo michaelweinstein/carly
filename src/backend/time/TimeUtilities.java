@@ -128,8 +128,8 @@ public class TimeUtilities {
 		//Get the lengths and the Assignment object corresponding to each block
 		long beforeLen = beforeBlock.getLength();
 		long afterLen = afterBlock.getLength();
-		IAssignment befAsgn = StorageService.getAssignmentById(beforeBlock.getTask().getAssignmentID());
-		IAssignment aftAsgn = StorageService.getAssignmentById(afterBlock.getTask().getAssignmentID());
+		IAssignment befAsgn = StorageService.getAssignment(beforeBlock.getTask().getAssignmentID());
+		IAssignment aftAsgn = StorageService.getAssignment(afterBlock.getTask().getAssignmentID());
 
 		
 		//Check to see if same length (switch always possible)

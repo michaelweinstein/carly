@@ -128,9 +128,8 @@ public class TimeCompactor {
 			long newStart = getBlockInsertLocation(block, allBlocks, recommendedStart);
 			long newEnd = newStart + delta;
 
-
 			//Be careful to consider all blocks and their corresponding Assignment start/end times.
-			Assignment blockAsgn = StorageService.getAssignmentById(block.getTask().getAssignmentID());			
+			Assignment blockAsgn = StorageService.getAssignment(block.getTask().getAssignmentID());			
 			if(newStart < start.getTime()) {
 				System.err.println("Bad START-insertion attempt!");
 				break;
