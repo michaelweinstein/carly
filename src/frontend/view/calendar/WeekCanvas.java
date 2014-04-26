@@ -10,7 +10,11 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.RenderingHints;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
@@ -18,7 +22,10 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import javax.swing.AbstractAction;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 import data.ITimeBlockable;
 import frontend.Utils;
@@ -28,7 +35,7 @@ import frontend.Utils;
  * 
  * @author dgattey
  */
-public class WeekCanvas extends JPanel {
+public class WeekCanvas extends JPanel implements MouseListener {
 	
 	private static final long	serialVersionUID	= 1L;
 	private final CalendarView	_cv;
@@ -42,6 +49,31 @@ public class WeekCanvas extends JPanel {
 	 */
 	public WeekCanvas(final CalendarView cv) {
 		_cv = cv;
+		addMouseListener(this);
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "up");
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DOWN"), "down");
+		getActionMap().put("up", new AbstractAction() {
+			
+			private static final long	serialVersionUID	= 1L;
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				final Rectangle newR = getVisibleRect();
+				newR.translate(0, -30);
+				scrollRectToVisible(newR);
+			}
+		});
+		getActionMap().put("down", new AbstractAction() {
+			
+			private static final long	serialVersionUID	= 1L;
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				final Rectangle newR = getVisibleRect();
+				newR.translate(0, 30);
+				scrollRectToVisible(newR);
+			}
+		});
 	}
 	
 	/**
@@ -279,4 +311,21 @@ public class WeekCanvas extends JPanel {
 	public Dimension getPreferredSize() {
 		return new Dimension(100, 2000);
 	}
+	
+	@Override
+	public void mouseClicked(final MouseEvent e) {
+		System.out.println("Clicked mouse!");
+	}
+	
+	@Override
+	public void mousePressed(final MouseEvent e) {}
+	
+	@Override
+	public void mouseReleased(final MouseEvent e) {}
+	
+	@Override
+	public void mouseEntered(final MouseEvent e) {}
+	
+	@Override
+	public void mouseExited(final MouseEvent e) {}
 }

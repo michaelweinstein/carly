@@ -2,16 +2,20 @@ package frontend.view.calendar;
 
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import javax.swing.AbstractAction;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 import data.AssignmentBlock;
 import data.ITimeBlockable;
@@ -67,6 +71,28 @@ public class CalendarView extends JPanel {
 		add(_lineCanvas);
 		add(Box.createVerticalStrut(10));
 		add(_weekView);
+		
+		// Key listeners to move weeks left and right
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("LEFT"), "left");
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("RIGHT"), "right");
+		getActionMap().put("left", new AbstractAction() {
+			
+			private static final long	serialVersionUID	= 1L;
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				shiftWeekBackward();
+			}
+		});
+		getActionMap().put("right", new AbstractAction() {
+			
+			private static final long	serialVersionUID	= 1L;
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				shiftWeekForward();
+			}
+		});
 		
 		// TESTING TESTING 1 2 3
 		final Calendar c = getCalendarInstance();
