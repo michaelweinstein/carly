@@ -1,5 +1,7 @@
 package data;
 
+import java.util.Objects;
+
 public class Task implements ITask {
 	
 	/* global vars */
@@ -43,15 +45,15 @@ public class Task implements ITask {
 	/**
 	 * Constructor used by StorageService to recreate the task object
 	 */
-	public Task(String id, String name, double percentTotal, String asgnId, double percentComplete, 
-			TimeOfDay timeOfDay, double suggestedBlockLength) {
-		_uniqueId = id; 
-		_name = name; 
-		_percentOfTotal = percentTotal; 
-		_assignmentId = asgnId; 
-		_percentComplete = percentComplete; 
-		_timeOfDay = timeOfDay; 
-		_suggestedBlockLength = suggestedBlockLength; 
+	public Task(final String id, final String name, final double percentTotal, final String asgnId,
+			final double percentComplete, final TimeOfDay timeOfDay, final double suggestedBlockLength) {
+		_uniqueId = id;
+		_name = name;
+		_percentOfTotal = percentTotal;
+		_assignmentId = asgnId;
+		_percentComplete = percentComplete;
+		_timeOfDay = timeOfDay;
+		_suggestedBlockLength = suggestedBlockLength;
 	}
 	
 	/* Private methods */
@@ -143,5 +145,10 @@ public class Task implements ITask {
 	@Override
 	public String toString() {
 		return "Task[" + getName() + " : " + getPercentOfTotal() + "]";
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(_name, _timeOfDay, _suggestedBlockLength, _assignmentId);
 	}
 }

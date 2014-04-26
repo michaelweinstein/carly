@@ -1,6 +1,7 @@
 package data;
 
 import java.util.Date;
+import java.util.Objects;
 
 public class AssignmentBlock implements ITimeBlockable {
 	
@@ -93,14 +94,13 @@ public class AssignmentBlock implements ITimeBlockable {
 		return "Assigned: [" + m_start.toString() + ", " + m_end.toString() + "]";
 	}
 	
-	
 	@Override
-	public boolean equals(Object o) {
-		if(o == null || !(o instanceof AssignmentBlock))
+	public boolean equals(final Object o) {
+		if (o == null || !(o instanceof AssignmentBlock)) {
 			return false;
+		}
 		
-		AssignmentBlock ab = (AssignmentBlock) o;
-		
+		final AssignmentBlock ab = (AssignmentBlock) o;
 		return m_start.equals(ab.m_start) && m_end.equals(ab.m_end) && m_uniqueId.equals(ab.m_uniqueId);
 	}
 	
@@ -112,5 +112,13 @@ public class AssignmentBlock implements ITimeBlockable {
 	@Override
 	public long getLength() {
 		return m_end.getTime() - m_start.getTime();
+	}
+	
+	/**
+	 * Needed!
+	 */
+	@Override
+	public int hashCode() {
+		return Objects.hash(m_start, m_end, m_task, m_uniqueId);
 	}
 }

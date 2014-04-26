@@ -27,7 +27,7 @@ public class CanvasConstants {
 	public static Color getColor(final ITimeBlockable t) {
 		if (t.isMovable()) {
 			final Random r = new Random(t.hashCode());
-			return new Color(r.nextInt(160), r.nextInt(160), r.nextInt(160), 190);
+			return new Color(r.nextInt(150), r.nextInt(150), r.nextInt(150), 210);
 		}
 		return Utils.COLOR_ALTERNATE;
 	}
