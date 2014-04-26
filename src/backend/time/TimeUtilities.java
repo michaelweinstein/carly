@@ -61,8 +61,9 @@ public class TimeUtilities {
 
 		//Compare to all surrounding pairs in the middle
 		for(ind = 1; ind < size; ++ind) {
+			//TODO: I just changed the second "compareTo" call to be "<=" instead of "<"... repercussions?
 			if(curr.compareTo(timeList.get(ind - 1).getStart()) > 0 &&
-					curr.compareTo(timeList.get(ind).getStart()) < 0)
+					curr.compareTo(timeList.get(ind).getStart()) <= 0)
 				return ind;
 		}
 
@@ -86,11 +87,12 @@ public class TimeUtilities {
 		
 		//Add time between last block and end
 		if(allBlocks.size() > 0) {
-			amtFreeTime += asgn.getDueDate().getTime()
-					- allBlocks.get(allBlocks.size() - 1).getEnd().getTime();
+			amtFreeTime += (asgn.getDueDate().getTime()
+					- allBlocks.get(allBlocks.size() - 1).getEnd().getTime());
 		}
 		
 		double numFreeHours = TimeUnit.HOURS.convert(amtFreeTime, TimeUnit.MILLISECONDS);
+		System.out.println("Trying to find possible fit: num free hours = " + numFreeHours);
 		return (numFreeHours >= (double) asgn.getExpectedHours());
 	}
 	

@@ -143,6 +143,7 @@ public class TimeAllocator {
 					//Compact existing blocks so that they fit better, and reset the lastTimePlaced
 					//reference so that it is still accurate
 					TimeCompactor.compact(allBlocks, start, end, lastTimePlaced);
+					hasCompactedOnce = true;
 					continue;
 					//TODO: currently I am compacting all blocks... is a different range better?
 					
@@ -203,11 +204,14 @@ public class TimeAllocator {
 		//		the calendar in a sequential order...
 		//		--SOL'N 1: use a "lastTimePlaced" block as a starting point for each new task
 		//		--SOL'N 2: ??
-		for(int i = 0; i < blockList.size() - 1; ++i) {
+		for(int i = TimeUtilities.indexOfFitLocn(blockList, start); i < blockList.size(); ++i) {
+			//Ignore this edge case
+			if(i == 0)
+				continue;
 			//Get free time between two blocks in the list
-			if(blockLenInMillis <= (delta = blockList.get(i + 1).getStart().getTime() - 
-					blockList.get(i).getEnd().getTime()) && delta - blockLenInMillis < minTimeLeftover) {
-				bestStart = (Date) blockList.get(i).getEnd().clone();
+			if(blockLenInMillis <= (delta = blockList.get(i).getStart().getTime() - 
+					blockList.get(i - 1).getEnd().getTime()) && delta - blockLenInMillis < minTimeLeftover){
+				bestStart = (Date) blockList.get(i - 1).getEnd().clone();
 				minTimeLeftover = delta - blockLenInMillis;
 				bestEnd = new Date(bestStart.getTime() + blockLenInMillis);
 			}	
@@ -221,6 +225,8 @@ public class TimeAllocator {
 			bestEnd = new Date(bestStart.getTime() + blockLenInMillis);
 		}
 
+		if(bestStart == null || bestEnd == null)
+			return null;
 
 		//Create the task to give in the AssignmentBlock constructor
 		ITask task = m_asgn.getTasks().get(step.getStepNumber());
