@@ -21,16 +21,16 @@ public class MainTimeAllocator {
 	public MainTimeAllocator() {
 		Date start = new Date();
 		Date due = new Date();
+		Date due2 = new Date();
 		due.setTime(due.getTime() + TimeUnit.MILLISECONDS.convert(3, TimeUnit.DAYS));
+		due2.setTime(due.getTime() + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS));
 		
 		//Initialize the db
 		StorageService.initialize(true);
 		
 		//Create some sample assignments
 		Assignment asgn = new Assignment("Test name", due, createBasicTemplate(), 30);
-		Assignment asgn2 = new Assignment("Asgn2", 
-				new Date(due.getTime() + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS)),
-				createAnotherTemplate(), 21);
+		Assignment asgn2 = new Assignment("Asgn2", due2, createAnotherTemplate(), 21);
 		
 		try {
 			//Add the templates to the db
@@ -40,7 +40,6 @@ public class MainTimeAllocator {
 			StorageService.addAssignment(asgn);
 			StorageService.addAssignment(asgn2);
 		} catch (StorageServiceException e2) {
-			// TODO Auto-generated catch block
 			e2.printStackTrace();
 		}
 		
@@ -53,7 +52,6 @@ public class MainTimeAllocator {
 			StorageService.addTimeBlock(ub1);
 			StorageService.addTimeBlock(ub2);
 		} catch (StorageServiceException e1) {
-			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
 		
@@ -71,25 +69,25 @@ public class MainTimeAllocator {
 				if(block.isMovable()) //Temp fix -- use MERGE functions or ADDALL functions later
 					StorageService.addTimeBlock(block);
 			} catch (StorageServiceException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
 		System.out.println("results size 1: " + results.size());
 		
 		talloc = new TimeAllocator(asgn2);
-		talloc.insertAsgn(start, due);
+		talloc.insertAsgn(start, due2);
 		
 		//Push to db
 		results = talloc.getEntireBlockSet();
 		System.out.println("Second talloc block set call");
 		for(int i = 0; i < results.size(); ++i) {
-			System.out.println(results.get(i).toString());
+			ITimeBlockable block = results.get(i);			
+			System.out.println(block.toString());
 			
 			try {
-				StorageService.addTimeBlock(results.get(i));
-			} catch (StorageServiceException e) {
-				// TODO Auto-generated catch block
+				if(block.isMovable()) //Temp fix -- use MERGE functions or ADDALL functions later
+					StorageService.addTimeBlock(block);			
+				} catch (StorageServiceException e) {
 				e.printStackTrace();
 			}
 		}

@@ -6,7 +6,7 @@ import javax.swing.JFrame;
 
 import org.junit.Test;
 
-import frontend.view.SettingsView;
+import frontend.view.settings.SettingsView;
 
 /**
  * Unit tests for Settings page

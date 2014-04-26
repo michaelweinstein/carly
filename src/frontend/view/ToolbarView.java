@@ -12,7 +12,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 import frontend.Utils;
+import frontend.app.GUIApp;
 import frontend.view.assignments.AddAssignmentDialog;
+import frontend.view.settings.SettingsView;
 
 /**
  * Represents the toolbar at top of the screen
@@ -23,13 +25,23 @@ public class ToolbarView extends JPanel {
 	
 	private static final long	serialVersionUID	= -2158045975284361590L;
 	
-	public ToolbarView(final ViewController vc) {
+	public ToolbarView(final GUIApp app) {
 		Utils.themeComponent(this);
 		Utils.addBorderBottom(this);
 		Utils.padComponentWithBorder(this, 0, 20);
 		
+		// Today
+		final JButton today = new JButton("Today");
+		today.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				app.getCalendarView().shiftWeekToToday();
+			}
+		});
+		
 		// Assignment adding
-		final JDialog dialog = new AddAssignmentDialog(vc);
+		final JDialog dialog = new AddAssignmentDialog(app);
 		final JButton addAssignmentButton = new JButton("New Assignment");
 		addAssignmentButton.addActionListener(new ActionListener() {
 			
@@ -62,6 +74,8 @@ public class ToolbarView extends JPanel {
 		add(Box.createHorizontalStrut(20));
 		add(title);
 		add(Box.createGlue());
+		add(today);
+		add(Box.createHorizontalStrut(10));
 		add(addAssignmentButton);
 		add(Box.createHorizontalStrut(10));
 		add(settingsButton);

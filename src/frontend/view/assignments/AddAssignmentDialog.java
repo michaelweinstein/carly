@@ -42,7 +42,7 @@ import data.ITemplateStep;
 import data.Template;
 import data.TemplateStep;
 import frontend.Utils;
-import frontend.view.ViewController;
+import frontend.app.GUIApp;
 
 /**
  * Class for the dialog box that pops up when adding a new assignment
@@ -51,7 +51,7 @@ import frontend.view.ViewController;
  */
 public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	
-	private final ViewController	vc;
+	private final GUIApp			app;
 	private static final String		DATE_FORMAT_STRING	= "MMMM dd, yyyy 'at' hh:mm a";
 	private static final String		DEFAULT_LABEL		= " ";
 	private static final long		serialVersionUID	= -5465413225077024401L;
@@ -69,9 +69,9 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	 * 
 	 * @param vc the parent view controller
 	 */
-	public AddAssignmentDialog(final ViewController vc) {
+	public AddAssignmentDialog(final GUIApp app) {
 		super();
-		this.vc = vc;
+		this.app = app;
 		
 		Utils.themeComponent(this);
 		Utils.themeComponent(getRootPane());
@@ -127,8 +127,8 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 					final Assignment a = parseFields();
 					HubController.passAssignmentToLearner(a);
 					// FOR TESTING ONLY
-					vc.addAssignment(a);
-					vc.redraw();
+					app.addAssignment(a);
+					app.redraw();
 					// ///////
 					clearContents();
 					dispose();

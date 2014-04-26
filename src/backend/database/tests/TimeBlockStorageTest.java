@@ -75,7 +75,7 @@ public class TimeBlockStorageTest {
 		AssignmentBlock block1 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
-				task, true); 
+				task); 
 		
 		//Add objects in correct order to the db
 		try {
@@ -147,7 +147,7 @@ public class TimeBlockStorageTest {
 		AssignmentBlock block1 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
-				task1, true); 
+				task1); 
 		
 		//Add objects in correct order to the db
 		try {
@@ -215,11 +215,11 @@ public class TimeBlockStorageTest {
 		AssignmentBlock block1 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
-				task1, true); 
+				task1); 
 		AssignmentBlock block2 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
-				task1, true); 
+				task1); 
 		
 		//Add objects in correct order to the db
 		try {
@@ -283,19 +283,19 @@ public class TimeBlockStorageTest {
 		AssignmentBlock block1 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
-				task1, true); 
+				task1); 
 		AssignmentBlock block2 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
-				task1, true); 
+				task1); 
 		AssignmentBlock block3 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
-				task1, true); 
+				task1); 
 		AssignmentBlock block4 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 10), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 12), 
-				task1, true); 
+				task1); 
 		
 		UnavailableBlock unavailable1 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
@@ -340,7 +340,7 @@ public class TimeBlockStorageTest {
 		AssignmentBlock block5 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 10), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 12), 
-				task1, true);
+				task1);
 		UnavailableBlock unavailable4 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 11), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 13), 
@@ -357,7 +357,7 @@ public class TimeBlockStorageTest {
 		AssignmentBlock block6 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 10), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 12), 
-				task3, true);
+				task3);
 		blockList.add(block6); 
 		
 		//See if the merge added the nonexistent blocks, updated the existing blocks
@@ -391,19 +391,19 @@ public class TimeBlockStorageTest {
 		AssignmentBlock block1 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
-				task, true); 
+				task); 
 		AssignmentBlock block2 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
-				task, true); 
+				task); 
 		AssignmentBlock block3 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
-				task, true); 
+				task); 
 		AssignmentBlock block4 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 10), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 12), 
-				task, true); 
+				task); 
 		
 		//Add objects in correct order to the db
 		try {
@@ -440,19 +440,19 @@ public class TimeBlockStorageTest {
 		AssignmentBlock block1 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
-				task, true); 
+				task); 
 		AssignmentBlock block2 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
-				task, true); 
+				task); 
 		AssignmentBlock block3 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
-				task, true); 
+				task); 
 		AssignmentBlock block4 = new AssignmentBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 10), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 12), 
-				task, true); 
+				task); 
 		
 		UnavailableBlock unavailable1 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 

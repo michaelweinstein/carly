@@ -18,13 +18,15 @@ import javax.swing.border.MatteBorder;
 public abstract class Utils {
 	
 	public static final String	APP_NAME			= "Carly";
-	public static final String	GUI					= "gui";
+	public static final String	REPL				= "repl";
 	public static final String	DEBUG				= "debug";
-	public static final String	USAGE				= "Usage: carly [--gui] [--debug]";
+	public static final String	USAGE				= "Usage: carly [--repl] [--debug]";
 	
 	// GUI Constants
 	public static final Color	COLOR_BACKGROUND	= Color.DARK_GRAY;
 	public static final Color	COLOR_FOREGROUND	= Color.WHITE;
+	public static final Color	COLOR_ALTERNATE		= Color.DARK_GRAY.brighter();
+	public static final Color	COLOR_LIGHT_BG		= new Color(140, 140, 140);
 	public static final Color	COLOR_ACCENT		= Color.ORANGE;
 	public static final String	APP_FONT_NAME		= "Arial";
 	
@@ -88,9 +90,19 @@ public abstract class Utils {
 	 * 
 	 * @param panel the panel to apply it to
 	 */
-	public static void themeComponentInverse(final Component panel) {
-		panel.setForeground(Color.WHITE);
-		panel.setBackground(new Color(140, 140, 140));
+	public static void themeComponentAlt(final Component panel) {
+		panel.setForeground(COLOR_FOREGROUND);
+		panel.setBackground(COLOR_ALTERNATE);
+	}
+	
+	/**
+	 * Sets background and foreground color of this panel inverse of normal
+	 * 
+	 * @param panel the panel to apply it to
+	 */
+	public static void themeComponentLight(final Component panel) {
+		panel.setForeground(COLOR_FOREGROUND);
+		panel.setBackground(COLOR_LIGHT_BG);
 	}
 	
 	/**

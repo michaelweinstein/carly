@@ -5,26 +5,27 @@
 *.ear
 
 ### Eclipse ###
- *.pydevproject
- .metadata
- .gradle
- bin/
- bin/*
- tmp/
- *.tmp
- *.bak
- *.swp
- *~.nib
- local.properties
- .settings/
- .loadpath
- .classpath
+*.pydevproject
+.metadata
+.gradle
+bin/
+bin/*
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.classpath
+.project
 
 ## External tool builders
- .externalToolBuilders/
+.externalToolBuilders/
 
 ## Locally stored "Eclipse launch configurations"
- *.launch
+*.launch
 
 # CDT-specific
 .cproject
@@ -39,8 +40,7 @@
 .texlipse
 
 ##Folders
-bin/
-bin/*
 derived/
 derived/*.jar
 
+/build

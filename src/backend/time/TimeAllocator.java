@@ -46,46 +46,19 @@ public class TimeAllocator {
 		//Note that these lists are in sorted order.
 		//Date start = new Date();
 		//Date end = m_asgn.getDueDate();
-		List<UnavailableBlock> unavailable = //new ArrayList<>();
-				StorageService.getAllUnavailableBlocksWithinRange(start, end);
-		
-		//TODO: AS A TEMPORARY TEST - inserting some stuff into the unavailable list
-		/************************************************************/
-//		UnavailableBlock ub1 = new UnavailableBlock((Date) start.clone(), new Date(start.getTime() + 14400000), null, false);
-//		UnavailableBlock ub2 = new UnavailableBlock(new Date(start.getTime() + 86400000),
-//				new Date(start.getTime() + 104400000), null, false);
-//		unavailable.add(ub1);
-//		unavailable.add(ub2);
-		/************************************************************/
-
-		List<AssignmentBlock> curr_asgns = //new ArrayList<>();
-				StorageService.getAllAssignmentBlocksWithinRange(start, end);
+		List<UnavailableBlock> unavailable = StorageService.getAllUnavailableBlocksWithinRange(start, end);
+		List<AssignmentBlock> curr_asgns = StorageService.getAllAssignmentBlocksWithinRange(start, end);
 		List<ITimeBlockable> allBlocks = zipTimeBlockLists(unavailable, curr_asgns);
 
 		//If there are not enough free hours in the range specified by the new Assignment,
 		//exit this function
-		if(!TimeUtilities.existsPossibleFit(allBlocks, m_asgn))
+		if(!TimeUtilities.existsPossibleFit(allBlocks, m_asgn, start))
 			return;
 		
 		//Get the number of subtasks for this assignment, determine how many chunks to break into
 		//per subtask, and how long per subtask
 		ITemplate template = m_asgn.getTemplate();		
 		numHoursPerBlock = (template == null ? DEFAULT_HRS_PER_BLOCK : template.getPreferredConsecutiveHours());
-
-		
-		//Try the best case assumption - that blocks are able to be split uniformly across the days
-		//that a user is working on an assignment
-		//numBlocksLeft = (int) Math.ceil(m_asgn.getExpectedHours() / numHoursPerBlock);
-		
-		
-		
-		//TODO: BIG CHANGE!! Items of different tasks must go in sequential order.  Therefore,
-		//		this loop should change so that is a two-layered loop: one layer goes over the
-		//		set of tasks to insert, and the inner layer goes over the number of blocks for
-		//		that task.
-		//		--After a given Task is completely inserted, then the "start" date should be
-		//		reset to the end of the last time block of that Task type to ensure
-		//		chronological correctness.
 		
 		//DEBUG added by Eric 
 		System.out.println("MIDDLE: TimeAllocator: getting contents of allBlocks");
@@ -104,8 +77,9 @@ public class TimeAllocator {
 			double numHoursInStep = m_asgn.getExpectedHours() * step.getPercentOfTotal();
 			numBlocksLeft = (int) Math.ceil(numHoursInStep / numHoursPerBlock);
 
-			//TODO: Put the insertion stuff here! (Poss abstract insertionPolicy stuff
-			//		to its own function for ease of use here)
+			//TODO: Handle cases where the number of hours of a user-submitted Assignment
+			//		is exceedingly low
+			
 			success = tryUniformInsertion(allBlocks, start, end, lastTimePlaced, step,
 					numBlocksLeft, numHoursPerBlock);
 		
@@ -126,6 +100,8 @@ public class TimeAllocator {
 			System.out.println("Start: " + itb.getStart() + " || End: " + itb.getEnd());
 		}
 		
+		//TODO: CAREFUL WITH THIS CALL!!! I don't want to decompact blocks from *other* assignments
+		//		past their due dates - so I'm going to have to do a check for each block's due date
 		TimeCompactor.decompact(allBlocks, start, end);
 			
 		System.out.println("DEBUG - printing out the time ranges of all blocks");	
@@ -155,7 +131,7 @@ public class TimeAllocator {
 		boolean hasCompactedOnce = false;
 		
 		while(numBlocksLeft > 0) {
-			//1. Use find fit function for the next block (BEST-fit search, NOT FIRST FIT)
+			//1. Use find fit function for the next block (Best-Fit search policy)
 			AssignmentBlock block = findFit(allBlocks, numHoursPerBlock, 
 					(Date) lastTimePlaced.clone(), (Date) end.clone(), step);
 
@@ -172,6 +148,7 @@ public class TimeAllocator {
 					
 				}
 				else {
+					//TODO: Remove this println
 					System.err.println("Could not insert block, even after compacting -- TODO:"
 						+ " Try to move blocks contained by other assignments outside of the range\n"
 						+ " OR use more sophisticated compaction around unmovable blocks\n"
@@ -192,17 +169,13 @@ public class TimeAllocator {
 			lastTimePlaced = block.getStart();
 		}
 		
-		
 		return true;
 	}
 	
-	
-	//TODO: Also pass the Task to-be-assigned to this block... or remove Task from constructor?
+	//Return a newly-initialized AssignmentBlock containing the relevant start/end
+	//dates for the current chunk.
 	private AssignmentBlock findFit(List<ITimeBlockable> blockList, double blockLength,
 			Date start, Date end, ITemplateStep step) {
-		//Return a newly-initialized AssignmentBlock containing the relevant start/end
-		//dates for the current chunk.
-
 		Date bestStart = null;
 		Date bestEnd = null;		
 		long minTimeLeftover = Long.MAX_VALUE;
@@ -215,8 +188,7 @@ public class TimeAllocator {
 
 			//Get the corresponding task from the Assignment member variable
 			ITask task = m_asgn.getTasks().get(step.getStepNumber());
-			//ITask task = new Task(m_asgn.getName() + ":" + step.getName(), step.getPercentOfTotal(), m_asgn.getID());
-			return new AssignmentBlock(bestStart, bestEnd, task, true);
+			return new AssignmentBlock(bestStart, bestEnd, task);
 		}
 
 
@@ -250,9 +222,8 @@ public class TimeAllocator {
 
 
 		//Create the task to give in the AssignmentBlock constructor
-		//ITask task = new Task(m_asgn.getName() + ":" + step.getName(), step.getPercentOfTotal(), m_asgn.getID());
 		ITask task = m_asgn.getTasks().get(step.getStepNumber());
-		return new AssignmentBlock(bestStart, bestEnd, task, true);
+		return new AssignmentBlock(bestStart, bestEnd, task);
 	}
 
 

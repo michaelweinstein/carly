@@ -5,6 +5,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import backend.database.StorageService;
+import data.Assignment;
+import data.ITask;
 import data.ITimeBlockable;
 
 
@@ -13,8 +16,6 @@ public class TimeCompactor {
 	
 	//This function currently compacts all movable blocks in the Date range [start, end]
 	//in order to prevent "external fragmentation" along the client's time stream
-	//TODO: It can probably be improved to be smarter than this, though giving the range
-	//		of compaction as parameters allows for some flexibility.
 	public static void compact(List<ITimeBlockable> allBlocks, Date start, Date end, 
 			Date lastTimePlaced) {
 		
@@ -129,15 +130,23 @@ public class TimeCompactor {
 
 			//TODO: this is a temporary fix - if a time is recommended that is too far in the past,
 			//		then exit this function
+			//SOL'N : to solve this problem, I need to consider all blocks and their INDIVIDUAL
+			//		  start/end times.  Going to need to add some lines here where I use the db 
+			//		  access functions to get the corresponding assignments
+			
+			Assignment blockAsgn = StorageService.getAssignmentById(block.getTask().getAssignmentID());
+			
+			
 			if(newStart < start.getTime()) {
 				System.err.println("Bad START-insertion attempt!");
 				break;
 			}
-			if(newEnd > end.getTime()) {
+			//if(newEnd > end.getTime()) {
+			if(newEnd > blockAsgn.getDueDate().getTime()) {
 				System.err.println("Bad END-insertion attempt!");
 				break;
 			}
-			
+
 			//Place the block in its new location and decrement from the time bank
 			block.getStart().setTime(newStart);
 			block.getEnd().setTime(newEnd);
@@ -151,10 +160,12 @@ public class TimeCompactor {
 			timeToStartFrom = (Date) block.getStart().clone();
 
 			if(recommendedStart != newStart) {
-				//TODO: This is a temp solution, and is assuming that I can back up
-				//		the timeToStartFrom by a fixed amount if this problem occurs...
-				//		pretty sketchy.
-				timeToStartFrom.setTime(timeToStartFrom.getTime() - delta);
+				int insertedLocn = TimeUtilities.indexOfFitLocn(allBlocks, new Date(newStart - 1));
+				ITimeBlockable prevBlock = allBlocks.get(insertedLocn - 1);
+				timeToStartFrom.setTime(prevBlock.getStart().getTime());
+				
+				//THIS is the old temp solution -- back up timeToStartFrom by fixed amt
+				//timeToStartFrom.setTime(timeToStartFrom.getTime() - delta);
 			}
 			
 			//TODO: WILL THIS CASE OCCUR?
@@ -165,12 +176,10 @@ public class TimeCompactor {
 		}
 		
 		//Try to switch the order of consecutive blocks that are of the same type
-		
 		trySwitchBlockOrder(allBlocks);
 		
-		
 		//Try to move assignments to their preferred time-of-day if possible
-		
+		//optimizePreferredTime(allBlocks);
 	}
 	
 	
@@ -206,16 +215,17 @@ public class TimeCompactor {
 				if(next.getStart().getTime() - curr.getEnd().getTime() > lim)
 					continue;
 				
-				//TODO: Extend this for blocks of differing lengths
-				if(prev.getLength() == curr.getLength()) {
-					Date tempStart = curr.getStart();
-					Date tempEnd = curr.getEnd();
-					
-					curr.setStart(prev.getStart());
-					curr.setEnd(prev.getEnd());
-					prev.setStart(tempStart);
-					prev.setEnd(tempEnd);
+
+				//TODO: What do I want to do with the output of this function?
+				//		Note: this function tries several different ways of switching
+				//		blocks, regardless of their lengths
+				if(TimeUtilities.switchTimeBlocks(allBlocks, prev, curr)) {
+					System.out.println("hooray!");
 				}
+				else {
+					System.out.println("block switch failed");
+				}
+				
 				
 				//Increment i so that this doesn't get repeated
 				++i;
@@ -228,13 +238,19 @@ public class TimeCompactor {
 				
 				//TODO: Extend this for blocks of differing lengths
 				if(curr.getLength() == next.getLength()) {
-					Date tempStart = curr.getStart();
-					Date tempEnd = curr.getEnd();
 					
-					curr.setStart(next.getStart());
-					curr.setEnd(next.getEnd());
-					next.setStart(tempStart);
-					next.setEnd(tempEnd);
+					//TODO: Will this cause persistence issues with the database???
+					ITask t1 = curr.getTask();
+					ITask t2 = next.getTask();
+					curr.setTask(t2);
+					next.setTask(t1);
+					
+//					Date tempStart = curr.getStart();
+//					Date tempEnd = curr.getEnd();
+//					curr.setStart(next.getStart());
+//					curr.setEnd(next.getEnd());
+//					next.setStart(tempStart);
+//					next.setEnd(tempEnd);
 				}
 				
 				//Increment i so that this doesn't get repeated
@@ -243,13 +259,13 @@ public class TimeCompactor {
 			if (prevID.equals(currID) && currID.equals(nextID)) {
 				//Try to switch with a prev if possible
 				if(i != 1) {
-					//ITimeBlockable pp = allBlocks.get(i - 2);
+					ITimeBlockable pp = allBlocks.get(i - 2);
 					//TODO
 				}
 				
 				//Try to switch with a next if possible
 				if(i != allBlocks.size() - 2) {
-					//ITimeBlockable nn = allBlocks.get(i + 2);
+					ITimeBlockable nn = allBlocks.get(i + 2);
 					//TODO
 				}
 				

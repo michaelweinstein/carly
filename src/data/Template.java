@@ -2,6 +2,7 @@ package data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import frontend.Utils;
 
@@ -42,34 +43,45 @@ public class Template implements ITemplate {
 		_uid = DataUtil.generateID();
 		_preferredConsecutiveHours = DataUtil.DEFAULT_CONSECUTIVE_HOURS;
 		_steps = new ArrayList<>();
-		// Add steps individually to ensure the names are unique
-		for (ITemplateStep s: steps) 
-			addStep(s);
-	}	
+		addAllSteps(steps);
+	}
+	
 	/**
-	 * Constructor with both name and preferred consecutive hours, and
-	 * also an initial List of TemplateSteps to populate _steps.
+	 * Constructor with both name and preferred consecutive hours, and also an initial List of TemplateSteps to populate
+	 * _steps.
 	 */
 	public Template(final String name, final double hours, final List<ITemplateStep> steps) {
 		_name = name;
 		_preferredConsecutiveHours = hours;
-		_steps = new ArrayList<>();		
-		// Add steps individually to ensure the names are unique
-		for (ITemplateStep s: steps) 
-			addStep(s);
+		_steps = new ArrayList<>();
+		addAllSteps(steps);
 		_uid = DataUtil.generateID();
-	}	
+	}
+	
 	/**
 	 * Constructor used by StorageService to reconstruct the template object
 	 */
-	public Template(String id, String name, List<ITemplateStep> steps, double consecutiveHours) {
-		_uid = id; 
-		_name = name; 
+	public Template(final String id, final String name, final List<ITemplateStep> steps, final double consecutiveHours) {
+		_uid = id;
+		_name = name;
 		_steps = new ArrayList<>();
+		addAllSteps(steps);
+		_preferredConsecutiveHours = consecutiveHours;
+	}
+	
+	/* Private methods */
+	
+	/**
+	 * Adds steps individually (instead of setting _steps = steps)
+	 * because addStep() checks that names are unique.
+	 * 
+	 * @param steps, list of steps to add
+	 */
+	private void addAllSteps(List<ITemplateStep> steps) {
 		// Add steps individually to ensure the names are unique
-		for (ITemplateStep s: steps) 
+		for (final ITemplateStep s : steps) {
 			addStep(s);
-		_preferredConsecutiveHours = consecutiveHours; 
+		}
 	}
 	
 	/* ITemplate step manipulation */
@@ -147,6 +159,21 @@ public class Template implements ITemplate {
 		return null;
 	}
 	
+	/**
+	 * Clears all TemplateSteps from _steps list, 
+	 * and returns old _steps. Call this and then
+	 * addAllSteps to simulate a replaceSteps method.
+	 * 
+	 * @return old List of TemplateSteps
+	 */
+	// TODO: Do I need to declare clearSteps to ITemplate interface?
+	public List<ITemplateStep> clearSteps() {
+		List<ITemplateStep> oldSteps = _steps;
+		_steps.clear();
+		return oldSteps;
+	}
+	
+	
 	/* ITemplate accessors (Commented in interface) */
 	
 	@Override
@@ -164,6 +191,8 @@ public class Template implements ITemplate {
 		return _preferredConsecutiveHours;
 	}
 	
+	/* Holy Trinity (+ fullString())*/
+	
 	@Override
 	public String toString() {
 		return _name;
@@ -171,33 +200,37 @@ public class Template implements ITemplate {
 	
 	@Override
 	public String fullString() {
-		StringBuilder builder = new StringBuilder(); 
-		builder.append ("[uid: ");
-		builder.append(_uid); 
+		final StringBuilder builder = new StringBuilder();
+		builder.append("[uid: ");
+		builder.append(_uid);
 		builder.append(", name: ");
-		builder.append(_name); 
+		builder.append(_name);
 		builder.append(", preferredConsecutiveHours: ");
-		builder.append(_preferredConsecutiveHours); 
+		builder.append(_preferredConsecutiveHours);
 		builder.append(", steps: {");
 		
-		for (ITemplateStep step : _steps) {
-			builder.append(step.fullString() + ", "); 
+		for (final ITemplateStep step : _steps) {
+			builder.append(step.fullString() + ", ");
 		}
-		builder.replace(builder.length() - 2, builder.length() - 1, "}]"); 
-		return builder.toString().trim(); 
+		builder.replace(builder.length() - 2, builder.length() - 1, "}]");
+		return builder.toString().trim();
 	}
 	
 	@Override
-	public boolean equals(Object other) {
+	public boolean equals(final Object other) {
 		if (!(other instanceof Template)) {
-			return false; 
+			return false;
 		}
 		try {
-			Template comp = (Template) other;
-			return (comp.fullString().contains(this.fullString())) ? true : false;
+			final Template comp = (Template) other;
+			return (comp.fullString().contains(fullString())) ? true : false;
+		} catch (final ClassCastException x) {
+			return false;
 		}
-		catch (ClassCastException x) {
-			return false; 
-		}
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(fullString());
 	}
 }
