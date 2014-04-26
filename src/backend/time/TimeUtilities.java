@@ -22,11 +22,7 @@ public class TimeUtilities {
 			allBlocks.add(block);
 			return;
 		}
-
-
-		//TODO: Use the *TimeBlock*s' compareTo() function instead of directly
-		//comparing *Date*s here
-
+		
 		//Compare to the first element and last element in the list
 		if(block.getStart().compareTo(allBlocks.get(0).getStart()) <= 0) {
 			allBlocks.add(0, block);
@@ -56,10 +52,6 @@ public class TimeUtilities {
 
 		if(timeList.size() == 0)
 			return 0;
-
-
-		//TODO: Use the *TimeBlock*s' compareTo() function instead of directly
-		//comparing *Date*s here
 
 		//Compare to the first element and last element in the list
 		if(curr.compareTo(timeList.get(0).getStart()) <= 0)
@@ -121,35 +113,44 @@ public class TimeUtilities {
 	
 	//Return false and do not modify the list if an insertion is not possible
 	public static boolean switchTimeBlocks(List<ITimeBlockable> allBlocks, ITimeBlockable source, ITimeBlockable dest) {
-		IAssignment srcAsgn = StorageService.getAssignmentById(source.getTask().getAssignmentID());
-		IAssignment destAsgn = StorageService.getAssignmentById(dest.getTask().getAssignmentID());
 		
-		long srcLen = source.getLength();
-		long destLen = dest.getLength();
+		ITimeBlockable beforeBlock, afterBlock;
+		//Determine which block is first, chronologically
+		if(source.getStart().before(dest.getStart())) {
+			beforeBlock = source;
+			afterBlock = dest;
+		}
+		else {
+			beforeBlock = dest;
+			afterBlock = source;
+		}
+		
+		//Get the lengths and the Assignment object corresponding to each block
+		long beforeLen = beforeBlock.getLength();
+		long afterLen = afterBlock.getLength();
+		IAssignment befAsgn = StorageService.getAssignmentById(beforeBlock.getTask().getAssignmentID());
+		IAssignment aftAsgn = StorageService.getAssignmentById(afterBlock.getTask().getAssignmentID());
+
 		
 		//Check to see if same length (switch always possible)
-		if(srcLen == destLen) {
+		if(beforeLen == afterLen) {
 			
 			//Ensure that neither block is switched past its Assignment's due date
-			if(source.getStart().before(dest.getStart()) && 
-					dest.getEnd().after(srcAsgn.getDueDate())) {
-				return false;
-			}
-			else if(dest.getStart().before(source.getStart()) && 
-					source.getEnd().after(destAsgn.getDueDate())) {
+			if(afterBlock.getEnd().after(befAsgn.getDueDate())) {
 				return false;
 			}
 			
+			
 			//Switch the blocks
-			ITask t1 = source.getTask();
-			ITask t2 = dest.getTask();
-			source.setTask(t2);
-			dest.setTask(t1);
+			ITask t1 = beforeBlock.getTask();
+			ITask t2 = afterBlock.getTask();
+			beforeBlock.setTask(t2);
+			afterBlock.setTask(t1);
 			
 			//Update the blocks in the database
 			try {
-				StorageService.updateTimeBlock(source);
-				StorageService.updateTimeBlock(dest);
+				StorageService.updateTimeBlock(beforeBlock);
+				StorageService.updateTimeBlock(afterBlock);
 				return true;
 			}
 			catch(StorageServiceException sse) {
@@ -159,44 +160,40 @@ public class TimeUtilities {
 			//ONLY return false here if the database updates/merges failed
 			return false;
 		}
-		else if(srcLen > destLen) {
-			int destInd = allBlocks.indexOf(dest); 
+		else if(beforeLen > afterLen) {
+			int afterInd = allBlocks.indexOf(dest); 
 			
-			//First try to place source's start at dest's start
-			if(destInd == allBlocks.size() - 1) {
-				//TODO: For safety reasons, don't perform a switch -- in order to be the most careful
-				//		with this, I would have to request more of the schedule from the database so
-				//		that I can be sure I don't overlap something that I currently don't see in
-				//		my local segment of the calendar
+			//First try to place before's start at after's start
+			if(afterInd == allBlocks.size() - 1) {
+				//For safety reasons, don't perform a switch -- in order to be the most careful
+				//with this, I would have to request more of the schedule from the database so
+				//that I can be sure I don't overlap something that I currently don't see in
+				//my local segment of the calendar
 				return false;
 			}
 			else {
-				ITimeBlockable afterDest = allBlocks.get(destInd + 1);
-				
-				//TODO: REORGANIZE THIS FUNCTION!
-				//	Optimally, I wouldn't have to handle concerns with both chronology, and the swapping
-				//	locations at the same time.
-				
+				ITimeBlockable postAfter = allBlocks.get(afterInd + 1);
+				ITimeBlockable preAfter = allBlocks.get(afterInd - 1);
+
 				//--Try to push at front	
 				//Ensure that the switch can be made without interfering with due dates and without
 				//pushing the "afterDest"-block
-				if(source.getStart().before(dest.getStart())
-						&& !dest.getEnd().after(srcAsgn.getDueDate())
-						&& afterDest.getStart().after(new Date(dest.getStart().getTime() + source.getLength()))) {
+				if(!afterBlock.getEnd().after(befAsgn.getDueDate()) && 
+						postAfter.getStart().after(new Date(afterBlock.getStart().getTime() + beforeLen))) {
 					
-					ITask t1 = source.getTask();
-					ITask t2 = dest.getTask();
+					ITask t1 = beforeBlock.getTask();
+					ITask t2 = afterBlock.getTask();
 					
 					//Update the timeblocks
-					source.setEnd(new Date(source.getStart().getTime() + destLen));
-					source.setTask(t2);
-					dest.setEnd(new Date(dest.getStart().getTime() + srcLen));
-					dest.setTask(t1);
+					beforeBlock.setEnd(new Date(beforeBlock.getStart().getTime() + afterLen));
+					beforeBlock.setTask(t2);
+					afterBlock.setEnd(new Date(afterBlock.getStart().getTime() + beforeLen));
+					afterBlock.setTask(t1);
 					
 					//Update the blocks in the database
 					try {
-						StorageService.updateTimeBlock(source);
-						StorageService.updateTimeBlock(dest);
+						StorageService.updateTimeBlock(beforeBlock);
+						StorageService.updateTimeBlock(afterBlock);
 						return true;
 					}
 					catch(StorageServiceException sse) {
@@ -206,25 +203,40 @@ public class TimeUtilities {
 					//Only return false if the update failed
 					return false;
 				}
-				
-				//--Then try to place source's end at dest's end
-
-				
-			}
-			
-						
+				//--Then try to place before's end at after's end
+				else if(!afterBlock.getEnd().after(befAsgn.getDueDate()) && 
+						!preAfter.getEnd().after(new Date(afterBlock.getEnd().getTime() - beforeLen))) {
+					
+					ITask t1 = beforeBlock.getTask();
+					ITask t2 = afterBlock.getTask();
+					
+					//Update the time blocks
+					beforeBlock.setEnd(new Date(beforeBlock.getStart().getTime() + afterLen));
+					beforeBlock.setTask(t2);
+					afterBlock.setStart(new Date(afterBlock.getStart().getTime() - beforeLen));
+					afterBlock.setTask(t1);
+					
+					//Update the blocks in the database
+					try {
+						StorageService.updateTimeBlock(beforeBlock);
+						StorageService.updateTimeBlock(afterBlock);
+						return true;
+					}
+					catch(StorageServiceException sse) {
+						sse.printStackTrace();
+					}
+					
+					//Only return false if the update failed
+					return false;
+				}
+			}			
 		}
-		else {
-			
+		else { //beforeLen < afterLen
+			//TODO: Do the same things as I do in the "else if" case above, except using 
+			//		boundary-checking conditions on "beforeBlock" instead of "afterBlock"
 		}
 		
-		//TODO : check to see if blocks are of varying lengths - look at its immediate
-		//		neighbors in list (maybe possible)
-		
-		
-		//Return true if the insertion was successful
-		return true;
+		//If this line is reached, all types of switches failed, so return false
+		return false;
 	}
-	
-	
 }

@@ -128,15 +128,9 @@ public class TimeCompactor {
 			long newStart = getBlockInsertLocation(block, allBlocks, recommendedStart);
 			long newEnd = newStart + delta;
 
-			//TODO: this is a temporary fix - if a time is recommended that is too far in the past,
-			//		then exit this function
-			//SOL'N : to solve this problem, I need to consider all blocks and their INDIVIDUAL
-			//		  start/end times.  Going to need to add some lines here where I use the db 
-			//		  access functions to get the corresponding assignments
-			
-			Assignment blockAsgn = StorageService.getAssignmentById(block.getTask().getAssignmentID());
-			
-			
+
+			//Be careful to consider all blocks and their corresponding Assignment start/end times.
+			Assignment blockAsgn = StorageService.getAssignmentById(block.getTask().getAssignmentID());			
 			if(newStart < start.getTime()) {
 				System.err.println("Bad START-insertion attempt!");
 				break;
@@ -160,6 +154,7 @@ public class TimeCompactor {
 			timeToStartFrom = (Date) block.getStart().clone();
 
 			if(recommendedStart != newStart) {
+				//Get the previous item in the list, and use this block's start as the new "timeToStartFrom"
 				int insertedLocn = TimeUtilities.indexOfFitLocn(allBlocks, new Date(newStart - 1));
 				ITimeBlockable prevBlock = allBlocks.get(insertedLocn - 1);
 				timeToStartFrom.setTime(prevBlock.getStart().getTime());
@@ -236,21 +231,15 @@ public class TimeCompactor {
 				if(curr.getStart().getTime() - prev.getEnd().getTime() > lim)
 					continue;
 				
-				//TODO: Extend this for blocks of differing lengths
-				if(curr.getLength() == next.getLength()) {
-					
-					//TODO: Will this cause persistence issues with the database???
-					ITask t1 = curr.getTask();
-					ITask t2 = next.getTask();
-					curr.setTask(t2);
-					next.setTask(t1);
-					
-//					Date tempStart = curr.getStart();
-//					Date tempEnd = curr.getEnd();
-//					curr.setStart(next.getStart());
-//					curr.setEnd(next.getEnd());
-//					next.setStart(tempStart);
-//					next.setEnd(tempEnd);
+
+				//TODO: What do I want to do with the output of this function?
+				//		Note: this function tries several different ways of switching
+				//		blocks, regardless of their lengths
+				if(TimeUtilities.switchTimeBlocks(allBlocks, curr, next)) {
+					System.out.println("hooray!");
+				}
+				else {
+					System.out.println("block switch failed");
 				}
 				
 				//Increment i so that this doesn't get repeated

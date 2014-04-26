@@ -199,9 +199,10 @@ public class TimeAllocator {
 			bestEnd = new Date(bestStart.getTime() + blockLenInMillis);
 		}
 
-		//TODO: problem = iterating over the same list n times when I call this function
-		//		n different times... further problem: items of different tasks under
-		//		the same assignment need to be in the calendar in a sequential order
+		//TODO: BIG PROBLEM: items of different tasks under the same assignment need to be in 
+		//		the calendar in a sequential order...
+		//		--SOL'N 1: use a "lastTimePlaced" block as a starting point for each new task
+		//		--SOL'N 2: ??
 		for(int i = 0; i < blockList.size() - 1; ++i) {
 			//Get free time between two blocks in the list
 			if(blockLenInMillis <= (delta = blockList.get(i + 1).getStart().getTime() - 
