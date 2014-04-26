@@ -82,6 +82,9 @@ public class TimeBlockStorage {
 	    		if (statement != null) {
 		            statement.close();
 		        }
+	    		if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("TimeBlockStorage: getAllUnavailableBlocksWithinRange: " +
@@ -150,6 +153,9 @@ public class TimeBlockStorage {
 	    		if (statement != null) {
 		            statement.close();
 		        }
+	    		if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("TimeBlockStorage: getAllAssignmentBlocksWithinRange: " +
@@ -214,6 +220,9 @@ public class TimeBlockStorage {
 	    		if (statement != null) {
 		            statement.close();
 		        }
+	    		if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("TimeBlockStorage: getAssignmentBlock: " +
@@ -267,6 +276,9 @@ public class TimeBlockStorage {
 	    		if (statement != null) {
 		            statement.close();
 		        }
+	    		if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("TimeBlockStorage: getUnavailableBlock: " +
@@ -352,6 +364,9 @@ public class TimeBlockStorage {
 		            taskStatement.close();
 		        }
 		        con.setAutoCommit(true);
+		        if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("TimeBlockStorage: addTimeBlock: could not close resource", x);
@@ -439,6 +454,9 @@ public class TimeBlockStorage {
 		            taskStatement.close();
 		        }
 		        con.setAutoCommit(true);
+		        if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("TimeBlockStorage: mergeAllTimeBlocks: could not close resource", x);
@@ -525,6 +543,9 @@ public class TimeBlockStorage {
 		            taskStatement.close();
 		        }
 		        con.setAutoCommit(true);
+		        if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("TimeBlockStorage: updateTimeBlock: could not close resource", x);
@@ -578,6 +599,9 @@ public class TimeBlockStorage {
 		            blockStatement.close();
 		        }
 		        con.setAutoCommit(true);
+		        if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("TimeBlockStorage: removeTimeBlock: could not close resource", x);

@@ -146,6 +146,9 @@ public class AssignmentTaskStorage {
 		            templateStatement.close();
 		        }
 		        con.setAutoCommit(true);
+		        if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("AssignmentTaskStorage: addAssignment: could not close resource", x);
@@ -198,6 +201,9 @@ public class AssignmentTaskStorage {
 		            assignmentStatement.close();
 		        }
 		        con.setAutoCommit(true);
+		        if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("AssignmentTaskStorage: removeAssignment: could not close resource", x);
@@ -308,6 +314,9 @@ public class AssignmentTaskStorage {
 	    			templateStatement.close(); 
 	    		}
 		        con.setAutoCommit(true);
+		        if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("AssignmentTaskStorage: updateAssignment: " +
@@ -435,6 +444,9 @@ public class AssignmentTaskStorage {
 	    		if (templateStatement != null) {
 		            templateStatement.close();
 		        }
+	    		if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("AssignmentTaskStorage: getAssignmentById: could not close resource", x);
@@ -588,6 +600,9 @@ public class AssignmentTaskStorage {
 	    		if (templateStatement != null) {
 		            templateStatement.close();
 		        }
+	    		if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("AssignmentTaskStorage: getAllAssignmentsWithinRange: " +
@@ -651,6 +666,9 @@ public class AssignmentTaskStorage {
 	    		if (statement != null) {
 		            statement.close();
 		        }
+	    		if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("AssignmentTaskStorage: getAllTasksWithinRange: " +

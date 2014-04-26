@@ -311,6 +311,10 @@ public class StorageService {
 		SettingStorage.addSetting(name, val); 
 	}
 	
+	public static synchronized boolean addAllSettings(Map<String, String> settings) {
+		return SettingStorage.addAllSettings(settings); 
+	}
+	
 	public static synchronized String getSetting(String name) {
 		return SettingStorage.getSetting(name); 
 	}

@@ -20,7 +20,7 @@ public abstract class Utilities {
 	 */
 	
 	protected static final String DROP_ALL_TABLES = 
-			"DROP TABLE IF EXISTS ASSIGNMENT, TASK, TEMPLATE, TEMPLATE_STEP, TIME_BLOCK"; 
+			"DROP TABLE IF EXISTS ASSIGNMENT, TASK, TEMPLATE, TEMPLATE_STEP, TIME_BLOCK, SETTING"; 
 	
 	/*
 	 * ITimeBlockable SQL insertion statements 
@@ -58,6 +58,8 @@ public abstract class Utilities {
 	protected static final String SELECT_UNAVAILABLE_BLOCK_BY_ID = 
 			"SELECT * FROM TIME_BLOCK " + 
 			"WHERE BLOCK_ID = ? "; 
+	
+	//TODO: Forgot case where one block CONTAINS the other block!
 	
 	protected static final String SELECT_ASSIGNMENT_BLOCKS_BY_DATE = 
 			"SELECT * FROM TIME_BLOCK " + 
@@ -184,6 +186,22 @@ public abstract class Utilities {
 	protected static final String DELETE_TEMPLATE_STEPS_BY_ID = 
 			"DELETE FROM TEMPLATE_STEP " +
 			"WHERE TEMPLATE_ID = ? "; 
+	
+	/*
+	 * ITimeBlockable SQL insertion statements 
+	 */
+	
+	protected static final String INSERT_SETTING =  
+			"INSERT INTO SETTING " +
+			"(SETTING_NAME, SETTING_VALUE) " + 
+			"VALUES (?, ?) ";
+	
+	protected static final String SELECT_SETTING_BY_NAME = 
+			"SELECT * FROM SETTING " +
+			"WHERE SETTING_NAME = ? "; 
+	
+	protected static final String SELECT_ALL_SETTINGS = 
+			"SELECT * FROM SETTING "; 
 	
 	/*
 	 * Error handling helper methods

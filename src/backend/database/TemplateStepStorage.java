@@ -136,6 +136,9 @@ public class TemplateStepStorage {
 	    		if (statement != null) {
 		            statement.close();
 		        }
+	    		if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("TemplateStepStorage: getTemplate: "
@@ -209,6 +212,9 @@ public class TemplateStepStorage {
 		            stepStatement.close();
 		        }
 		        con.setAutoCommit(true);
+		        if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("TemplateStepStorage: addTemplate: could not close resource", x);
@@ -293,6 +299,9 @@ public class TemplateStepStorage {
 		            insertStepStatement.close();
 		        }
 		        con.setAutoCommit(true);
+		        if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("TemplateStepStorage: updateTemplate: could not close resource", x);
@@ -346,6 +355,9 @@ public class TemplateStepStorage {
 		            statement.close();
 		        }
 		        con.setAutoCommit(true);
+		        if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("TemplateStepStorage: removeTemplate: could not close resource", x);
@@ -414,6 +426,9 @@ public class TemplateStepStorage {
 	    		if (statement != null) {
 		            statement.close();
 		        }
+	    		if (con != null) {
+	    			con.close(); 
+	    		}
 	    	}
 	    	catch(SQLException x) {
                 Utilities.printSQLException("TemplateStepStorage: getAllTemplates: "
