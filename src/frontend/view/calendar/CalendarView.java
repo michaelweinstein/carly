@@ -158,10 +158,11 @@ public class CalendarView extends JPanel {
 		final JPanel tools = new JPanel();
 		tools.setLayout(new BoxLayout(tools, BoxLayout.X_AXIS));
 		_weekYearLabel = new JLabel();
-		_weekYearLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.ITALIC, 16));
+		_weekYearLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 22));
 		updateWeekYearLabel();
 		Utils.themeComponentAlt(tools);
 		Utils.themeComponent(_weekYearLabel);
+		_weekYearLabel.setForeground(Utils.COLOR_FOREGROUND);
 		final ArrowButton left = new ArrowButton(ArrowButton.Direction.LEFT_BUTTON) {
 			
 			private static final long	serialVersionUID	= 1L;
@@ -188,7 +189,7 @@ public class CalendarView extends JPanel {
 		tools.add(Box.createHorizontalGlue());
 		tools.add(right);
 		tools.add(Box.createHorizontalStrut(10));
-		Utils.padComponent(tools, 0, 5);
+		Utils.padComponent(tools, 5, 0, 15, 0);
 		return tools;
 	}
 	

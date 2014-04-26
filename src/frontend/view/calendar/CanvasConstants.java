@@ -15,7 +15,7 @@ public class CanvasConstants {
 	
 	static final double	DAYS		= 7;
 	static final double	HRS			= 24;
-	static final int	X_OFFSET	= 60;
+	static final int	X_OFFSET	= 35;
 	static final double	Y_PAD		= 10;
 	
 	/**

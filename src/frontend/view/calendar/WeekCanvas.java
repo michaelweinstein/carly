@@ -272,7 +272,7 @@ public class WeekCanvas extends JPanel {
 		if (hour == 0) {
 			hour = 12;
 		}
-		return hour + ":00 " + (i < 12 || i == 24 ? "am" : "pm");
+		return hour + (i < 12 || i == 24 ? "am" : "pm");
 	}
 	
 	@Override

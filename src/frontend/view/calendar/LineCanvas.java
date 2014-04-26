@@ -7,7 +7,6 @@ import static frontend.view.calendar.CanvasConstants.Y_PAD;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -58,17 +57,8 @@ public class LineCanvas extends JPanel {
 		brush.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 		
 		// Week box
-		brush.setColor(Utils.COLOR_ACCENT);
+		brush.setColor(Utils.COLOR_ALTERNATE);
 		brush.fill(new Rectangle2D.Double(0, 0, CanvasConstants.X_OFFSET, getHeight()));
-		brush.setColor(Utils.COLOR_BACKGROUND);
-		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 15));
-		brush.drawString("THIS", 8, 25);
-		brush.drawString("WEEK", 8, 40);
-		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 13));
-		brush.drawString("AT A", 8, 65);
-		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 11));
-		brush.drawString("GLANCE", 8, 76);
-		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 26));
 		
 		// Do the vertical lines
 		brush.setColor(Utils.COLOR_LIGHT_BG);
