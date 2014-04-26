@@ -134,7 +134,7 @@ public class TimeCompactor {
 			//		  start/end times.  Going to need to add some lines here where I use the db 
 			//		  access functions to get the corresponding assignments
 			
-			Assignment blockAsgn = StorageService.getAssignmentById(block.getTask().getAssignmentID());
+			Assignment blockAsgn = StorageService.getAssignment(block.getTask().getAssignmentID());
 			
 			
 			if(newStart < start.getTime()) {

@@ -121,8 +121,8 @@ public class TimeUtilities {
 	
 	//Return false and do not modify the list if an insertion is not possible
 	public static boolean switchTimeBlocks(List<ITimeBlockable> allBlocks, ITimeBlockable source, ITimeBlockable dest) {
-		IAssignment srcAsgn = StorageService.getAssignmentById(source.getTask().getAssignmentID());
-		IAssignment destAsgn = StorageService.getAssignmentById(dest.getTask().getAssignmentID());
+		IAssignment srcAsgn = StorageService.getAssignment(source.getTask().getAssignmentID());
+		IAssignment destAsgn = StorageService.getAssignment(dest.getTask().getAssignmentID());
 		
 		long srcLen = source.getLength();
 		long destLen = dest.getLength();

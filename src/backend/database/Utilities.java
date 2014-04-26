@@ -63,13 +63,17 @@ public abstract class Utilities {
 			"SELECT * FROM TIME_BLOCK " + 
 			"INNER JOIN TASK " + 
 			"ON TASK.TASK_ID = TIME_BLOCK.TASK_ID " +
-			"WHERE BLOCK_START >= ? AND BLOCK_END <= ? " + //TODO: include blocks where only one end in range?
-			"AND BLOCK_MOVABLE = TRUE ";  
+			"WHERE ((BLOCK_END BETWEEN ? AND ?) OR " + 	//block ends in the range, OR 
+			"(BLOCK_START BETWEEN ? AND ?)) " +			//block start in the range
+			"AND BLOCK_MOVABLE = TRUE " +
+			"ORDER BY TIME_BLOCK.BLOCK_START";
 	
 	protected static final String SELECT_UNAVAILABLE_BLOCKS_BY_DATE = 
 			"SELECT * FROM TIME_BLOCK " + 
-			"WHERE BLOCK_START >= ? AND BLOCK_END <= ? " + 
-			"AND BLOCK_MOVABLE = FALSE "; 
+			"WHERE ((BLOCK_END BETWEEN ? AND ?) OR " + 	//block ends in the range, OR 
+			"(BLOCK_START BETWEEN ? AND ?)) " +			//block start in the range
+			"AND BLOCK_MOVABLE = FALSE " +
+			"ORDER BY TIME_BLOCK.BLOCK_START";
 	
 	/*
 	 * Assignment SQL statements

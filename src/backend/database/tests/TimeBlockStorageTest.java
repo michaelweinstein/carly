@@ -404,6 +404,23 @@ public class TimeBlockStorageTest {
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 10), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 12), 
 				task); 
+		AssignmentBlock block5 = new AssignmentBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 6), 
+				task); 
+		
+		UnavailableBlock unavailable1 = new UnavailableBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
+				null, false); 
+		UnavailableBlock unavailable2 = new UnavailableBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
+				null, false); 
+		UnavailableBlock unavailable3 = new UnavailableBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 11), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 13), 
+				null, false); 
 		
 		//Add objects in correct order to the db
 		try {
@@ -413,14 +430,18 @@ public class TimeBlockStorageTest {
 			StorageService.addTimeBlock(block2);
 			StorageService.addTimeBlock(block3); 
 			StorageService.addTimeBlock(block4);
+			StorageService.addTimeBlock(block5);
+			StorageService.addTimeBlock(unavailable1);
+			StorageService.addTimeBlock(unavailable2);
+			StorageService.addTimeBlock(unavailable3);
 		} 
 		catch (StorageServiceException e) {
 			fail(e.getMessage());
 		} 
 		
 		assertTrue(StorageService.getAllAssignmentBlocksWithinRange(
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 1), 
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 5)).size() == 3);
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 5)).size() == 4);
 	}
 	
 	/*
@@ -465,6 +486,14 @@ public class TimeBlockStorageTest {
 		UnavailableBlock unavailable3 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 11), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 13), 
+				null, false);
+		UnavailableBlock unavailable4 = new UnavailableBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 1), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
+				null, false); 
+		UnavailableBlock unavailable5 = new UnavailableBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 6), 
 				null, false); 
 		
 		
@@ -479,13 +508,15 @@ public class TimeBlockStorageTest {
 			StorageService.addTimeBlock(unavailable1);
 			StorageService.addTimeBlock(unavailable2);
 			StorageService.addTimeBlock(unavailable3);
+			StorageService.addTimeBlock(unavailable4);
+			StorageService.addTimeBlock(unavailable5);
 		} 
 		catch (StorageServiceException e) {
 			fail(e.getMessage());
 		} 
 		
 		assert(StorageService.getAllUnavailableBlocksWithinRange(
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 1), 
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 5)).size() == 2);
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 5)).size() == 4);
 	}
 }
