@@ -37,6 +37,8 @@ public class CalendarView extends JPanel {
 	private JLabel						_weekYearLabel;
 	private final List<ITimeBlockable>	_timeBlocks;
 	
+	private ITimeBlockable				_highlightedTask;
+	
 	// Info for view
 	private int							_currWeek;
 	private int							_currYear;
@@ -286,10 +288,12 @@ public class CalendarView extends JPanel {
 	}
 	
 	/**
-	 * Repaints children
+	 * Repaints children after resetting data
 	 */
 	public void reloadData() {
+		_highlightedTask = null;
 		_weekView.repaint();
+		_weekView.clearHighlights();
 		_weekView.getViewport().setViewPosition(new Point(0, 0));
 		_lineCanvas.repaint();
 		for (int i = 0; i < _dayLabelList.size(); i++) {
@@ -409,5 +413,21 @@ public class CalendarView extends JPanel {
 	 */
 	public List<ITimeBlockable> getTimeBlocks() {
 		return _timeBlocks;
+	}
+	
+	/**
+	 * @return the currently highlighted task
+	 */
+	public ITimeBlockable getHighlightedTask() {
+		return _highlightedTask;
+	}
+	
+	/**
+	 * Sets a new highlighted task
+	 * 
+	 * @param highlightedTask the new task
+	 */
+	public void setHighlightedTask(final ITimeBlockable highlightedTask) {
+		_highlightedTask = highlightedTask;
 	}
 }

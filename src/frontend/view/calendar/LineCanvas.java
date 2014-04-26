@@ -5,6 +5,7 @@ import static frontend.view.calendar.CanvasConstants.HRS;
 import static frontend.view.calendar.CanvasConstants.X_OFFSET;
 import static frontend.view.calendar.CanvasConstants.Y_PAD;
 
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -54,7 +55,6 @@ public class LineCanvas extends JPanel {
 		final Graphics2D brush = (Graphics2D) g;
 		brush.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		brush.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-		brush.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 		
 		// Week box
 		brush.setColor(Utils.COLOR_ALTERNATE);
@@ -142,12 +142,21 @@ public class LineCanvas extends JPanel {
 		// At minimum, width must be 5 pixels - also set color and rect
 		final int width = Math.max(endX - startX, 5);
 		final Rectangle2D.Double rect = new Rectangle2D.Double(startX, _y, width, height);
-		final Color currColor = CanvasConstants.getColor(t);
+		final boolean highlighted = _cv.getHighlightedTask() != null && _cv.getHighlightedTask().equals(t);
+		final Color currColor = highlighted ? Utils.COLOR_ACCENT : CanvasConstants.getColor(t);
 		
 		// Draw block
-		brush.setColor(currColor);
-		brush.fill(rect);
-		brush.setColor(Utils.COLOR_LIGHT_BG);
+		if (highlighted) {
+			brush.setColor(Utils.COLOR_FOREGROUND);
+			final float dash1[] = { 4.0f };
+			final BasicStroke dashed = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1, dash1, 0);
+			brush.setStroke(dashed);
+		} else {
+			brush.setColor(currColor);
+			brush.fill(rect);
+			brush.setColor(Utils.COLOR_LIGHT_BG);
+			brush.setStroke(new BasicStroke(1));
+		}
 		brush.draw(rect);
 		return true;
 	}
