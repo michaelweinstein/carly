@@ -151,4 +151,11 @@ public class Task implements ITask {
 	public int hashCode() {
 		return Objects.hash(_name, _timeOfDay, _suggestedBlockLength, _assignmentId);
 	}
+
+	@Override
+	public String fullString() {
+		return String.format("[Task: id: %s; name: %s; percentOfTotal: %s; assignmentId: %s; "
+				+ "percentComplete: %s; timeOfDay: %s; suggestedBlockLength: %s]", _uniqueId, _name, 
+				_percentOfTotal, _assignmentId, _percentComplete, _timeOfDay.name(), _suggestedBlockLength);
+	}
 }

@@ -27,6 +27,11 @@ import data.TimeOfDay;
 
 public class AssignmentTaskStorage {
 	
+	/**
+	 * Adds the create table string to the list of create table statements to be executed in StorageService
+	 * 
+	 * @param queries List of queries that StorageService.initialize() will execute
+	 */
 	protected static void buildTable(ArrayList<String> queries) {
         //Assignment table
         ArrayList<String> assignmentCols = new ArrayList<>();
@@ -51,6 +56,14 @@ public class AssignmentTaskStorage {
         queries.add(Utilities.buildCreateString("TASK", taskCols)); 
 	}
 	
+	/**
+	 * Adds an Assignment and all of the Assignment's associated Tasks to the database
+	 * The Assignment's associated Template must already be in the database
+	 * 
+	 * @param assignment Assignment to be added to the database
+	 * @return Assignment that was added, for chaining calls
+	 * @throws StorageServiceException Thrown when the Assigment's associated Template is not in the db
+	 */
 	protected static synchronized IAssignment addAssignment(IAssignment assignment) throws StorageServiceException {
 		PreparedStatement assignmentStatement = null;
 		PreparedStatement taskStatement = null;
@@ -142,9 +155,12 @@ public class AssignmentTaskStorage {
 		return assignment; 
 	}
 	
-
-	
-	//TODO: Check to see if tasks are also deleted -- that is, if cascading deletes actually work.
+	/**
+	 * Remove an Assignment and all of its associated Tasks from the database
+	 * 
+	 * @param assignment IAssignment to be removed
+	 * @return IAssignment that was removed, for chaining calls
+	 */
 	protected static synchronized IAssignment removeAssignment(IAssignment assignment) {
 		PreparedStatement assignmentStatement = null;
 	    Connection con = null; 
@@ -191,16 +207,50 @@ public class AssignmentTaskStorage {
 		return assignment; 
 	}
 	
-	protected static synchronized Assignment updateAssignment(Assignment assignment) {
+	/**
+	 * Update Assignment and clear and repopulate its associated Tasks
+	 * Checks to see if the Template associated with the Assignment can still be found in the db 
+	 * 
+	 * @param assignment Assignment to be updated
+	 * @return Assignment that was updated, for chaining calls
+	 * @throws StorageServiceException Thrown when the Assignment's associated Template cannot be found in the db
+	 */
+	protected static synchronized Assignment updateAssignment(Assignment assignment) throws StorageServiceException {
 		PreparedStatement assignmentStatement = null;
-		PreparedStatement taskStatement = null; 
+		PreparedStatement taskDeleteStatement = null;
+		PreparedStatement taskInsertStatement = null;
+		PreparedStatement templateStatement = null;
 	    Connection con = null; 
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
 	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
-			
 	        con.setAutoCommit(false);
+	        
+	        //Check to see that the template associated exists in the db
+            templateStatement = con.prepareStatement(Utilities.SELECT_TEMPLATE_BY_ID); 
+            Utilities.setValues(templateStatement, assignment.getTemplate().getID());
+            ResultSet rs = templateStatement.executeQuery();
+            int num = 0; 
+            while (rs.next()) {
+            	num++; 
+            }
+            
+            //If the associated template is not in the db, rollback and throw and exception
+            if (num == 0) {
+            	try {
+	                con.rollback();
+	            } 
+            	catch(SQLException x) {
+	                Utilities.printSQLException("AssignmentTaskStorage: updateAssignment: " +
+	                		"could not roll back transaction", x);
+	            }
+            	
+            	throw new StorageServiceException("AssignmentTaskStorage: updateAssignment: " +
+            			"Assignments's associated Template must be in the database."); 
+            }
+	        
+	        
 	        assignmentStatement = con.prepareStatement(Utilities.UPDATE_ASGN);
         	String assignmentId = assignment.getID(); 
         	List<ITask> taskList = assignment.getTasks(); 
@@ -210,14 +260,20 @@ public class AssignmentTaskStorage {
 	            		assignment.getTemplate().getID(), assignmentId);
             assignmentStatement.execute();
             
-            //merge all tasks
-            taskStatement = con.prepareStatement(Utilities.MERGE_TASK);
-            for (ITask task : taskList) {
-            	Utilities.setValues(taskStatement, assignmentId, task.getTaskID(), task.getName(), 
-            			task.getPercentComplete(), task.getPreferredTimeOfDay().name(), task.getSuggestedBlockLength());
-            	taskStatement.addBatch();
+            //Delete all template steps from before
+            taskDeleteStatement = con.prepareStatement(Utilities.DELETE_TASKS_BY_ID);
+            Utilities.setValues(taskDeleteStatement, assignmentId);
+            taskDeleteStatement.execute(); 
+            
+            //Insert new template steps
+            taskInsertStatement = con.prepareStatement(Utilities.INSERT_TASK);
+            for (ITask task : assignment.getTasks()) {
+            	Utilities.setValues(taskInsertStatement, assignmentId, task.getTaskID(),
+            			task.getName(), task.getPercentOfTotal(), task.getPercentComplete(), 
+            			task.getPreferredTimeOfDay().name(), task.getSuggestedBlockLength());
+            	taskInsertStatement.addBatch();
             }
-            taskStatement.executeBatch(); 
+            taskInsertStatement.executeBatch(); 
             
             //commit to the database
             con.commit();
@@ -242,8 +298,14 @@ public class AssignmentTaskStorage {
 	    		if (assignmentStatement != null) {
 		            assignmentStatement.close();
 		        }
-	    		if (taskStatement != null) {
-	    			taskStatement.close(); 
+	    		if (taskDeleteStatement != null) {
+	    			taskDeleteStatement.close(); 
+	    		}
+	    		if (taskInsertStatement != null) {
+	    			taskInsertStatement.close(); 
+	    		}
+	    		if (templateStatement != null) {
+	    			templateStatement.close(); 
 	    		}
 		        con.setAutoCommit(true);
 	    	}
@@ -256,8 +318,14 @@ public class AssignmentTaskStorage {
 	    return assignment; 
 	}
 	
+	/**
+	 * Get the Assignment identified by the passed-in id value
+	 * 
+	 * @param toBeFoundId Id value of the Assignment to be retrieved
+	 * @param templates Cache of templates for finding the associated Template
+	 * @return Assignment that was found, or null if the Assignment was not found 
+	 */
 	protected static synchronized Assignment getAssignment(String toBeFoundId, Cache<ITemplate> templates) {
-		System.out.println("StorageService.getAssignmentById");
 		PreparedStatement assignmentStatement = null;
 		PreparedStatement templateStatement = null; 
 	    Connection con = null;
@@ -269,23 +337,9 @@ public class AssignmentTaskStorage {
 	    	Class.forName("org.h2.Driver");
 	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
 			
-	    	System.out.println("preparing statement!");
 	        assignmentStatement = con.prepareStatement(Utilities.SELECT_ASGN_BY_ID); 
 	        Utilities.setValues(assignmentStatement, toBeFoundId);
         	ResultSet asgnTaskResults = assignmentStatement.executeQuery();
-
-        	//DEBUG
-        	ResultSet debugSet = asgnTaskResults; 
-	        ResultSetMetaData rsmd = debugSet.getMetaData();
-	        int columnCount = rsmd.getColumnCount();
-
-	        System.out.println("AssignmentTaskStorage: getAssignmentById: asgn/task query column names are: ");
-	        // The column count starts from 1
-	        for (int i = 1; i < columnCount + 1; i++ ) {
-	          String name = rsmd.getColumnName(i);
-	          System.out.println("\t" + name);
-	        }
-		    //DEBUG
         	
         	while (asgnTaskResults.next()) {
         		//Getting all of the field for reconstructing the task object
@@ -299,13 +353,13 @@ public class AssignmentTaskStorage {
         		
         		//Get the necessary fields from assignment
         		String asgnId = asgnTaskResults.getString("ASSIGNMENT.ASGN_ID"); 
-        		String asgnTemplateId = asgnTaskResults.getString("ASGN_TEMPLATE_ID");
         		
         		Task task = new Task(taskId, taskName, taskPercentTotal, asgnId, taskPercentComplete, 
         				taskTimeOfDay, taskSuggestedLength);
         		
         		//if the assignment hasn't been reconstructed yet
         		if (result == null) {
+        			templateId = asgnTaskResults.getString("ASGN_TEMPLATE_ID");
             		String asgnName = asgnTaskResults.getString("ASGN_NAME"); 
             		Date asgnDueDate = new Date(asgnTaskResults.getLong("ASGN_DATE")); 
             		int asgnExpectedHours = asgnTaskResults.getInt("ASGN_EXPECTED_HOURS");
@@ -313,7 +367,6 @@ public class AssignmentTaskStorage {
             		
             		asgnTaskList.add(task);
             		result = new Assignment(asgnId, asgnName, asgnDueDate, asgnExpectedHours, asgnTaskList);
-            		templateId = asgnTemplateId; 
         		}
         		//if the assignment has already been reconstructed, just add task to its task list
         		else {
@@ -335,22 +388,8 @@ public class AssignmentTaskStorage {
     		else {
     			Utilities.setValues(templateStatement, templateId);
         		ResultSet templateStepResults =  templateStatement.executeQuery();
-        		
-        		//DEBUG
-    	        rsmd = templateStepResults.getMetaData();
-    	        columnCount = rsmd.getColumnCount();
-
-    	        System.out.println("AssignmentTaskStorage: getAssignmentById: template/steps query column names are: ");
-    	        // The column count starts from 1
-    	        for (int i = 1; i < columnCount + 1; i++ ) {
-    	          String name = rsmd.getColumnName(i);
-    	          System.out.println("\t" + name);
-    	        }
-    		    //DEBUG
-        		
     	        
         		while (templateStepResults.next()) {
-        			System.out.println("AssignmentTaskStorage: getAssignmentById: template/steps whilte loop");
         			//Reconstructing the template step
             		String stepName = templateStepResults.getString("STEP_NAME");
             		double stepPercentTotal = templateStepResults.getDouble("STEP_PERCENT_TOTAL");
@@ -368,16 +407,18 @@ public class AssignmentTaskStorage {
                 		ArrayList<ITemplateStep> templateList = new ArrayList<>();   
                 		templateList.add(step); 
                 		
-                		template = new Template(templId, templateName, templateList, templateConsecutiveHours); 
-                		result.setTemplate(template);
-                		System.out.println("\tAssignmentTaskStorage: getAssignmentById: just set assignment's template: " + result.getTemplate().toString()); 
+                		template = new Template(templId, templateName, templateList, templateConsecutiveHours);  
             		}
             		else {
             			template.addStep(step); 
             		}
         		}
-        		
-        		templates.insert(templateId, template); 
+        		if (template != null) {
+        			templates.insert(templateId, template);
+        		}
+    		}
+    		if (template != null) {
+    			result.setTemplate(template);
     		}
 	    } 
 	    catch (ClassNotFoundException e) {
@@ -403,6 +444,14 @@ public class AssignmentTaskStorage {
 		return result; 
 	}
 	
+	/**
+	 * Retrieves all Assignments whose dueDate falls into the range specified, inclusive of the bounds
+	 * 
+	 * @param date1 Lower bound of the date range
+	 * @param date2 Upper bound of the date range
+	 * @param templates Cache of templates for retrieving the associated Templates
+	 * @return List of Assignments whose dueDate falls within the specified date range
+	 */
 	protected static synchronized List<Assignment> getAllAssignmentsWithinRange(Date date1, Date date2, Cache<ITemplate> templates) {
 		PreparedStatement assignmentStatement = null;
 		PreparedStatement templateStatement = null; 
@@ -549,7 +598,15 @@ public class AssignmentTaskStorage {
 	    results.addAll(idToAssignment.values()); 
 		return results; 
 	}
-
+	
+	/**
+	 * Retrieves all the Tasks whose associated Assignment's dueDate falls within the range specified, 
+	 * inclusive of bounds. 
+	 * 
+	 * @param date1 Lower bound of the date range
+	 * @param date2 Upper bound of the date range
+	 * @return List of Tasks that fall within the date range specified
+	 */
 	protected static synchronized List<ITask> getAllTasksWithinRange(Date date1, Date date2) {
 		PreparedStatement statement = null; 
 	    Connection con = null; 

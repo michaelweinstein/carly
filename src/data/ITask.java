@@ -105,4 +105,12 @@ public interface ITask {
 	 */
 	public void setSuggestedBlockLength(double length);
 	
+	
+	/**
+	 * Returns a detailed string representation of 
+	 * the Task
+	 * 
+	 * @return a String representation of the Task
+	 */
+	public String fullString();
 }

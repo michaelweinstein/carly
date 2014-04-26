@@ -224,7 +224,14 @@ public class Assignment implements IAssignment {
 	}
 	
 	public String fullString() {
+		StringBuilder taskBuilder = new StringBuilder();
+		for (ITask t : this.getTasks()) {
+			taskBuilder.append(t.fullString()); 
+			taskBuilder.append(", ");
+		}
+		taskBuilder.delete(taskBuilder.length() - 2, taskBuilder.length());
+		
 		return String.format("Assignment\n\tName: %s\n\tID: %s\n\tDue: %s\n\tTasks: %s\n\tTemplate: %s", getName(),
-				getID(), getDueDate(), getTasks(), getTemplate());
+				getID(), getDueDate(), taskBuilder.toString(), getTemplate().fullString());
 	}
 }

@@ -128,11 +128,9 @@ public abstract class Utilities {
 			"SELECT * FROM TASK " +
 			"WHERE TASK_ID = ? "; 
 
-	protected static final String MERGE_TASK = 
-			"MERGE INTO TASK " +
-			"(ASGN_ID, TASK_ID, TASK_NAME, TASK_PERCENT_TOTAL, TASK_PERCENT_COMPLETE, " +
-	        "TASK_TIME_OF_DAY, TASK_SUGGESTED_LENGTH) " + 
-	        "VALUES (?, ?, ?, ?, ?, ?, ?) ";
+	protected static final String DELETE_TASKS_BY_ID = 
+			"DELETE FROM TASK " +
+			"WHERE ASGN_ID = ? "; 
 	
 	/*
 	 * Template SQL statements

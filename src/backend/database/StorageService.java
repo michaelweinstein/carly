@@ -37,15 +37,17 @@ public class StorageService {
 	
 	/**
 	 * Called each time application starts up 
+	 * 
+	 * @param dropTables If true, recreates new blank tables; if false, persists data from last time
 	 */
 	public static synchronized void initialize(boolean dropTables) {
 		_templates = new Cache<>();
+		
 		//Create tables in the database
 		try (Connection con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD)) {
 			Class.forName("org.h2.Driver");
 			
 			if (dropTables) {
-				System.out.println("StorageService: initialize: dropping tables...");
 			    try (Statement stmt = con.createStatement()) {
 			        stmt.execute(Utilities.DROP_ALL_TABLES);
 			    }
@@ -63,32 +65,11 @@ public class StorageService {
 		    	}
 		    	stmt.executeBatch(); 
 		    } 
-	        
-		    //DEBUG
-//	        String query = "SHOW TABLES"; 
-//		    try (Statement stmt = con.createStatement()) {
-//		        ResultSet rs = stmt.executeQuery(query);
-//		        
-//		        ResultSetMetaData rsmd = rs.getMetaData();
-//		        int columnCount = rsmd.getColumnCount();
-//		        System.out.println("Column names are: ");
-//		        // The column count starts from 1
-//		        for (int i = 1; i < columnCount + 1; i++ ) {
-//		          String name = rsmd.getColumnName(i);
-//		          System.out.println(name);
-//		        }
-//	
-//		        System.out.println("Processing results.");
-//		        while (rs.next()) {
-//		        	System.out.println(rs.getString("TABLE_NAME"));
-//		        }
-//		    }
-		    //DEBUG
 		} 
 		catch (ClassNotFoundException e) {
-			Utilities.printException("db drive class not found", e); 
+			Utilities.printException("StorageService: initialize: db drive class not found", e); 
 		} catch (SQLException e) {
-			Utilities.printSQLException("could not create all tables", e); 
+			Utilities.printSQLException("StorageService: initialize: could not create all tables", e); 
 		}
 	}
 	
@@ -100,26 +81,69 @@ public class StorageService {
 	 * ================================================================
 	 */
 
+	/**
+	 * Adds an Assignment and all of the Assignment's associated Tasks to the database
+	 * The Assignment's associated Template must already be in the database
+	 * 
+	 * @param assignment Assignment to be added to the database
+	 * @return Assignment that was added, for chaining calls
+	 * @throws StorageServiceException Thrown when the Assigment's associated Template is not in the db
+	 */
 	public static synchronized IAssignment addAssignment(IAssignment assignment) throws StorageServiceException {
 		return AssignmentTaskStorage.addAssignment(assignment); 
 	}
-	
+
+	/**
+	 * Remove an Assignment and all of its associated Tasks from the database
+	 * 
+	 * @param assignment IAssignment to be removed
+	 * @return IAssignment that was removed, for chaining calls
+	 */	
 	public static synchronized IAssignment removeAssignment(IAssignment assignment) {
 		return AssignmentTaskStorage.removeAssignment(assignment); 
 	}
 	
-	public static synchronized Assignment updateAssignment(Assignment assignment) {
+	/**
+	 * Update Assignment and clear and repopulate its associated Tasks
+	 * Checks to see if the Template associated with the Assignment can still be found in the db 
+	 * 
+	 * @param assignment Assignment to be updated
+	 * @return Assignment that was updated, for chaining calls
+	 * @throws StorageServiceException Thrown when the Assignment's associated Template cannot be found in the db
+	 */
+	public static synchronized Assignment updateAssignment(Assignment assignment) throws StorageServiceException {
 	    return AssignmentTaskStorage.updateAssignment(assignment); 
 	}
 	
+	/**
+	 * Get the Assignment identified by the passed-in id value
+	 * 
+	 * @param toBeFoundId Id value of the Assignment to be retrieved
+	 * @return Assignment that was found, or null if the Assignment was not found 
+	 */
 	public static synchronized Assignment getAssignment(String toBeFoundId) {
 		return AssignmentTaskStorage.getAssignment(toBeFoundId, _templates); 
 	}
 	
+	/**
+	 * Retrieves all Assignments whose dueDate falls into the range specified, inclusive of the bounds
+	 * 
+	 * @param date1 Lower bound of the date range
+	 * @param date2 Upper bound of the date range
+	 * @return List of Assignments whose dueDate falls within the specified date range
+	 */
 	public static synchronized List<Assignment> getAllAssignmentsWithinRange(Date date1, Date date2) {
 		return AssignmentTaskStorage.getAllAssignmentsWithinRange(date1, date2, _templates); 
 	}
 	
+	/**
+	 * Retrieves all the Tasks whose associated Assignment's dueDate falls within the range specified, 
+	 * inclusive of bounds. 
+	 * 
+	 * @param date1 Lower bound of the date range
+	 * @param date2 Upper bound of the date range
+	 * @return List of Tasks that fall within the date range specified
+	 */
 	public static synchronized List<ITask> getAllTasksWithinRange(Date date1, Date date2) {
 		return AssignmentTaskStorage.getAllTasksWithinRange(date1, date2); 
 	}
@@ -282,7 +306,7 @@ public class StorageService {
 	 *  
 	 * ================================================================
 	 */
-
+	
 	public static synchronized void addSetting(String name, String val) {
 		SettingStorage.addSetting(name, val); 
 	}
