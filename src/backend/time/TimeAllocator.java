@@ -48,7 +48,7 @@ public class TimeAllocator {
 		//Date end = m_asgn.getDueDate();
 		List<UnavailableBlock> unavailable = StorageService.getAllUnavailableBlocksWithinRange(start, end);
 		List<AssignmentBlock> curr_asgns = StorageService.getAllAssignmentBlocksWithinRange(start, end);
-		List<ITimeBlockable> allBlocks = zipTimeBlockLists(unavailable, curr_asgns);
+		List<ITimeBlockable> allBlocks = TimeUtilities.zipTimeBlockLists(unavailable, curr_asgns);
 
 		//If there are not enough free hours in the range specified by the new Assignment,
 		//exit this function
@@ -230,60 +230,6 @@ public class TimeAllocator {
 		//Create the task to give in the AssignmentBlock constructor
 		ITask task = m_asgn.getTasks().get(step.getStepNumber());
 		return new AssignmentBlock(bestStart, bestEnd, task);
-	}
-
-
-	private List<ITimeBlockable> zipTimeBlockLists(List<UnavailableBlock> unavailable,
-			List<AssignmentBlock> curr_asgns) {
-		List<ITimeBlockable> zippedList = new ArrayList<ITimeBlockable>(unavailable.size() + curr_asgns.size());
-
-		int unavailInd = 0;
-		int asgnInd = 0;
-
-		//DEBUG added by Eric
-		System.out.println("\nTimeAllocator: zipTimeBlockLists: printing out assignment blocks");
-		for (AssignmentBlock block : curr_asgns) {
-			System.out.println("\t" + block.toString());
-		}
-		System.out.println("");
-		//DEBUG
-		
-		
-		//Iterate over the contents of these two arrays, then return a zipped list containing
-		//the contents of both lists, in sorted order
-		UnavailableBlock[] unavail = new UnavailableBlock[unavailable.size()];
-		AssignmentBlock[] asgn = new AssignmentBlock[curr_asgns.size()];
-		unavail = unavailable.toArray(unavail);
-		asgn = curr_asgns.toArray(asgn);
-
-		while (unavailInd < unavail.length || asgnInd < asgn.length) {
-
-			if(unavailInd == unavail.length) {
-				zippedList.add(asgn[asgnInd]);
-				++asgnInd;
-				continue;
-			}
-			if(asgnInd == asgn.length){
-				zippedList.add(unavail[unavailInd]);
-				++unavailInd;
-				continue;
-			}
-
-			int comp = unavail[unavailInd].compareTo(asgn[asgnInd]);
-
-			if(comp < 0) {
-				zippedList.add(unavail[unavailInd]);
-				++unavailInd;
-			}
-			else if(comp > 0) {
-				zippedList.add(asgn[asgnInd]);
-				++asgnInd;
-			}
-			else; //TODO: ???? there should never be two blocks that are equal
-
-		}		
-
-		return zippedList;
 	}
 
 	private long convertHoursToMillis(double hrs) {

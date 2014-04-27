@@ -1,14 +1,17 @@
 package backend.time;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import backend.database.StorageService;
 import backend.database.StorageServiceException;
+import data.AssignmentBlock;
 import data.IAssignment;
 import data.ITask;
 import data.ITimeBlockable;
+import data.UnavailableBlock;
 
 
 public class TimeUtilities {
@@ -101,6 +104,59 @@ public class TimeUtilities {
 		return (numFreeHours >= (double) asgn.getExpectedHours());
 	}
 	
+	
+	public static List<ITimeBlockable> zipTimeBlockLists(List<UnavailableBlock> unavailable,
+			List<AssignmentBlock> curr_asgns) {
+		List<ITimeBlockable> zippedList = new ArrayList<ITimeBlockable>(unavailable.size() + curr_asgns.size());
+
+		int unavailInd = 0;
+		int asgnInd = 0;
+
+		//DEBUG added by Eric
+		System.out.println("\nTimeAllocator: zipTimeBlockLists: printing out assignment blocks");
+		for (AssignmentBlock block : curr_asgns) {
+			System.out.println("\t" + block.toString());
+		}
+		System.out.println("");
+		//DEBUG
+		
+		
+		//Iterate over the contents of these two arrays, then return a zipped list containing
+		//the contents of both lists, in sorted order
+		UnavailableBlock[] unavail = new UnavailableBlock[unavailable.size()];
+		AssignmentBlock[] asgn = new AssignmentBlock[curr_asgns.size()];
+		unavail = unavailable.toArray(unavail);
+		asgn = curr_asgns.toArray(asgn);
+
+		while (unavailInd < unavail.length || asgnInd < asgn.length) {
+
+			if(unavailInd == unavail.length) {
+				zippedList.add(asgn[asgnInd]);
+				++asgnInd;
+				continue;
+			}
+			if(asgnInd == asgn.length){
+				zippedList.add(unavail[unavailInd]);
+				++unavailInd;
+				continue;
+			}
+
+			int comp = unavail[unavailInd].compareTo(asgn[asgnInd]);
+
+			if(comp < 0) {
+				zippedList.add(unavail[unavailInd]);
+				++unavailInd;
+			}
+			else if(comp > 0) {
+				zippedList.add(asgn[asgnInd]);
+				++asgnInd;
+			}
+			else; //TODO: ???? there should never be two blocks that are equal
+
+		}		
+
+		return zippedList;
+	}
 	
 	public static String printSchedule(List<ITimeBlockable> allBlocks) {
 		StringBuilder builder = new StringBuilder();

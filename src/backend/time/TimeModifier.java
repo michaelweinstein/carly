@@ -6,13 +6,22 @@ import java.util.List;
 
 import backend.database.StorageService;
 import backend.database.StorageServiceException;
+import data.AssignmentBlock;
 import data.ITask;
 import data.ITimeBlockable;
+import data.UnavailableBlock;
 
 public class TimeModifier {
 	
-	public static boolean updateBlock(final List<ITimeBlockable> allBlocks, final ITimeBlockable block,
-			final Date newStart, final Date newEnd) {
+	public static boolean updateBlock(final ITimeBlockable block, final Date newStart, final Date newEnd) {
+		
+		//TODO: Figure out with Eric -- what is the acceptable range of blocks here? 
+		Date tempStart = new Date(newStart.getTime() - (86400000 * 4));
+		Date tempEnd = new Date(newEnd.getTime() + (86400000 * 4));		
+		List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);
+		List<UnavailableBlock> unavBlocks = StorageService.getAllUnavailableBlocksWithinRange(tempStart, tempEnd);
+		List<ITimeBlockable> allBlocks = TimeUtilities.zipTimeBlockLists(unavBlocks, asgnBlocks);
+		
 		final Date now = new Date();
 		
 		final Date currStart = block.getStart();
