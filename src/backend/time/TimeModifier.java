@@ -67,6 +67,8 @@ public class TimeModifier {
 			
 			final ITimeBlockable prev = (ind > 0 ? allBlocks.get(ind - 1) : null);
 			final ITimeBlockable curr = allBlocks.get(ind);
+			final ITimeBlockable next = (ind < allBlocks.size() - 1 ? allBlocks.get(ind + 1) : null);
+
 			
 			// Try a switch operation if the starts/ends line up and no due date violations occur
 			if (curr.getStart().equals(newStart) && curr.getEnd().equals(newEnd)) {
@@ -76,11 +78,44 @@ public class TimeModifier {
 			// Make sure the new block is not overlapping the bounds of "prev" and "curr" -- if so,
 			// push the others backwards/forwards, respectively, to make room.
 			if (prev != null && prev.getEnd().getTime() > newStart.getTime()) {
+				
+				//This is the case where a block is being dragged over itself slightly
+				if(prev.equals(block) && curr.getStart().getTime() >= newEnd.getTime()) {
+					block.setStart(newStart);
+					block.setEnd(newEnd);
+					
+					try{
+						StorageService.updateTimeBlock(block);
+						return true;
+					}
+					catch(StorageServiceException sse) {
+						System.err.println("OH NOES");
+						return false;
+					}
+				}
+				
+				//Otherwise, try to push other blocks backwards to make a fit
 				if (!pushBlocksBack(allBlocks, block, now, newStart)) {
 					return false;
 				}
 			}
 			if (curr.getStart().getTime() < newEnd.getTime()) {
+				
+				//This is the case where a block is being dragged over itself slightly
+				if(curr.equals(block) && prev.getEnd().getTime() <= newStart.getTime()) {
+					block.setStart(newStart);
+					block.setEnd(newEnd);
+					
+					try{
+						StorageService.updateTimeBlock(block);
+						return true;
+					}
+					catch(StorageServiceException sse) {
+						System.err.println("OH NOES");
+						return false;
+					}
+				}
+				
 				if (!pushBlocksForward(allBlocks, block, now, newStart, newEnd)) {
 					return false;
 				}
@@ -276,7 +311,21 @@ public class TimeModifier {
 	
 	// This function is called when a user pulls on a slider to convey the message that
 	// they are changing how much progress they have made on completing a particular Task.
-	public static void updateBlocksInTask(final List<ITimeBlockable> allBlocks, final ITask task, final double newPct) {
+	public static void updateBlocksInTask(final ITask task, final double newPct) {
+		
+		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		// get the entire block set from the db...
+		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		// get the entire block set from the db...
+		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		// get the entire block set from the db...
+		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		// get the entire block set from the db...
+		final Date tempStart = new Date(0);
+		final Date tempEnd = new Date(209769820398203L);
+		final List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);
+		final List<UnavailableBlock> unavBlocks = StorageService.getAllUnavailableBlocksWithinRange(tempStart, tempEnd);
+		final List<ITimeBlockable> allBlocks = TimeUtilities.zipTimeBlockLists(unavBlocks, asgnBlocks);
 		
 		final Date now = new Date(); // this Date captures where the user is and how much work they've done
 		double currProgress = 0.0;

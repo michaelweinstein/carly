@@ -10,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import data.Assignment;
+import data.IAssignment;
 import data.ITask;
 import data.ITemplateStep;
 import data.Task;
@@ -264,16 +265,16 @@ public class AssignmentTaskStorageTest {
 			fail(e.getMessage()); 
 		} 
 		
-		List<Assignment> asgnList = StorageService.getAllAssignmentsWithinRange(
+		List<IAssignment> asgnList = StorageService.getAllAssignmentsWithinRange(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 1), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 8)); 
 		
 		int numMatch = 0; 
-		for (Assignment asgn : asgnList) {
-			if (asgn.fullString().equals(assignment1.fullString())) {
+		for (IAssignment asgn : asgnList) {
+			if (asgn.toString().equals(assignment1.toString())) {
 				numMatch++;
 			}
-			else if (asgn.fullString().equals(assignment2.fullString())) {
+			else if (asgn.toString().equals(assignment2.toString())) {
 				numMatch++; 
 			} 
 		}

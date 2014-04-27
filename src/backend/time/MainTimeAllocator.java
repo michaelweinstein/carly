@@ -165,7 +165,13 @@ public class MainTimeAllocator {
 			System.out.println(bl.fullString());
 		}
 		
-
+		//Try a drag operation
+		AssignmentBlock sampleBlock = as.get(0);
+		TimeModifier.updateBlock(sampleBlock, new Date(sampleBlock.getStart().getTime() + 5000), 
+				new Date(sampleBlock.getEnd().getTime() + 5000));
+		
+		TimeModifier.updateBlock(sampleBlock, new Date(sampleBlock.getStart().getTime() - 3000), 
+				new Date(sampleBlock.getEnd().getTime() - 3000));
 	}
 	
 	public static void main(String[] args) {
