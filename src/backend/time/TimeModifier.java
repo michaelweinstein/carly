@@ -66,12 +66,11 @@ public class TimeModifier {
 			final int ind = TimeUtilities.indexOfFitLocn(allBlocks, newStart);
 			
 			final ITimeBlockable prev = (ind > 0 ? allBlocks.get(ind - 1) : null);
-			final ITimeBlockable curr = allBlocks.get(ind);
-			final ITimeBlockable next = (ind < allBlocks.size() - 1 ? allBlocks.get(ind + 1) : null);
+			final ITimeBlockable curr = (ind <= allBlocks.size() - 1 ? allBlocks.get(ind) : null);
 
 			
 			// Try a switch operation if the starts/ends line up and no due date violations occur
-			if (curr.getStart().equals(newStart) && curr.getEnd().equals(newEnd)) {
+			if (curr != null && curr.getStart().equals(newStart) && curr.getEnd().equals(newEnd)) {
 				return TimeUtilities.switchTimeBlocks(allBlocks, block, curr);
 			}
 			
@@ -80,7 +79,7 @@ public class TimeModifier {
 			if (prev != null && prev.getEnd().getTime() > newStart.getTime()) {
 				
 				//This is the case where a block is being dragged over itself slightly
-				if(prev.equals(block) && curr.getStart().getTime() >= newEnd.getTime()) {
+				if(prev.equals(block) && curr != null && curr.getStart().getTime() >= newEnd.getTime()) {
 					block.setStart(newStart);
 					block.setEnd(newEnd);
 					
@@ -99,10 +98,10 @@ public class TimeModifier {
 					return false;
 				}
 			}
-			if (curr.getStart().getTime() < newEnd.getTime()) {
+			if (curr != null && curr.getStart().getTime() < newEnd.getTime()) {
 				
 				//This is the case where a block is being dragged over itself slightly
-				if(curr.equals(block) && prev.getEnd().getTime() <= newStart.getTime()) {
+				if(curr.equals(block) && prev != null && prev.getEnd().getTime() <= newStart.getTime()) {
 					block.setStart(newStart);
 					block.setEnd(newEnd);
 					
@@ -144,8 +143,12 @@ public class TimeModifier {
 		final ITimeBlockable prev = (ind > 0 ? allBlocks.get(ind - 1) : null);
 		final ITimeBlockable curr = allBlocks.get(ind);
 		
+		//TODO: FOR NOW, IF PREV IS NULL, RETURN FOR SAFETY CONCERNS
+		if(prev == null)
+			return false;
+		
 		// In this case, check to see if newStart overlaps prev's end
-		if (prev.getEnd().getTime() > newStart.getTime()) {
+		if (prev != null && prev.getEnd().getTime() > newStart.getTime()) {
 			final long timeDiff = prev.getEnd().getTime() - newStart.getTime();
 			
 			// No block in front of prev -- use the "now" block at the top of this function for comparison
@@ -219,6 +222,10 @@ public class TimeModifier {
 		
 		final ITimeBlockable curr = allBlocks.get(ind);
 		final ITimeBlockable next = (ind < allBlocks.size() - 1 ? allBlocks.get(ind + 1) : null);
+		
+		//TODO: FOR NOW, IF NEXT IS NULL, RETURN FOR SAFETY CONCERNS
+		if(next == null)
+			return false;
 		
 		// In this case, check to see if newEnd overlaps next's start
 		if (next != null && next.getStart().getTime() < newEnd.getTime()) {
