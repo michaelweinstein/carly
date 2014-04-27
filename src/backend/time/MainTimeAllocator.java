@@ -44,9 +44,9 @@ public class MainTimeAllocator {
 		}
 		
 		//Add some unavailable blocks to the db
-		UnavailableBlock ub1 = new UnavailableBlock((Date) start.clone(), new Date(start.getTime() + 14400000), null, false);
+		UnavailableBlock ub1 = new UnavailableBlock((Date) start.clone(), new Date(start.getTime() + 14400000), null);
 		UnavailableBlock ub2 = new UnavailableBlock(new Date(start.getTime() + 86400000),
-				new Date(start.getTime() + 104400000), null, false);
+				new Date(start.getTime() + 104400000), null);
 		
 		try {
 			StorageService.addTimeBlock(ub1);
