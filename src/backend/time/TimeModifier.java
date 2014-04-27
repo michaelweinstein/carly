@@ -79,7 +79,7 @@ public class TimeModifier {
 			if (prev != null && prev.getEnd().getTime() > newStart.getTime()) {
 				
 				//This is the case where a block is being dragged over itself slightly
-				if(prev.equals(block) && curr != null && curr.getStart().getTime() >= newEnd.getTime()) {
+				if(prev.equals(block) && (curr == null || curr.getStart().getTime() >= newEnd.getTime())) {
 					block.setStart(newStart);
 					block.setEnd(newEnd);
 					
@@ -101,7 +101,7 @@ public class TimeModifier {
 			if (curr != null && curr.getStart().getTime() < newEnd.getTime()) {
 				
 				//This is the case where a block is being dragged over itself slightly
-				if(curr.equals(block) && prev != null && prev.getEnd().getTime() <= newStart.getTime()) {
+				if(curr.equals(block) && (prev == null || prev.getEnd().getTime() <= newStart.getTime())){
 					block.setStart(newStart);
 					block.setEnd(newEnd);
 					
@@ -141,10 +141,10 @@ public class TimeModifier {
 		final int ind = TimeUtilities.indexOfFitLocn(allBlocks, newStart);
 		
 		final ITimeBlockable prev = (ind > 0 ? allBlocks.get(ind - 1) : null);
-		final ITimeBlockable curr = allBlocks.get(ind);
+		final ITimeBlockable curr = (ind < allBlocks.size() ? allBlocks.get(ind) : null);
 		
 		//TODO: FOR NOW, IF PREV IS NULL, RETURN FOR SAFETY CONCERNS
-		if(prev == null)
+		if(prev == null || curr == null)
 			return false;
 		
 		// In this case, check to see if newStart overlaps prev's end
@@ -220,11 +220,11 @@ public class TimeModifier {
 			final Date now, final Date newStart, final Date newEnd) {
 		final int ind = TimeUtilities.indexOfFitLocn(allBlocks, newStart);
 		
-		final ITimeBlockable curr = allBlocks.get(ind);
+		final ITimeBlockable curr = (ind < allBlocks.size() ? allBlocks.get(ind) : null);
 		final ITimeBlockable next = (ind < allBlocks.size() - 1 ? allBlocks.get(ind + 1) : null);
 		
 		//TODO: FOR NOW, IF NEXT IS NULL, RETURN FOR SAFETY CONCERNS
-		if(next == null)
+		if(next == null || curr == null)
 			return false;
 		
 		// In this case, check to see if newEnd overlaps next's start
