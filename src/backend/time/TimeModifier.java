@@ -15,7 +15,14 @@ public class TimeModifier {
 	
 	public static boolean updateBlock(final ITimeBlockable block, final Date newStart, final Date newEnd) {
 		
-		//TODO: Figure out with Eric -- what is the acceptable range of blocks here? 
+		//TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		//		get the entire block set from the db...
+		//TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		//		get the entire block set from the db...
+		//TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		//		get the entire block set from the db...
+		//TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		//		get the entire block set from the db...
 		Date tempStart = new Date(newStart.getTime() - (86400000 * 4));
 		Date tempEnd = new Date(newEnd.getTime() + (86400000 * 4));		
 		List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);
@@ -58,14 +65,15 @@ public class TimeModifier {
 		}
 		// Otherwise the block has been dragged
 		else {
-			
-			//TODO: Try a switch operation if the starts/ends line up and no due date
-			//		violations occur???
-			
 			final int ind = TimeUtilities.indexOfFitLocn(allBlocks, newStart);
 			
 			final ITimeBlockable prev = (ind > 0 ? allBlocks.get(ind - 1) : null);
 			final ITimeBlockable curr = allBlocks.get(ind);
+			
+			//Try a switch operation if the starts/ends line up and no due date violations occur
+			if(curr.getStart().equals(newStart) && curr.getEnd().equals(newEnd)) {
+				return TimeUtilities.switchTimeBlocks(allBlocks, block, curr);
+			}
 			
 			//Make sure the new block is not overlapping the bounds of "prev" and "curr" -- if so,
 			//push the others backwards/forwards, respectively, to make room.
@@ -189,7 +197,7 @@ public class TimeModifier {
 		final ITimeBlockable next = (ind < allBlocks.size() - 1 ? allBlocks.get(ind + 1) : null);
 		
 		// In this case, check to see if newEnd overlaps next's start
-		if (next.getStart().getTime() < newEnd.getTime()) {
+		if (next != null && next.getStart().getTime() < newEnd.getTime()) {
 			final long timeDiff = newEnd.getTime() - next.getStart().getTime();
 			
 			// No block after "next" -- use the due date for comparison
