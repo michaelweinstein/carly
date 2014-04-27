@@ -105,15 +105,23 @@ public class MainTimeAllocator {
 		
 		//Try to insert a 3rd assignment
 		Date start3 = new Date(System.currentTimeMillis() + 86400000);
-		Date due3 = new Date(start3.getTime() + (86400000 * 6));
+		Date due3 = new Date(start3.getTime() + (86400000 * 10)); //works for  * 6
 		Assignment asgn3 = new Assignment("Asgn3", due3, createAThirdTemplate(), 70);
 
+		//Fourth assignment
+		Date start4 = new Date(System.currentTimeMillis() + (86400000 * 4));
+		Date due4 = new Date(start3.getTime() + (86400000 * 11)); //works for  * 6
+		Assignment asgn4 = new Assignment("Asgn4", due4, createBasicTemplate(), 50);
+		
 		
 		try {
 			//Add the templates to the db
 			StorageService.addTemplate(asgn3.getTemplate());
+			StorageService.addTemplate(asgn4.getTemplate());
+			
 			//Add the assignments to the db
 			StorageService.addAssignment(asgn3);
+			StorageService.addAssignment(asgn4);
 		} catch (StorageServiceException e3) {
 			e3.printStackTrace();
 		}
@@ -128,17 +136,29 @@ public class MainTimeAllocator {
 		if(errs.size() != 0)
 			System.err.println(":( 3");		
 		
+		
+		talloc = new TimeAllocator(asgn4);
+		talloc.insertAsgn(start4, due4);
+		
+		//Push to db
+		results = talloc.getEntireBlockSet();
+		errs = StorageService.mergeAllTimeBlocks(results);
+		if(errs.size() != 0)
+			System.err.println(":( 4");		
+		
+		
 		//TODO: ensure that the results from the db are a valid calendar
 		System.out.println("Asgn 1: [" + start + ", " + due + "]");
 		System.out.println("Asgn 2: [" + start + ", " + due2 + "]");
 		System.out.println("Asgn 3: [" + start3 + ", " + due3 + "]");
-		List<UnavailableBlock> un = StorageService.getAllUnavailableBlocksWithinRange(start, due3);
+		System.out.println("Asgn 4: [" + start4 + ", " + due4 + "]");
+		List<UnavailableBlock> un = StorageService.getAllUnavailableBlocksWithinRange(start, due4);
 		System.out.println("unavailables: ");
 		for(int i = 0; i < un.size(); ++i) {
 			UnavailableBlock bl = un.get(i);
 			System.out.println(bl.fullString());
 		}
-		List<AssignmentBlock> as = StorageService.getAllAssignmentBlocksWithinRange(start, due3);
+		List<AssignmentBlock> as = StorageService.getAllAssignmentBlocksWithinRange(start, due4);
 		System.out.println("assignments: ");
 		for(int i = 0; i < as.size(); ++i) {
 			AssignmentBlock bl = as.get(i);
