@@ -22,7 +22,6 @@ import frontend.app.GUIApp;
 public class AssignmentsView extends JPanel {
 	
 	private final JScrollPane	scroller;
-	private final GUIApp		app;
 	private final JPanel		assignmentItems;
 	
 	// Constants
@@ -34,7 +33,6 @@ public class AssignmentsView extends JPanel {
 	 * @param app the view controller for this view
 	 */
 	public AssignmentsView(final GUIApp app) {
-		this.app = app;
 		
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		Utils.themeComponent(this);
@@ -72,7 +70,7 @@ public class AssignmentsView extends JPanel {
 	 */
 	public void reloadData() {
 		assignmentItems.removeAll();
-		final List<IAssignment> ass = app.getAssignments();
+		final List<IAssignment> ass = reloadAllAssignments();
 		if (ass.isEmpty()) {
 			final JLabel l = new JLabel("You're free!");
 			Utils.themeComponent(l);
@@ -82,6 +80,16 @@ public class AssignmentsView extends JPanel {
 		for (final IAssignment a : ass) {
 			assignmentItems.add(new AssignmentItemView(a));
 		}
+	}
+	
+	/**
+	 * Reads in all assignments from database
+	 * 
+	 * @return a list of IAssignment to use in actually populating the view
+	 */
+	private static List<IAssignment> reloadAllAssignments() {
+		// TODO actually read in from DB
+		return null;
 	}
 	
 	@Override

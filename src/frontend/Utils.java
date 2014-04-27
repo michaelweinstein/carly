@@ -3,12 +3,15 @@ package frontend;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.util.Date;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
+
+import data.Tuple;
 
 /**
  * Constants class to package up strings used in multiple classes
@@ -166,6 +169,20 @@ public abstract class Utils {
 	}
 	
 	/**
+	 * Returns a good contrasting color for c based on perceived brightness of a color
+	 * 
+	 * @param c a given color
+	 * @return a new Color representing a contrasting color
+	 */
+	public static Color contrastingColor(final Color c) {
+		final double r = c.getRed() * c.getRed() * .241;
+		final double g = c.getGreen() * c.getGreen() * .691;
+		final double b = c.getBlue() * c.getBlue() * .068;
+		final double bright = Math.sqrt(r + g + b);
+		return (bright < 130) ? Utils.COLOR_FOREGROUND : Utils.COLOR_BACKGROUND.darker();
+	}
+	
+	/**
 	 * Calculates minimum of many ints
 	 * 
 	 * @param ints a list of ints to find min of
@@ -191,6 +208,21 @@ public abstract class Utils {
 			curr = Math.max(i, curr);
 		}
 		return curr;
+	}
+	
+	/**
+	 * Checks for dates overlapping
+	 * 
+	 * @param d1 a tuple of date ranges
+	 * @param d2 another tuple of date ranges
+	 * @return if d1 and d2 overlap
+	 */
+	public static boolean dateRangesOverlap(final Tuple<Date, Date> d1, final Tuple<Date, Date> d2) {
+		final boolean d1StartInD2 = (d1.a.before(d2.b) || d1.a.equals(d2.b)) && (d1.a.after(d2.a) || d1.a.equals(d2.a));
+		final boolean d1EndInD2 = (d1.b.before(d2.b) || d1.b.equals(d2.b)) && (d1.b.after(d2.a) || d1.b.equals(d2.a));
+		final boolean d1EncompassesD2 = (d1.a.before(d2.a) || d1.a.equals(d2.a))
+			&& (d1.b.after(d2.b) || d1.b.equals(d2.b));
+		return d1StartInD2 || d1EndInD2 || d1EncompassesD2;
 	}
 	
 	/**

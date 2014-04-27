@@ -32,7 +32,7 @@ public class MainFrame extends JFrame {
 	/**
 	 * Constructor sets window properties and adds newly created views
 	 * 
-	 * @param vc the view controller in control
+	 * @param app the app controller in control
 	 */
 	public MainFrame(final GUIApp app) {
 		super(Utils.APP_NAME);

@@ -18,9 +18,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
-import data.AssignmentBlock;
+import backend.database.StorageService;
 import data.ITimeBlockable;
-import data.Task;
 import frontend.Utils;
 
 /**
@@ -36,6 +35,7 @@ public class CalendarView extends JPanel {
 	private final List<DayLabel>		_dayLabelList;
 	private JLabel						_weekYearLabel;
 	private final List<ITimeBlockable>	_timeBlocks;
+	private final List<ITimeBlockable>	_unavailableBlocks;
 	
 	private ITimeBlockable				_highlightedTask;
 	
@@ -61,6 +61,7 @@ public class CalendarView extends JPanel {
 		_lineCanvas = new LineCanvas(this);
 		_weekView = new WeekView(this);
 		_timeBlocks = new ArrayList<>();
+		_unavailableBlocks = new ArrayList<>();
 		_dayLabelList = new ArrayList<>(7);
 		
 		final Calendar cal = getCalendarInstance();
@@ -96,86 +97,6 @@ public class CalendarView extends JPanel {
 				shiftWeekForward();
 			}
 		});
-		
-		// TESTING TESTING 1 2 3
-		final Calendar c = getCalendarInstance();
-		c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-		c.set(Calendar.HOUR_OF_DAY, 3);
-		c.set(Calendar.MINUTE, 30);
-		Date start = c.getTime();
-		c.add(Calendar.MINUTE, 30);
-		Date end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Early Morning Task - Wait, $#($32", 0.3)));
-		
-		c.set(Calendar.HOUR_OF_DAY, 20);
-		c.set(Calendar.MINUTE, 15);
-		start = c.getTime();
-		c.add(Calendar.HOUR_OF_DAY, 12);
-		end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Overnight 1", 0.3)));
-		
-		c.add(Calendar.HOUR_OF_DAY, 2);
-		start = c.getTime();
-		c.add(Calendar.HOUR_OF_DAY, 74);
-		end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Overnight Full Days", 0.3)));
-		
-		c.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-		c.set(Calendar.HOUR_OF_DAY, 11);
-		start = c.getTime();
-		c.add(Calendar.HOUR_OF_DAY, 2);
-		c.add(Calendar.MINUTE, 30);
-		end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Sunday Brunch", 0.3)));
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Double Booked!!?", 0.3)));
-		
-		c.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-		c.set(Calendar.HOUR_OF_DAY, 0);
-		c.set(Calendar.MINUTE, 0);
-		start = c.getTime();
-		c.add(Calendar.HOUR_OF_DAY, 12);
-		end = c.getTime();
-		_timeBlocks
-				.add(new AssignmentBlock(start, end, new Task("Half Day Saturday Event with a Very Long Title", 0.3)));
-		
-		c.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-		c.set(Calendar.HOUR_OF_DAY, 10);
-		c.set(Calendar.MINUTE, 47);
-		start = c.getTime();
-		c.add(Calendar.MINUTE, 80000);
-		end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Around the Weekend", 0.3)));
-		
-		c.setTime(new Date());
-		c.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-		c.set(Calendar.HOUR_OF_DAY, 20);
-		c.set(Calendar.MINUTE, 17);
-		c.add(Calendar.WEEK_OF_YEAR, -1);
-		start = c.getTime();
-		c.add(Calendar.HOUR_OF_DAY, 8);
-		end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Around the Weekend 2", 0.3)));
-		
-		c.setTime(new Date());
-		c.add(Calendar.WEEK_OF_YEAR, -4);
-		start = c.getTime();
-		c.add(Calendar.HOUR_OF_DAY, 8);
-		end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Shouldn't appear before", 0.3)));
-		
-		c.setTime(new Date());
-		c.add(Calendar.WEEK_OF_YEAR, 4);
-		start = c.getTime();
-		c.add(Calendar.YEAR, 2000);
-		end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Shouldn't appear after", 0.3)));
-		
-		/*
-		 * TheWorst-DoesFULLWEEKc.setTime(new Date()); c.add(Calendar.YEAR, -1); start = c.getTime();
-		 * c.add(Calendar.YEAR, 2); end = c.getTime(); _timeBlocks.add(new AssignmentBlock(start, end, new
-		 * Task("FULL WEEK", 0.3)));
-		 */
-		
 	}
 	
 	/**
@@ -287,31 +208,32 @@ public class CalendarView extends JPanel {
 		return par;
 	}
 	
-	// TODO: TESTING ONLY
-	public void replaceTimeBlock(final ITimeBlockable t, final ITimeBlockable t2) {
-		final int i = _timeBlocks.indexOf(t);
-		_timeBlocks.remove(i);
-		_timeBlocks.add(i, t2);
-	}
-	
-	// TODO: TESTING ONLY
-	public void addTimeBlock(final ITimeBlockable t) {
-		_timeBlocks.add(t);
-	}
-	
 	/**
 	 * Repaints children after resetting data
 	 */
 	public void reloadData() {
+		reloadTimeBlocksFromDB();
 		_highlightedTask = null;
-		_weekView.repaint();
 		_weekView.clearHighlights();
 		_weekView.getViewport().setViewPosition(new Point(0, 0));
-		_lineCanvas.repaint();
 		for (int i = 0; i < _dayLabelList.size(); i++) {
 			_dayLabelList.get(i).setDate(i + 1, getCurrentWeekStartDate());
 		}
 		updateWeekYearLabel();
+		_lineCanvas.repaint();
+		_weekView.repaint();
+	}
+	
+	/**
+	 * Reads in all time blocks from database
+	 */
+	private void reloadTimeBlocksFromDB() {
+		final Date start = getCurrentWeekStartDate();
+		final Date end = getCurrentWeekEndDate();
+		_timeBlocks.clear();
+		_unavailableBlocks.clear();
+		_timeBlocks.addAll(StorageService.getAllAssignmentBlocksWithinRange(start, end));
+		_unavailableBlocks.addAll(StorageService.getAllUnavailableBlocksWithinRange(start, end));
 	}
 	
 	/**
@@ -425,6 +347,15 @@ public class CalendarView extends JPanel {
 	 */
 	public List<ITimeBlockable> getTimeBlocks() {
 		return _timeBlocks;
+	}
+	
+	/**
+	 * Gets the unavailable time blocks for use elsewhere
+	 * 
+	 * @return a list of ITimeBlockables to draw
+	 */
+	public List<ITimeBlockable> getUnavailableTimeBlocks() {
+		return _unavailableBlocks;
 	}
 	
 	/**
