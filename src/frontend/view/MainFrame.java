@@ -54,6 +54,8 @@ public class MainFrame extends JFrame {
 		Utils.themeComponent(mainPanel);
 		tryEnableFullScreenMode(this);
 		pack();
+		
+		reloadData();
 	}
 	
 	/**

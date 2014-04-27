@@ -1,5 +1,6 @@
 package backend.database;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.sql.Connection;
@@ -20,7 +21,6 @@ import data.ITask;
 import data.ITemplate;
 import data.ITimeBlockable;
 import data.UnavailableBlock;
-import frontend.Main;
 
 /**
  * Handles the storage, retrieval and persistence of data for Carly
@@ -41,14 +41,10 @@ public class StorageService {
 		_templates = new Cache<>();
 		final Properties props = new Properties();
 		try {
-			props.loadFromXML(new FileInputStream(Main.class.getClassLoader().getResource("db.properties")
-					.getPath().replaceAll("%20", " ")));
+			props.loadFromXML(new FileInputStream(new File("config/db.properties")));
 		} catch (final IOException x) {
 			Utilities.printException("StorageService: initialize: could not load database properties", x);
 		}
-		
-		System.out.println(props.getProperty("DB_URL") + " | " + props.getProperty("DB_USER") + " | "
-			+ props.getProperty("DB_PWD"));
 		_pool = JdbcConnectionPool.create(props.getProperty("DB_URL"), props.getProperty("DB_USER"),
 				props.getProperty("DB_PWD"));
 		
@@ -143,7 +139,7 @@ public class StorageService {
 	 * @param date2 Upper bound of the date range
 	 * @return List of Assignments whose dueDate falls within the specified date range
 	 */
-	public static List<Assignment> getAllAssignmentsWithinRange(final Date date1, final Date date2) {
+	public static List<IAssignment> getAllAssignmentsWithinRange(final Date date1, final Date date2) {
 		return AssignmentTaskStorage.getAllAssignmentsWithinRange(date1, date2, _templates, _pool);
 	}
 	

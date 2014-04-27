@@ -2,6 +2,7 @@ package frontend.view.assignments;
 
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.BoxLayout;
@@ -10,6 +11,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.ScrollPaneConstants;
 
+import backend.database.StorageService;
 import data.IAssignment;
 import frontend.Utils;
 import frontend.app.GUIApp;
@@ -71,14 +73,16 @@ public class AssignmentsView extends JPanel {
 	public void reloadData() {
 		assignmentItems.removeAll();
 		final List<IAssignment> ass = reloadAllAssignments();
-		if (ass.isEmpty()) {
+		
+		if (ass == null || ass.isEmpty()) {
 			final JLabel l = new JLabel("You're free!");
 			Utils.themeComponent(l);
 			l.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 13));
 			assignmentItems.add(l);
-		}
-		for (final IAssignment a : ass) {
-			assignmentItems.add(new AssignmentItemView(a));
+		} else {
+			for (final IAssignment a : ass) {
+				assignmentItems.add(new AssignmentItemView(a));
+			}
 		}
 	}
 	
@@ -88,8 +92,7 @@ public class AssignmentsView extends JPanel {
 	 * @return a list of IAssignment to use in actually populating the view
 	 */
 	private static List<IAssignment> reloadAllAssignments() {
-		// TODO actually read in from DB
-		return null;
+		return StorageService.getAllAssignmentsWithinRange(new Date(0), new Date(new Date().getTime() * 5));
 	}
 	
 	@Override
