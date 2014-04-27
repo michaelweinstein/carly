@@ -36,6 +36,7 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
 import data.ITimeBlockable;
+import data.Tuple;
 import frontend.Utils;
 
 /**
@@ -127,10 +128,10 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		}
 		
 		/**
-		 * Gets all rects for a given point
+		 * Gets the blockable object for a given point
 		 * 
 		 * @param mousePoint a point in 2D space
-		 * @return the list of time rects relating to the block under mousePoint
+		 * @return an ITimeBlockable for a given point
 		 */
 		public static ITimeBlockable blockForPoint(final Point mousePoint) {
 			for (final ITimeBlockable t : allBlocks.keySet()) {
@@ -144,6 +145,41 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 				}
 			}
 			return null;
+		}
+		
+		/**
+		 * Checks for dates overlapping
+		 * 
+		 * @param d1 a tuple of date ranges
+		 * @param d2 another tuple of date ranges
+		 * @return if d1 and d2 overlap
+		 */
+		private static boolean overlaps(final Tuple<Date, Date> d1, final Tuple<Date, Date> d2) {
+			final boolean d1StartInD2 = (d1.a.before(d2.b) || d1.a.equals(d2.b))
+				&& (d1.a.after(d2.a) || d1.a.equals(d2.a));
+			final boolean d1EndInD2 = (d1.b.before(d2.b) || d1.b.equals(d2.b))
+				&& (d1.b.after(d2.a) || d1.b.equals(d2.a));
+			final boolean d1EncompassesD2 = (d1.a.before(d2.a) || d1.a.equals(d2.a))
+				&& (d1.b.after(d2.b) || d1.b.equals(d2.b));
+			return d1StartInD2 || d1EndInD2 || d1EncompassesD2;
+		}
+		
+		/**
+		 * Take a time blockable and a new start position and check for overlap across all things
+		 * 
+		 * @param newStart a new start date
+		 * @param oldBlock the old time blockable
+		 * @return if oldBlock with a new date overlaps with any other block
+		 */
+		public static boolean checkForOverlap(final Date newStart, final ITimeBlockable oldBlock) {
+			final Date newEnd = new Date(newStart.getTime() + oldBlock.getLength());
+			for (final ITimeBlockable t : allBlocks.keySet()) {
+				if (!t.equals(oldBlock)
+					&& overlaps(new Tuple<>(newStart, newEnd), new Tuple<>(t.getStart(), t.getEnd()))) {
+					return true;
+				}
+			}
+			return false;
 		}
 	}
 	
@@ -189,6 +225,26 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	 */
 	public void clearHighlights() {
 		TimeRect.highlightedBlocks.clear();
+	}
+	
+	/**
+	 * Given an x and y, "snaps" to the nearest 15 minute time
+	 * 
+	 * @param p an x,y point on the canvas
+	 * @return the date represented by (x,y) on the canvas, snapped to the nearest 15 minutes
+	 */
+	public Date getTimeForLocation(final Point p) {
+		final int day = (int) Math.floor(((p.getX() - X_OFFSET) / (getWidth() - X_OFFSET)) * DAYS) + 1;
+		final double hrsAndMin = HRS * ((p.getY() - Y_PAD) / (getHeight() - Y_PAD));
+		final int hours = (int) Math.floor(hrsAndMin);
+		final int min = 15 * (int) (Math.floor(((hrsAndMin - hours) * 4)));
+		
+		final Calendar c = CalendarView.getCalendarInstance();
+		c.set(Calendar.MINUTE, min);
+		c.set(Calendar.HOUR_OF_DAY, hours);
+		c.set(Calendar.DAY_OF_WEEK, day);
+		
+		return c.getTime();
 	}
 	
 	/**
@@ -264,9 +320,28 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	 * @param t a time blockable to draw
 	 */
 	private void placeAndDrawHighlightedBlock(final Graphics2D brush, final ITimeBlockable t) {
+		// Checks bounds so we know not to place line if dates don't match up
+		if (t.getStart().after(_weekEndDate) || t.getEnd().before(_weekStartDate)) {
+			return;
+		}
 		
-		final double height = 150;
+		// Shared measurements
 		final double dayWidth = (getWidth() - X_OFFSET) / DAYS;
+		final Calendar c = CalendarView.getCalendarInstance();
+		
+		c.setTime(t.getStart());
+		final int startY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
+		final int startDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
+		c.setTime(t.getEnd());
+		final int endY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
+		final int endDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
+		
+		double height = 300;
+		
+		// We know it's the same day if the following is true - otherwise, approximate it with 300
+		if (startDay == endDay && !t.getStart().before(_weekStartDate) && !t.getEnd().after(_weekEndDate)) {
+			height = endY - startY;
+		}
 		
 		final TimeRect rect = new TimeRect(_mousePoint.getX(), _mousePoint.getY(), dayWidth, height, t);
 		drawBlock(brush, t, rect);
@@ -322,7 +397,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		}
 		
 		// Simple - start and end on same day!
-		if (startX == endX) {
+		if (startX == endX && startDay == endDay) {
 			final int height = endY - startY;
 			drawBlock(brush, t, new TimeRect(startX, startY, dayWidth, height, t));
 			return;
@@ -490,6 +565,19 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	
 	@Override
 	public void mouseReleased(final MouseEvent e) {
+		// Figure out where it dropped and update info
+		if (_mousePoint != null && _cv.getHighlightedTask() != null) {
+			final Date d = getTimeForLocation(_mousePoint);
+			if (!TimeRect.checkForOverlap(d, _cv.getHighlightedTask())) {
+				final ITimeBlockable newBlock = _cv.getHighlightedTask();
+				final long len = newBlock.getLength();
+				newBlock.setStart(d);
+				newBlock.setEnd(new Date(d.getTime() + len));
+				_cv.replaceTimeBlock(_cv.getHighlightedTask(), newBlock);
+			}
+		}
+		
+		// Reset highlights
 		_mousePoint = null;
 		TimeRect.highlightedBlocks.remove(_cv.getHighlightedTask());
 		_cv.setHighlightedTask(null);

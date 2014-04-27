@@ -74,6 +74,11 @@ public class TimeUtilities {
 	public static boolean existsPossibleFit(List<ITimeBlockable> allBlocks, IAssignment asgn, Date start) {
 		long amtFreeTime = 0;
 		
+		//If the list has no blocks in it, there is a fit as long as the range is big enough
+		if(allBlocks.size() == 0)
+			return TimeUnit.MILLISECONDS.convert(asgn.getExpectedHours(), TimeUnit.HOURS)
+					<= asgn.getDueDate().getTime() - start.getTime();
+		
 		//Add time between start and first block
 		if(allBlocks.size() > 0)
 			amtFreeTime += allBlocks.get(0).getStart().getTime() - start.getTime();

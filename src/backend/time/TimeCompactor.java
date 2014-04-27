@@ -132,12 +132,14 @@ public class TimeCompactor {
 			Assignment blockAsgn = StorageService.getAssignment(block.getTask().getAssignmentID());			
 			if(newStart < start.getTime()) {
 				System.err.println("Bad START-insertion attempt!");
-				break;
+				//break;
+				continue;
 			}
 			//if(newEnd > end.getTime()) {
 			if(newEnd > blockAsgn.getDueDate().getTime()) {
 				System.err.println("Bad END-insertion attempt!");
-				break;
+				//break;
+				continue;
 			}
 
 			//Place the block in its new location and decrement from the time bank

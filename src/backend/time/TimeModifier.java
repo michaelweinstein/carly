@@ -310,6 +310,17 @@ public class TimeModifier {
 		// 5a. The user is behind, so add a bit of time to each block if possible, or insert new blocks
 		// if necessary.
 		if (pctToAdjust < 0) {
+			long totalMillisToAdd = (long) (Math.abs(pctToAdjust) * taskLengthInMillis);
+			
+			final int startInd = TimeUtilities.indexOfFitLocn(allBlocks, now);
+			int numFutureBlocks = taskBlocks.size() - startInd;
+			int currInd = startInd;
+			
+			//Add as many full-size blocks as possible, then add on extra time to other blocks
+			while(currInd < allBlocks.size() && totalMillisToAdd > 0) {
+				
+			}
+			
 			// TODO: 1st priority = insert a new block
 			// TODO: 2nd priority = add time to blocks
 		}

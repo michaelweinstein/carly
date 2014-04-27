@@ -100,8 +100,7 @@ public class TimeAllocator {
 			System.out.println("Start: " + itb.getStart() + " || End: " + itb.getEnd());
 		}
 		
-		//TODO: CAREFUL WITH THIS CALL!!! I don't want to decompact blocks from *other* assignments
-		//		past their due dates - so I'm going to have to do a check for each block's due date
+
 		TimeCompactor.decompact(allBlocks, start, end);
 			
 		System.out.println("DEBUG - printing out the time ranges of all blocks");	
