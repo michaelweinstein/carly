@@ -287,6 +287,18 @@ public class CalendarView extends JPanel {
 		return par;
 	}
 	
+	// TODO: TESTING ONLY
+	public void replaceTimeBlock(final ITimeBlockable t, final ITimeBlockable t2) {
+		final int i = _timeBlocks.indexOf(t);
+		_timeBlocks.remove(i);
+		_timeBlocks.add(i, t2);
+	}
+	
+	// TODO: TESTING ONLY
+	public void addTimeBlock(final ITimeBlockable t) {
+		_timeBlocks.add(t);
+	}
+	
 	/**
 	 * Repaints children after resetting data
 	 */
