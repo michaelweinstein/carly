@@ -97,11 +97,11 @@ public class AssignmentsView extends JPanel {
 	
 	@Override
 	public Dimension getPreferredSize() {
-		return new Dimension(280, 300);
+		return new Dimension(220, 200);
 	}
 	
 	@Override
 	public Dimension getMinimumSize() {
-		return new Dimension(280, 300);
+		return new Dimension(220, 200);
 	}
 }

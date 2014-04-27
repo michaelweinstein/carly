@@ -86,6 +86,6 @@ public class AssignmentItemView extends JPanel {
 	
 	@Override
 	public Dimension getMaximumSize() {
-		return new Dimension(245, Integer.MAX_VALUE - 1);
+		return new Dimension(200, Integer.MAX_VALUE - 1);
 	}
 }
