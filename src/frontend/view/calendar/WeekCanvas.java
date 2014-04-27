@@ -4,6 +4,7 @@ import static frontend.view.calendar.CanvasConstants.DAYS;
 import static frontend.view.calendar.CanvasConstants.HRS;
 import static frontend.view.calendar.CanvasConstants.X_OFFSET;
 import static frontend.view.calendar.CanvasConstants.Y_PAD;
+import hub.HubController;
 
 import java.awt.Dimension;
 import java.awt.Font;
@@ -31,7 +32,6 @@ import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
-import backend.time.TimeModifier;
 import data.ITimeBlockable;
 import data.Tuple;
 import frontend.Utils;
@@ -502,7 +502,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 			final Date start = getTimeForLocation(_mousePoint);
 			if (!checkBlockForOverlap(start, task)) {
 				final Date end = new Date(start.getTime() + task.getLength());
-				TimeModifier.updateBlock(task, start, end);
+				HubController.changeTimeBlock(task, start, end);
 			}
 		}
 		

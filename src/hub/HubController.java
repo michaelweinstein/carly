@@ -5,7 +5,10 @@ import java.util.Date;
 import backend.database.StorageService;
 import backend.database.StorageServiceException;
 import backend.time.TimeAllocator;
+import backend.time.TimeModifier;
 import data.Assignment;
+import data.ITask;
+import data.ITimeBlockable;
 import frontend.Utils;
 
 /**
@@ -16,16 +19,14 @@ import frontend.Utils;
 public class HubController {
 	
 	/**
-	 * Method to be called with a valid assignment (though that'll be checked) to pass the assignment to the learner
+	 * Adds the assignment to database, updating the learner and such along the way
 	 * 
-	 * @param a an IAssignment to add to the database
+	 * @param a the assignment to add
 	 */
-	public static void passAssignmentToLearner(final Assignment a) {
-		System.out.println("Added " + a.fullString());
-	}
-	
 	public static void addAssignmentToCalendar(final Assignment a) {
 		final String tempId = a.getTemplate().getID();
+		
+		// TODO: Make learner act on this
 		
 		// Insert template into db if not already there
 		if (StorageService.getTemplate(tempId) == null) {
@@ -33,6 +34,7 @@ public class HubController {
 				StorageService.addTemplate(a.getTemplate());
 			} catch (final StorageServiceException sse) {
 				Utils.printError("SSE in addAssignmentToCalendar() - inserting ITemplate");
+				return;
 			}
 		}
 		
@@ -41,6 +43,7 @@ public class HubController {
 			StorageService.addAssignment(a);
 		} catch (final StorageServiceException sse) {
 			Utils.printError("SSE in addAssignmentToCalendar() - inserting Assignment");
+			return;
 		}
 		
 		final Date start = new Date();
@@ -50,4 +53,31 @@ public class HubController {
 		StorageService.mergeAllTimeBlocks(talloc.getEntireBlockSet());
 	}
 	
+	/**
+	 * Updates a block in the database when the user moves it or changes the start or end times
+	 * 
+	 * @param oldBlock the old block, with old data as start/end
+	 * @param newStart the new start time
+	 * @param newEnd the new end time
+	 */
+	public static void changeTimeBlock(final ITimeBlockable oldBlock, final Date newStart, final Date newEnd) {
+		final Date oldStart = new Date(oldBlock.getStart().getTime());
+		final Date oldEnd = new Date(oldBlock.getEnd().getTime());
+		
+		if (TimeModifier.updateBlock(oldBlock, newStart, newEnd)) {
+			// TODO: If successful, update learner using oldStart and oldEnd
+		}
+	}
+	
+	/**
+	 * Updates a task in the database with a new completion amount
+	 * 
+	 * @param oldTask the actual task to update
+	 * @param newCompletion a double between 0 and 1 inclusive to represent percent complete
+	 */
+	public static void changeTask(final ITask oldTask, final double newCompletion) {
+		final double oldCompletion = oldTask.getPercentComplete();
+		TimeModifier.updateBlocksInTask(oldTask, newCompletion);
+		// TODO: Update learner using old percent and new percent
+	}
 }
