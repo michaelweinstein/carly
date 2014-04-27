@@ -47,11 +47,6 @@ public class Main {
 			return;
 		}
 		
-		// Create an App, subtype dependent on the GUI command line flag
-		final boolean debug = parser.existsFlag(Utils.DEBUG);
-		a = (parser.existsFlag(Utils.REPL)) ? new REPLApp(debug) : new GUIApp(debug);
-		a.start();
-		
 		/**
 		 * For StorageService.initialize(false||true): <br>
 		 * Set 'true' if you want to drop old tables at the start of every run <br>
@@ -60,5 +55,10 @@ public class Main {
 		
 		// DEBUG
 		StorageService.initialize(false);
+		
+		// Create an App, subtype dependent on the GUI command line flag
+		final boolean debug = parser.existsFlag(Utils.DEBUG);
+		a = (parser.existsFlag(Utils.REPL)) ? new REPLApp(debug) : new GUIApp(debug);
+		a.start();
 	}
 }

@@ -13,12 +13,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Locale;
 
@@ -38,15 +36,11 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.JTableHeader;
 
-import backend.database.StorageService;
 import data.Assignment;
-import data.AssignmentBlock;
 import data.ITemplate;
 import data.ITemplateStep;
-import data.ITimeBlockable;
 import data.Template;
 import data.TemplateStep;
-import data.UnavailableBlock;
 import frontend.Utils;
 import frontend.app.GUIApp;
 
@@ -73,7 +67,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	/**
 	 * Constructor creates all relevant data
 	 * 
-	 * @param vc the parent view controller
+	 * @param app the app in control
 	 */
 	public AddAssignmentDialog(final GUIApp app) {
 		super();
@@ -132,31 +126,8 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 				try {
 					final Assignment a = parseFields();
 					HubController.passAssignmentToLearner(a);
-					
-					//TODO: EVAN ADDED THIS JUST AS A TEMP TO TEST RENDERING DIRECTLY FROM DB
 					HubController.addAssignmentToCalendar(a);
-					
-					Date startExWeek = new GregorianCalendar(2014, 3, 20, 0, 0, 0).getTime();
-					Date endExWeek = new GregorianCalendar(2014, 3, 26, 23, 59, 59).getTime();
-					
-					List<AssignmentBlock> asgnBlocks = 
-							StorageService.getAllAssignmentBlocksWithinRange(startExWeek, endExWeek);
-					List<UnavailableBlock> unBlocks = 
-							StorageService.getAllUnavailableBlocksWithinRange(startExWeek, endExWeek);
-					
-					//Clear the list for now
-					List<ITimeBlockable> calendarBlocks = app.getCalendarView().getTimeBlocks();
-					calendarBlocks.clear();
-					
-					//Rendering only asgnBlocks for now...
-					calendarBlocks.addAll(asgnBlocks);
-					
-					//END EVAN
-					
-					// FOR TESTING ONLY
-					app.addAssignment(a);
-					app.redraw();
-					// ///////
+					app.reload();
 					clearContents();
 					dispose();
 				} catch (final IllegalArgumentException e1) {
