@@ -1,24 +1,24 @@
 package backend.database;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import data.AssignmentBlock;
-import data.Task;
-import data.TimeOfDay;
-
+import org.h2.jdbcx.JdbcConnectionPool;
 
 public class SettingStorage {
 	
+	/**
+	 * Builds the create table string and returns to Storage Service
+	 * 
+	 * @param queries list of create table queries to execute by initialize in StorageService
+	 */
 	protected static void buildTable(ArrayList<String> queries) {
 		//Setting table
         ArrayList<String> settingCols = new ArrayList<>();
@@ -27,16 +27,23 @@ public class SettingStorage {
         queries.add(Utilities.buildCreateString("SETTING", settingCols)); 
 	}
 	
-	protected static synchronized void addSetting(String name, String val) {
+	/**
+	 * Merge one setting into the database
+	 * 
+	 * @param name String name of the setting to be merged
+	 * @param val String value of the setting to be merged
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
+	 */
+	protected static void mergeSetting(String name, String val, JdbcConnectionPool pool) {
 		PreparedStatement settingStatement = null;
 	    Connection con = null; 
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 	        con.setAutoCommit(false);
 	        
-	        settingStatement = con.prepareStatement(Utilities.INSERT_SETTING); 
+	        settingStatement = con.prepareStatement(Utilities.MERGE_SETTING); 
             Utilities.setValues(settingStatement, name, val);
             settingStatement.execute();
             
@@ -75,17 +82,24 @@ public class SettingStorage {
 	    } 
 	}
 	
-	protected static synchronized boolean addAllSettings(Map<String,String> settings) {
+	/**
+	 * Merge all settings to the database 
+	 * 
+	 * @param settings Map of String to String where key is the name of the setting and value is the info of the setting
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
+	 * @return Boolean indicating if ALL settings were merged successfully
+	 */
+	protected static boolean mergeAllSettings(Map<String,String> settings, JdbcConnectionPool pool) {
 		PreparedStatement settingStatement = null;
 	    Connection con = null; 
 	    boolean allSuccess = true; 
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 	        con.setAutoCommit(false);
 	        
-	        settingStatement = con.prepareStatement(Utilities.INSERT_SETTING); 
+	        settingStatement = con.prepareStatement(Utilities.MERGE_SETTING); 
 	        for (Entry<String,String> setting : settings.entrySet()) {
 	            Utilities.setValues(settingStatement, setting.getKey(), setting.getValue());
 	            settingStatement.addBatch(); 
@@ -135,14 +149,21 @@ public class SettingStorage {
 	    return allSuccess; 
 	}
 	
-	protected static synchronized String getSetting(String name) {
+	/**
+	 * Get the setting information corresponding to the passed-in setting name
+	 * 
+	 * @param name Setting name to retrieve information for
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
+	 * @return String value for the setting name passed in 
+	 */
+	protected static String getSetting(String name, JdbcConnectionPool pool) {
 		PreparedStatement statement = null; 
 	    Connection con = null; 
 	    String value = ""; 
 	    	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 			
 	        statement = con.prepareStatement(Utilities.SELECT_SETTING_BY_NAME); 
         	Utilities.setValues(statement, name);
@@ -179,14 +200,20 @@ public class SettingStorage {
 		return value; 
 	}
 	
-	protected static synchronized Map<String, String> getAllSettings() {
+	/**
+	 * Gets all the settings stored in the database
+	 * 
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
+	 * @return Mapping of String to String where key is the name of the setting, and value is the info of the setting
+	 */
+	protected static Map<String, String> getAllSettings(JdbcConnectionPool pool) {
 		PreparedStatement statement = null; 
 	    Connection con = null; 
 	    HashMap<String, String> result = new HashMap<>(); 
 	    	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 			
 	        statement = con.prepareStatement(Utilities.SELECT_ALL_SETTINGS); 
         	ResultSet settingResults = statement.executeQuery();

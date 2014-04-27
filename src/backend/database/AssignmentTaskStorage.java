@@ -1,24 +1,22 @@
 package backend.database;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.h2.jdbcx.JdbcConnectionPool;
+
 import data.Assignment;
 import data.IAssignment;
 import data.ITask;
 import data.ITemplate;
 import data.ITemplateStep;
-import data.ITimeBlockable;
 import data.Task;
 import data.Template;
 import data.TemplateStep;
@@ -61,10 +59,12 @@ public class AssignmentTaskStorage {
 	 * The Assignment's associated Template must already be in the database
 	 * 
 	 * @param assignment Assignment to be added to the database
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return Assignment that was added, for chaining calls
 	 * @throws StorageServiceException Thrown when the Assigment's associated Template is not in the db
 	 */
-	protected static synchronized IAssignment addAssignment(IAssignment assignment) throws StorageServiceException {
+	protected static IAssignment addAssignment(IAssignment assignment, JdbcConnectionPool pool) 
+			throws StorageServiceException {
 		PreparedStatement assignmentStatement = null;
 		PreparedStatement taskStatement = null;
 		PreparedStatement templateStatement = null;
@@ -72,7 +72,7 @@ public class AssignmentTaskStorage {
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD); 
+	    	con = pool.getConnection(); 
 	    	
 	        con.setAutoCommit(false);
 	        assignmentStatement = con.prepareStatement(Utilities.INSERT_ASGN);
@@ -162,15 +162,16 @@ public class AssignmentTaskStorage {
 	 * Remove an Assignment and all of its associated Tasks from the database
 	 * 
 	 * @param assignment IAssignment to be removed
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return IAssignment that was removed, for chaining calls
 	 */
-	protected static synchronized IAssignment removeAssignment(IAssignment assignment) {
+	protected static IAssignment removeAssignment(IAssignment assignment, JdbcConnectionPool pool) {
 		PreparedStatement assignmentStatement = null;
 	    Connection con = null; 
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 			
 	        con.setAutoCommit(false);
 	        assignmentStatement = con.prepareStatement(Utilities.DELETE_ASGN);
@@ -218,10 +219,12 @@ public class AssignmentTaskStorage {
 	 * Checks to see if the Template associated with the Assignment can still be found in the db 
 	 * 
 	 * @param assignment Assignment to be updated
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return Assignment that was updated, for chaining calls
 	 * @throws StorageServiceException Thrown when the Assignment's associated Template cannot be found in the db
 	 */
-	protected static synchronized Assignment updateAssignment(Assignment assignment) throws StorageServiceException {
+	protected static Assignment updateAssignment(Assignment assignment, JdbcConnectionPool pool) 
+			throws StorageServiceException {
 		PreparedStatement assignmentStatement = null;
 		PreparedStatement taskDeleteStatement = null;
 		PreparedStatement taskInsertStatement = null;
@@ -230,7 +233,7 @@ public class AssignmentTaskStorage {
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 	        con.setAutoCommit(false);
 	        
 	        //Check to see that the template associated exists in the db
@@ -259,7 +262,6 @@ public class AssignmentTaskStorage {
 	        
 	        assignmentStatement = con.prepareStatement(Utilities.UPDATE_ASGN);
         	String assignmentId = assignment.getID(); 
-        	List<ITask> taskList = assignment.getTasks(); 
         	
         	Utilities.setValues(assignmentStatement, assignment.getName(), 
 	            		assignment.getExpectedHours(), assignment.getDueDate().getTime(), 
@@ -332,9 +334,11 @@ public class AssignmentTaskStorage {
 	 * 
 	 * @param toBeFoundId Id value of the Assignment to be retrieved
 	 * @param templates Cache of templates for finding the associated Template
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return Assignment that was found, or null if the Assignment was not found 
 	 */
-	protected static synchronized Assignment getAssignment(String toBeFoundId, Cache<ITemplate> templates) {
+	protected static Assignment getAssignment(String toBeFoundId, 
+			Cache<ITemplate> templates, JdbcConnectionPool pool) {
 		PreparedStatement assignmentStatement = null;
 		PreparedStatement templateStatement = null; 
 	    Connection con = null;
@@ -344,7 +348,7 @@ public class AssignmentTaskStorage {
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 			
 	        assignmentStatement = con.prepareStatement(Utilities.SELECT_ASGN_BY_ID); 
 	        Utilities.setValues(assignmentStatement, toBeFoundId);
@@ -462,9 +466,11 @@ public class AssignmentTaskStorage {
 	 * @param date1 Lower bound of the date range
 	 * @param date2 Upper bound of the date range
 	 * @param templates Cache of templates for retrieving the associated Templates
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return List of Assignments whose dueDate falls within the specified date range
 	 */
-	protected static synchronized List<Assignment> getAllAssignmentsWithinRange(Date date1, Date date2, Cache<ITemplate> templates) {
+	protected static List<Assignment> getAllAssignmentsWithinRange(Date date1, Date date2, 
+			Cache<ITemplate> templates, JdbcConnectionPool pool) {
 		PreparedStatement assignmentStatement = null;
 		PreparedStatement templateStatement = null; 
 	    Connection con = null; 
@@ -479,7 +485,7 @@ public class AssignmentTaskStorage {
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 			
 	        assignmentStatement = con.prepareStatement(Utilities.SELECT_ASGNS_TASKS_BY_DATE); 
         	Utilities.setValues(assignmentStatement, earlier.getTime(), later.getTime());
@@ -620,9 +626,10 @@ public class AssignmentTaskStorage {
 	 * 
 	 * @param date1 Lower bound of the date range
 	 * @param date2 Upper bound of the date range
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return List of Tasks that fall within the date range specified
 	 */
-	protected static synchronized List<ITask> getAllTasksWithinRange(Date date1, Date date2) {
+	protected static List<ITask> getAllTasksWithinRange(Date date1, Date date2, JdbcConnectionPool pool) {
 		PreparedStatement statement = null; 
 	    Connection con = null; 
 	    ArrayList<ITask> results = new ArrayList<>(); 
@@ -633,7 +640,7 @@ public class AssignmentTaskStorage {
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 			
 	        statement = con.prepareStatement(Utilities.SELECT_TASKS_BY_DATE); 
         	Utilities.setValues(statement, earlier.getTime(), later.getTime());

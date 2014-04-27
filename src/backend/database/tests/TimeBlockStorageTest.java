@@ -4,8 +4,6 @@ import static org.junit.Assert.*;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -16,24 +14,17 @@ import org.junit.Test;
 
 import data.Assignment;
 import data.AssignmentBlock;
-import data.DataUtil;
-import data.ITask;
-import data.ITemplate;
 import data.ITemplateStep;
 import data.ITimeBlockable;
 import data.Task;
 import data.Template;
 import data.TemplateStep;
 import data.UnavailableBlock;
-import backend.database.AssignmentTaskStorage;
 import backend.database.StorageService;
 import backend.database.StorageServiceException;
-import backend.database.Utilities;
-
 
 public class TimeBlockStorageTest {
 	
-	private Connection _con; 
 	private final ByteArrayOutputStream errorFd = new ByteArrayOutputStream();
 	private PrintStream _oldStdErr; 
 	
@@ -41,21 +32,12 @@ public class TimeBlockStorageTest {
 	public void setUp() throws Exception {
 		_oldStdErr = System.err; 
 		System.setErr(new PrintStream(errorFd));
-		
 		StorageService.initialize(true);
-		try {
-			_con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
-			Class.forName("org.h2.Driver");
-		}
-		catch (ClassNotFoundException e) {
-			fail("TimeBlockStorageTest: setUp: db drive class not found: " + e.getMessage()); 
-		}
 	}
 	
 	@After
 	public void tearDown() throws Exception {
 		System.setErr(_oldStdErr);
-		_con.close(); 
 	}
 	
 	/*
@@ -408,6 +390,10 @@ public class TimeBlockStorageTest {
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 6), 
 				task); 
+		AssignmentBlock block6 = new AssignmentBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 1), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 7), 
+				task); 
 		
 		UnavailableBlock unavailable1 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
@@ -431,6 +417,7 @@ public class TimeBlockStorageTest {
 			StorageService.addTimeBlock(block3); 
 			StorageService.addTimeBlock(block4);
 			StorageService.addTimeBlock(block5);
+			StorageService.addTimeBlock(block6);
 			StorageService.addTimeBlock(unavailable1);
 			StorageService.addTimeBlock(unavailable2);
 			StorageService.addTimeBlock(unavailable3);
@@ -441,7 +428,7 @@ public class TimeBlockStorageTest {
 		
 		assertTrue(StorageService.getAllAssignmentBlocksWithinRange(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 5)).size() == 4);
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 5)).size() == 5);
 	}
 	
 	/*
@@ -495,6 +482,10 @@ public class TimeBlockStorageTest {
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 6), 
 				null, false); 
+		UnavailableBlock unavailable6 = new UnavailableBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 1), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 7), 
+				null, false); 
 		
 		
 		//Add objects in correct order to the db
@@ -510,6 +501,7 @@ public class TimeBlockStorageTest {
 			StorageService.addTimeBlock(unavailable3);
 			StorageService.addTimeBlock(unavailable4);
 			StorageService.addTimeBlock(unavailable5);
+			StorageService.addTimeBlock(unavailable6);
 		} 
 		catch (StorageServiceException e) {
 			fail(e.getMessage());
@@ -517,6 +509,6 @@ public class TimeBlockStorageTest {
 		
 		assert(StorageService.getAllUnavailableBlocksWithinRange(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 5)).size() == 4);
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 5)).size() == 5);
 	}
 }

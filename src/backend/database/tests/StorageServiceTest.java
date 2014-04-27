@@ -2,27 +2,23 @@ package backend.database.tests;
 
 import static org.junit.Assert.*;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.HashMap;
+import java.util.Properties;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import data.Assignment;
-import data.ITemplate;
-import data.Task;
-import data.Template;
-import data.TemplateStep;
+import frontend.Main;
 import backend.database.StorageService;
-import backend.database.Utilities;
-
 
 public class StorageServiceTest {
 	
@@ -30,13 +26,22 @@ public class StorageServiceTest {
 	
 	@Before
 	public void setUp() throws Exception {
-		StorageService.initialize(false);
+		StorageService.initialize(true);
+		Properties props = new Properties();
+		
 		try {
-			_con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+			props.loadFromXML(new FileInputStream(Main.class.getClassLoader()
+                    .getResource("db.properties").getPath()
+                    .replaceAll("%20", " ")));
 			Class.forName("org.h2.Driver");
+			_con = DriverManager.getConnection(props.getProperty("DB_URL"), 
+					props.getProperty("DB_USER"), props.getProperty("DB_PWD"));
 		}
 		catch (ClassNotFoundException e) {
 			fail("StorageServiceTest: setUp: db drive class not found: " + e.getMessage()); 
+		}
+		catch (IOException e) {
+			fail("StorageServiceTest: setUp: could not load database properties: " + e.getMessage());
 		}
 	}
 	
@@ -50,28 +55,39 @@ public class StorageServiceTest {
 	 */
 	
 	@Test
-	public void createTables() {		
+	public void createTable() {		
 		try {
 			this.validateTables();
 		} 
 		catch (SQLException e) {
-			fail("StorageServiceTest: createTables: could not create all tables" + e.getMessage()); 
+			fail("StorageServiceTest: createTable: could not create all tables" + e.getMessage()); 
 		}
 	}
 	
 	@Test
-	public void createTablesMultipleTimes() {
+	public void createTablesWithDrop() {
 		try {
 			this.validateTables();
 			StorageService.initialize(true);
 			this.validateTables(); 
 		} 
 		catch (SQLException e) {
-			fail("StorageServiceTest: createTables: could not create all tables" + e.getMessage()); 
+			fail("StorageServiceTest: createTablesWithDrop: could not create all tables" + e.getMessage()); 
 		}
 	}
 	
-	//TODO: fix this test -- need to pair type with column name
+	@Test
+	public void createTablesNoDrop() {
+		try {
+			this.validateTables();
+			StorageService.initialize(false);
+			this.validateTables(); 
+		} 
+		catch (SQLException e) {
+			fail("StorageServiceTest: createTablesNoDrop: could not create all tables" + e.getMessage()); 
+		}
+	}
+	
 	private void validateTables() throws SQLException {
 		//Make sure the correct number of tables are created
 		ArrayList<String> tableNames = new ArrayList<>(); 
@@ -83,117 +99,111 @@ public class StorageServiceTest {
 	        }
 	    }
 		
-		assertTrue(tableNames.size() == 4);
+		assertTrue(tableNames.size() == 6);
 		assertTrue(tableNames.contains("ASSIGNMENT"));
 		assertTrue(tableNames.contains("TASK"));
 		assertTrue(tableNames.contains("TEMPLATE"));
 		assertTrue(tableNames.contains("TEMPLATE_STEP"));
+		assertTrue(tableNames.contains("TIME_BLOCK"));
+		assertTrue(tableNames.contains("SETTING"));
 		
 		//Make sure Assignment table is correct
-		ArrayList<String> asgnColName = new ArrayList<>();
-		ArrayList<String> asgnColType = new ArrayList<>();
+		HashMap<String,String> asgnCol = new HashMap<>(); 
 		query = "SHOW COLUMNS FROM ASSIGNMENT"; 
 	    try (Statement stmt = _con.createStatement()) {
 	        ResultSet rs = stmt.executeQuery(query);
 	        while (rs.next()) {
-	        	asgnColName.add(rs.getString("COLUMN_NAME"));  
-	        	asgnColType.add(rs.getString("TYPE")); 
+	        	asgnCol.put(rs.getString("COLUMN_NAME"), rs.getString("TYPE")); 
 	        }
 	    }
-	    assertTrue(asgnColName.size() == 5);
-        assertTrue(asgnColName.contains("ASGN_ID"));
-        assertTrue(asgnColName.contains("ASGN_NAME"));
-        assertTrue(asgnColName.contains("ASGN_EXPECTED_HOURS"));
-        assertTrue(asgnColName.contains("ASGN_DATE"));
-        assertTrue(asgnColName.contains("ASGN_TEMPLATE_ID"));
+	    
+	    assertTrue(asgnCol.size() == 5);
+        assertEquals("VARCHAR(255)", asgnCol.get("ASGN_ID"));
+        assertEquals("VARCHAR(255)", asgnCol.get("ASGN_NAME"));
+        assertEquals("INTEGER(10)", asgnCol.get("ASGN_EXPECTED_HOURS"));
+        assertEquals("BIGINT(19)", asgnCol.get("ASGN_DATE"));
+        assertEquals("VARCHAR(255)", asgnCol.get("ASGN_TEMPLATE_ID"));
         
-        assertTrue(asgnColType.size() == 5);
-        assertTrue(asgnColType.contains("VARCHAR(255)"));
-        assertTrue(asgnColType.contains("VARCHAR(255)"));
-        assertTrue(asgnColType.contains("INTEGER(10)"));
-        assertTrue(asgnColType.contains("DATE(8)"));
-        assertTrue(asgnColType.contains("VARCHAR(255)"));
-		
 		//Make sure Task table is correct
-		ArrayList<String> taskColName = new ArrayList<>();
-		ArrayList<String> taskColType = new ArrayList<>();
+		HashMap<String,String> taskCol = new HashMap<>();
 		query = "SHOW COLUMNS FROM TASK"; 
 	    try (Statement stmt = _con.createStatement()) {
 	        ResultSet rs = stmt.executeQuery(query);
 	        while (rs.next()) {
-	        	taskColName.add(rs.getString("COLUMN_NAME"));  
-	        	taskColType.add(rs.getString("TYPE")); 
+	        	taskCol.put(rs.getString("COLUMN_NAME"), rs.getString("TYPE")); 
 	        }
 	    }
 	    
-	    assertTrue(taskColName.size() == 7);
-        assertTrue(taskColName.contains("ASGN_ID"));
-        assertTrue(taskColName.contains("TASK_ID"));
-        assertTrue(taskColName.contains("TASK_NAME"));
-        assertTrue(taskColName.contains("TASK_PERCENT_TOTAL"));
-        assertTrue(taskColName.contains("TASK_PERCENT_COMPLETE"));
-        assertTrue(taskColName.contains("TASK_TIME_OF_DAY"));
-        assertTrue(taskColName.contains("TASK_SUGGESTED_LENGTH"));
+	    assertTrue(taskCol.size() == 7);
+        assertEquals("VARCHAR(255)", taskCol.get("ASGN_ID"));
+        assertEquals("VARCHAR(255)", taskCol.get("TASK_ID"));
+        assertEquals("VARCHAR(255)", taskCol.get("TASK_NAME"));
+        assertEquals("DOUBLE(17)", taskCol.get("TASK_PERCENT_TOTAL"));
+        assertEquals("DOUBLE(17)", taskCol.get("TASK_PERCENT_COMPLETE"));
+        assertEquals("VARCHAR(255)", taskCol.get("TASK_TIME_OF_DAY"));
+        assertEquals("DOUBLE(17)", taskCol.get("TASK_SUGGESTED_LENGTH"));
         
-        assertTrue(taskColType.size() == 7);
-        assertTrue(taskColType.contains("VARCHAR(255)"));
-        assertTrue(taskColType.contains("VARCHAR(255)"));
-        assertTrue(taskColType.contains("VARCHAR(255)"));
-        assertTrue(taskColType.contains("DOUBLE(17)"));
-        assertTrue(taskColType.contains("DOUBLE(17)"));
-        assertTrue(taskColType.contains("VARCHAR(255)"));
-        assertTrue(taskColType.contains("DOUBLE(17)"));
-		
 		//Make sure Template table is correct
-        ArrayList<String> templateColName = new ArrayList<>();
-		ArrayList<String> templateColType = new ArrayList<>();
+        HashMap<String,String> templateCol = new HashMap<>();
 		query = "SHOW COLUMNS FROM TEMPLATE"; 
 	    try (Statement stmt = _con.createStatement()) {
 	        ResultSet rs = stmt.executeQuery(query);
 	        while (rs.next()) {
-	        	templateColName.add(rs.getString("COLUMN_NAME"));  
-	        	templateColType.add(rs.getString("TYPE")); 
+	        	templateCol.put(rs.getString("COLUMN_NAME"), rs.getString("TYPE")); 
 	        }
 	    }
         
-	    assertTrue(templateColName.size() == 3);
-        assertTrue(templateColName.contains("TEMPLATE_ID"));
-        assertTrue(templateColName.contains("TEMPLATE_NAME"));
-        assertTrue(templateColName.contains("TEMPLATE_CONSECUTIVE_HOURS"));
-        
-        assertTrue(templateColType.size() == 3);
-        assertTrue(templateColType.contains("VARCHAR(255)"));
-        assertTrue(templateColType.contains("VARCHAR(255)"));
-        assertTrue(templateColType.contains("DOUBLE(17)"));
+	    assertTrue(templateCol.size() == 3);
+        assertEquals("VARCHAR(255)", templateCol.get("TEMPLATE_ID"));
+        assertEquals("VARCHAR(255)", templateCol.get("TEMPLATE_NAME"));
+        assertEquals("DOUBLE(17)", templateCol.get("TEMPLATE_CONSECUTIVE_HOURS"));
         
 		//Make sure TemplateStep table is correct
-        ArrayList<String> stepColName = new ArrayList<>();
-		ArrayList<String> stepColType = new ArrayList<>();
+        HashMap<String,String> stepCol = new HashMap<>();
 		query = "SHOW COLUMNS FROM TEMPLATE_STEP"; 
 	    try (Statement stmt = _con.createStatement()) {
 	        ResultSet rs = stmt.executeQuery(query);
 	        while (rs.next()) {
-	        	stepColName.add(rs.getString("COLUMN_NAME"));  
-	        	stepColType.add(rs.getString("TYPE")); 
+	        	stepCol.put(rs.getString("COLUMN_NAME"), rs.getString("TYPE")); 
 	        }
 	    }
         
-	    assertTrue(stepColName.size() == 7);
-        assertTrue(stepColName.contains("TEMPLATE_ID"));
-        assertTrue(stepColName.contains("STEP_NAME"));
-        assertTrue(stepColName.contains("STEP_PERCENT_TOTAL"));
-        assertTrue(stepColName.contains("STEP_STEP_NUMBER"));
-        assertTrue(stepColName.contains("STEP_NUM_DAYS"));
-        assertTrue(stepColName.contains("STEP_HOURS_PER_DAY"));
-        assertTrue(stepColName.contains("STEP_TIME_OF_DAY"));
+	    assertTrue(stepCol.size() == 5);
+        assertEquals("VARCHAR(255)", stepCol.get("TEMPLATE_ID"));
+        assertEquals("VARCHAR(255)", stepCol.get("STEP_NAME"));
+        assertEquals("DOUBLE(17)", stepCol.get("STEP_PERCENT_TOTAL"));
+        assertEquals("INTEGER(10)", stepCol.get("STEP_STEP_NUMBER"));
+        assertEquals("VARCHAR(255)", stepCol.get("STEP_TIME_OF_DAY"));
         
-        assertTrue(stepColType.size() == 7);
-        assertTrue(stepColType.contains("VARCHAR(255)"));
-        assertTrue(stepColType.contains("VARCHAR(255)"));
-        assertTrue(stepColType.contains("DOUBLE(17)"));
-        assertTrue(stepColType.contains("INTEGER(10)"));
-        assertTrue(stepColType.contains("INTEGER(10)"));
-        assertTrue(stepColType.contains("DOUBLE(17)"));
-        assertTrue(stepColType.contains("VARCHAR(255)"));
+        //Make sure TimeBlock table is correct
+        HashMap<String,String> blockCol = new HashMap<>();
+		query = "SHOW COLUMNS FROM TIME_BLOCK"; 
+	    try (Statement stmt = _con.createStatement()) {
+	        ResultSet rs = stmt.executeQuery(query);
+	        while (rs.next()) {
+	        	blockCol.put(rs.getString("COLUMN_NAME"), rs.getString("TYPE")); 
+	        }
+	    }
+	            
+	    assertTrue(blockCol.size() == 5);
+        assertEquals("VARCHAR(255)", blockCol.get("BLOCK_ID"));
+        assertEquals("VARCHAR(255)", blockCol.get("TASK_ID"));
+        assertEquals("BIGINT(19)", blockCol.get("BLOCK_START"));
+        assertEquals("BIGINT(19)", blockCol.get("BLOCK_END"));
+        assertEquals("BOOLEAN(1)", blockCol.get("BLOCK_MOVABLE"));
+        
+        //Make sure Setting table is correct
+        HashMap<String,String> settingCol = new HashMap<>();
+		query = "SHOW COLUMNS FROM SETTING"; 
+	    try (Statement stmt = _con.createStatement()) {
+	        ResultSet rs = stmt.executeQuery(query);
+	        while (rs.next()) {
+	        	settingCol.put(rs.getString("COLUMN_NAME"), rs.getString("TYPE")); 
+	        }
+	    }
+	            
+	    assertTrue(settingCol.size() == 2);
+        assertEquals("VARCHAR(255)", settingCol.get("SETTING_NAME"));
+        assertEquals("VARCHAR(255)", settingCol.get("SETTING_VALUE"));
 	}
 }

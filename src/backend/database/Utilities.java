@@ -5,15 +5,6 @@ import java.sql.SQLException;
 import java.util.List;
 
 public abstract class Utilities {
-	/*
-	 * DB configuration parameters
-	 * TODO: factor out into external configuration file
-	 */
-	
-	public static final String DB_URL = "jdbc:h2:~/test";
-	public static final String DB_USER = "sa"; 
-	public static final String DB_PWD = ""; 
-	public static final String DB_NAME = "test"; 
 	
 	/*
 	 * Misc SQL statements
@@ -59,21 +50,21 @@ public abstract class Utilities {
 			"SELECT * FROM TIME_BLOCK " + 
 			"WHERE BLOCK_ID = ? "; 
 	
-	//TODO: Forgot case where one block CONTAINS the other block!
-	
 	protected static final String SELECT_ASSIGNMENT_BLOCKS_BY_DATE = 
 			"SELECT * FROM TIME_BLOCK " + 
 			"INNER JOIN TASK " + 
 			"ON TASK.TASK_ID = TIME_BLOCK.TASK_ID " +
 			"WHERE ((BLOCK_END BETWEEN ? AND ?) OR " + 	//block ends in the range, OR 
-			"(BLOCK_START BETWEEN ? AND ?)) " +			//block start in the range
+			"(BLOCK_START BETWEEN ? AND ?) OR " +		//block start in the range, OR
+			"(BLOCK_START <= ? AND BLOCK_END >= ?)) " +	//block contains the range
 			"AND BLOCK_MOVABLE = TRUE " +
 			"ORDER BY TIME_BLOCK.BLOCK_START";
 	
 	protected static final String SELECT_UNAVAILABLE_BLOCKS_BY_DATE = 
 			"SELECT * FROM TIME_BLOCK " + 
 			"WHERE ((BLOCK_END BETWEEN ? AND ?) OR " + 	//block ends in the range, OR 
-			"(BLOCK_START BETWEEN ? AND ?)) " +			//block start in the range
+			"(BLOCK_START BETWEEN ? AND ?) OR " +		//block start in the range, OR
+			"(BLOCK_START <= ? AND BLOCK_END >= ?)) " +	//block contains the range
 			"AND BLOCK_MOVABLE = FALSE " +
 			"ORDER BY TIME_BLOCK.BLOCK_START";
 	
@@ -191,8 +182,8 @@ public abstract class Utilities {
 	 * ITimeBlockable SQL insertion statements 
 	 */
 	
-	protected static final String INSERT_SETTING =  
-			"INSERT INTO SETTING " +
+	protected static final String MERGE_SETTING =  
+			"MERGE INTO SETTING " +
 			"(SETTING_NAME, SETTING_VALUE) " + 
 			"VALUES (?, ?) ";
 	

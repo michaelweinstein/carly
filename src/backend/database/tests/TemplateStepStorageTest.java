@@ -2,12 +2,9 @@ package backend.database.tests;
 
 import static org.junit.Assert.*;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -16,28 +13,12 @@ import data.Template;
 import data.TemplateStep;
 import backend.database.StorageService;
 import backend.database.StorageServiceException;
-import backend.database.Utilities;
-
 
 public class TemplateStepStorageTest {
-	
-	Connection _con; 
 	
 	@Before
 	public void setUp() throws Exception {
 		StorageService.initialize(true);
-		try {
-			_con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
-			Class.forName("org.h2.Driver");
-		}
-		catch (ClassNotFoundException e) {
-			fail("TemplateStepStorageTest: setUp: db drive class not found: " + e.getMessage()); 
-		}
-	}
-	
-	@After
-	public void tearDown() throws Exception {
-		_con.close(); 
 	}
 	
 	/*

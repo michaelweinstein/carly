@@ -1,7 +1,6 @@
 package backend.database;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -10,6 +9,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+
+import org.h2.jdbcx.JdbcConnectionPool;
 
 import data.ITemplate;
 import data.ITemplateStep;
@@ -52,9 +53,10 @@ public class TemplateStepStorage {
 	 * 
 	 * @param id Id of the template to be found
 	 * @param templates Cache of templates recently searched for
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return Found template
 	 */
-	protected static synchronized ITemplate getTemplate(String id, Cache<ITemplate> templates) {
+	protected static ITemplate getTemplate(String id, Cache<ITemplate> templates, JdbcConnectionPool pool) {
 		if (templates.contains(id)) {
 			return templates.get(id); 
 		}
@@ -66,7 +68,7 @@ public class TemplateStepStorage {
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 			
 	        statement = con.prepareStatement(Utilities.SELECT_TEMPLATES_AND_STEPS_BY_ID); 
         	Utilities.setValues(statement, id);
@@ -153,10 +155,12 @@ public class TemplateStepStorage {
 	 * Add a template to the database
 	 * 
 	 * @param temp Template to be added
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return Template that was added, for chaining calls
 	 * @throws StorageServiceException Thrown when the Template has zero TemplateSteps
 	 */
-	protected static synchronized ITemplate addTemplate(ITemplate temp) throws StorageServiceException {
+	protected static ITemplate addTemplate(ITemplate temp, JdbcConnectionPool pool) 
+			throws StorageServiceException {
 		if (temp.getAllSteps().size() == 0) {
 			throw new StorageServiceException("TemplateStepStorage: addTemplate: " +
         			"Template must have at least one Template Step"); 
@@ -168,7 +172,7 @@ public class TemplateStepStorage {
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 			
 	        con.setAutoCommit(false);
 	        templateStatement = con.prepareStatement(Utilities.INSERT_TEMPLATE);
@@ -229,11 +233,12 @@ public class TemplateStepStorage {
 	 * 
 	 * @param temp Template to be updated
 	 * @param templates Cache of templates recently searched for
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return Template that was updated, for chaining calls
 	 * @throws StorageServiceException Thrown when the Template has zero TemplateSteps
 	 */
-	protected static synchronized ITemplate updateTemplate(ITemplate temp, Cache<ITemplate> templates) 
-			throws StorageServiceException {
+	protected static ITemplate updateTemplate(ITemplate temp, Cache<ITemplate> templates, 
+			JdbcConnectionPool pool) throws StorageServiceException {
 		if (temp.getAllSteps().size() == 0) {
 			throw new StorageServiceException("TemplateStepStorage: updateTemplate: " +
         			"Template must have at least one Template Step"); 
@@ -246,7 +251,7 @@ public class TemplateStepStorage {
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 	        con.setAutoCommit(false);
 
 	        //Update the existing template, if any of the values have changed
@@ -315,15 +320,16 @@ public class TemplateStepStorage {
 	 * Remove a template from the database
 	 * 
 	 * @param temp Template to be removed
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return Template that was removed, for chaining method calls
 	 */
-	protected static synchronized ITemplate removeTemplate(ITemplate temp) {
+	protected static ITemplate removeTemplate(ITemplate temp, JdbcConnectionPool pool) {
 		PreparedStatement statement = null;
 	    Connection con = null; 
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 	    	
 	        con.setAutoCommit(false);
 	        statement = con.prepareStatement(Utilities.DELETE_TEMPLATE); 
@@ -369,9 +375,10 @@ public class TemplateStepStorage {
 	/**
 	 * Get all templates stored in the database
 	 * 
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return List containing all templates stored in the database
 	 */
-	protected static synchronized List<ITemplate> getAllTemplates() {
+	protected static List<ITemplate> getAllTemplates(JdbcConnectionPool pool) {
 		ArrayList<ITemplate> results = new ArrayList<>(); 
 		HashMap<String,Template> idToTemplate = new HashMap<>(); 
 		ArrayList<ArrayList<ITemplateStep>> listOfTaskLists = new ArrayList<>();
@@ -380,7 +387,7 @@ public class TemplateStepStorage {
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 			
 	        statement = con.prepareStatement(Utilities.SELECT_ALL_TEMPLATES_AND_STEPS); 
     		ResultSet templateStepResults =  statement.executeQuery();

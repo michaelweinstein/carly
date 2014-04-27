@@ -1,13 +1,14 @@
 package backend.database;
 
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import org.h2.jdbcx.JdbcConnectionPool;
 
 import data.AssignmentBlock;
 import data.ITimeBlockable;
@@ -39,9 +40,11 @@ public class TimeBlockStorage {
 	 * 
 	 * @param date1 Lower bound for the date range
 	 * @param date2 Upper bound for the date range
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return List of all the blocks that fall COMPLETELY within these bounds 
 	 */
-	protected static synchronized List<UnavailableBlock> getAllUnavailableBlocksWithinRange(Date date1, Date date2) {
+	protected static List<UnavailableBlock> getAllUnavailableBlocksWithinRange(
+			Date date1, Date date2, JdbcConnectionPool pool) {
 		PreparedStatement statement = null; 
 	    Connection con = null; 
 	    ArrayList<UnavailableBlock> results = new ArrayList<>(); 
@@ -52,16 +55,16 @@ public class TimeBlockStorage {
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 			
 	        statement = con.prepareStatement(Utilities.SELECT_UNAVAILABLE_BLOCKS_BY_DATE); 
         	Utilities.setValues(statement, earlier.getTime(), later.getTime(),
+        			earlier.getTime(), later.getTime(),
         			earlier.getTime(), later.getTime());
         	ResultSet blockResults = statement.executeQuery();
         	
         	while (blockResults.next()) {
         		String blockId = blockResults.getString("BLOCK_ID");
-        		String taskId = blockResults.getString("TASK_ID");
         		Date blockStart = new Date(blockResults.getLong("BLOCK_START"));
         		Date blockEnd = new Date(blockResults.getLong("BLOCK_END"));
         		boolean blockMovable = blockResults.getBoolean("BLOCK_MOVABLE");
@@ -100,9 +103,11 @@ public class TimeBlockStorage {
 	 * 
 	 * @param date1 Lower bound for the date range
 	 * @param date2 Upper bound for the date range
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return List of all the blocks that fall COMPLETELY within these bounds 
 	 */
-	protected static synchronized List<AssignmentBlock> getAllAssignmentBlocksWithinRange(Date date1, Date date2) {
+	protected static List<AssignmentBlock> getAllAssignmentBlocksWithinRange(
+			Date date1, Date date2, JdbcConnectionPool pool) {
 		PreparedStatement statement = null; 
 	    Connection con = null; 
 	    ArrayList<AssignmentBlock> results = new ArrayList<>(); 
@@ -113,10 +118,11 @@ public class TimeBlockStorage {
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 			
 	        statement = con.prepareStatement(Utilities.SELECT_ASSIGNMENT_BLOCKS_BY_DATE); 
         	Utilities.setValues(statement, earlier.getTime(), later.getTime(), 
+        			earlier.getTime(), later.getTime(), 
         			earlier.getTime(), later.getTime());
         	ResultSet blockResults = statement.executeQuery();
         	
@@ -170,16 +176,17 @@ public class TimeBlockStorage {
 	 * Gets an Assignment Block
 	 * 
 	 * @param blockId Id of the Assignment Block in question 
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return AssignmentBlock corresponding to the given id 
 	 */
-	protected static synchronized AssignmentBlock getAssignmentBlock(String blockId) {
+	protected static AssignmentBlock getAssignmentBlock(String blockId, JdbcConnectionPool pool) {
 		PreparedStatement statement = null; 
 	    Connection con = null; 
 	    AssignmentBlock block = null; 
 	    	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 			
 	        statement = con.prepareStatement(Utilities.SELECT_ASSIGNMENT_BLOCK_BY_ID); 
         	Utilities.setValues(statement, blockId);
@@ -237,16 +244,17 @@ public class TimeBlockStorage {
 	 * Get an Unavailable Block
 	 * 
 	 * @param blockId Block id of the unavailable block
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return UnavailableBlock found corresponding to the given id 
 	 */
-	protected static synchronized UnavailableBlock getUnavailableBlock(String blockId) {
+	protected static UnavailableBlock getUnavailableBlock(String blockId, JdbcConnectionPool pool) {
 		PreparedStatement statement = null; 
 	    Connection con = null; 
 	    UnavailableBlock block = null; 
 	    	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 			
 	        statement = con.prepareStatement(Utilities.SELECT_UNAVAILABLE_BLOCK_BY_ID); 
         	Utilities.setValues(statement, blockId);
@@ -256,7 +264,6 @@ public class TimeBlockStorage {
         	blockResults.next();
         	
         	String id = blockResults.getString("BLOCK_ID");
-    		String taskId = blockResults.getString("TIME_BLOCK.TASK_ID");
     		Date blockStart = new Date(blockResults.getLong("BLOCK_START"));
     		Date blockEnd = new Date(blockResults.getLong("BLOCK_END"));
     		boolean blockMovable = blockResults.getBoolean("BLOCK_MOVABLE");
@@ -293,16 +300,18 @@ public class TimeBlockStorage {
 	 * Adds a Time Block
 	 * 
 	 * @param block Block to be stored in the database
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @throws StorageServiceException When the TimeBlock's associated Task is not in the database 
 	 */
-	protected static synchronized void addTimeBlock(ITimeBlockable block) throws StorageServiceException {
+	protected static void addTimeBlock(ITimeBlockable block, JdbcConnectionPool pool) 
+			throws StorageServiceException {
 		PreparedStatement blockStatement = null;
 		PreparedStatement taskStatement = null;
 	    Connection con = null; 
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 	    	
 	        con.setAutoCommit(false);
 	        blockStatement = con.prepareStatement(Utilities.INSERT_TIME_BLOCK); 
@@ -378,10 +387,11 @@ public class TimeBlockStorage {
 	 * Adds VALID TimeBlocks if they don't already exist in the database
 	 * Updates any TimeBlocks that already have been stored in the database
 	 * 
-	 * @param blockList
+	 * @param blockList List of blocks to to be added to or updated in the database
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return A list of INVALID TimeBlocks (that is, those whose associated Task cannot be found in the database) that were NOT added/updated
 	 */
-	protected static synchronized List<ITimeBlockable> mergeAllTimeBlocks(List<ITimeBlockable> blockList) {
+	protected static List<ITimeBlockable> mergeAllTimeBlocks(List<ITimeBlockable> blockList, JdbcConnectionPool pool) {
 		List<ITimeBlockable> blocksNotAdded = new ArrayList<>();
 		List<ITimeBlockable> blocksToAdd = new ArrayList<>();
 		PreparedStatement blockStatement = null;
@@ -390,7 +400,7 @@ public class TimeBlockStorage {
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 	    	
 	        con.setAutoCommit(false);
 	        
@@ -470,17 +480,19 @@ public class TimeBlockStorage {
 	 * Update TimeBlock with new start date, end date and associated task values
 	 * 
 	 * @param block Updated block
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return Block that was passed in, for chaining calls
 	 * @throws StorageServiceException Thrown when the TimeBlock's associated Task cannot be found in the database
 	 */
-	protected static synchronized ITimeBlockable updateTimeBlock(ITimeBlockable block) throws StorageServiceException {
+	protected static ITimeBlockable updateTimeBlock(ITimeBlockable block, JdbcConnectionPool pool) 
+			throws StorageServiceException {
 		PreparedStatement blockStatement = null;
 		PreparedStatement taskStatement = null;
 	    Connection con = null; 
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 	    	
 	        con.setAutoCommit(false);
 	        
@@ -558,16 +570,16 @@ public class TimeBlockStorage {
 	 * Remove TimeBlock from the database
 	 * 
 	 * @param block Block to remove from the database
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 * @return Block that was removed, for chaining callsA
-	 * 
 	 */
-	protected static synchronized ITimeBlockable removeTimeBlock(ITimeBlockable block) {
+	protected static ITimeBlockable removeTimeBlock(ITimeBlockable block, JdbcConnectionPool pool) {
 		PreparedStatement blockStatement = null;
 	    Connection con = null; 
 	    
 	    try {
 	    	Class.forName("org.h2.Driver");
-	    	con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD);
+	    	con = pool.getConnection();
 	    	
 	        con.setAutoCommit(false);
 	        blockStatement = con.prepareStatement(Utilities.DELETE_TIME_BLOCK); 

@@ -1,30 +1,26 @@
 package backend.database;
 
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+
+import org.h2.jdbcx.JdbcConnectionPool;
 
 import data.Assignment;
 import data.AssignmentBlock;
 import data.IAssignment;
 import data.ITask;
 import data.ITemplate;
-import data.ITemplateStep;
 import data.ITimeBlockable;
-import data.Task;
-import data.Template;
-import data.TemplateStep;
-import data.TimeOfDay;
 import data.UnavailableBlock;
+import frontend.Main;
 
 /**
  * Handles the storage, retrieval and persistence of data for Carly
@@ -34,17 +30,30 @@ import data.UnavailableBlock;
 public class StorageService {
 	
 	private static Cache<ITemplate> _templates; 
+	private static JdbcConnectionPool _pool; 
 	
 	/**
 	 * Called each time application starts up 
 	 * 
 	 * @param dropTables If true, recreates new blank tables; if false, persists data from last time
 	 */
-	public static synchronized void initialize(boolean dropTables) {
+	public static void initialize(boolean dropTables) {
 		_templates = new Cache<>();
+		Properties props = new Properties();
+		try {
+			props.loadFromXML(new FileInputStream(Main.class.getClassLoader()
+                    .getResource("db.properties").getPath()
+                    .replaceAll("%20", " ")));
+		} 
+		catch (IOException x) {
+			Utilities.printException("StorageService: initialize: could not load database properties", x);
+		}
 		
+		_pool = JdbcConnectionPool.create(props.getProperty("DB_URL"), 
+				props.getProperty("DB_USER"), props.getProperty("DB_PWD")); 
+
 		//Create tables in the database
-		try (Connection con = DriverManager.getConnection(Utilities.DB_URL, Utilities.DB_USER, Utilities.DB_PWD)) {
+		try (Connection con = _pool.getConnection()) {
 			Class.forName("org.h2.Driver");
 			
 			if (dropTables) {
@@ -73,6 +82,13 @@ public class StorageService {
 		}
 	}
 	
+	/**
+	 * Cleans up when the application is shutting down
+	 */
+	public static void cleanup() {
+		_pool.dispose();
+	}
+	
 	/*
 	 * ================================================================
 	 * 
@@ -89,8 +105,8 @@ public class StorageService {
 	 * @return Assignment that was added, for chaining calls
 	 * @throws StorageServiceException Thrown when the Assigment's associated Template is not in the db
 	 */
-	public static synchronized IAssignment addAssignment(IAssignment assignment) throws StorageServiceException {
-		return AssignmentTaskStorage.addAssignment(assignment); 
+	public static IAssignment addAssignment(IAssignment assignment) throws StorageServiceException {
+		return AssignmentTaskStorage.addAssignment(assignment, _pool); 
 	}
 
 	/**
@@ -99,8 +115,8 @@ public class StorageService {
 	 * @param assignment IAssignment to be removed
 	 * @return IAssignment that was removed, for chaining calls
 	 */	
-	public static synchronized IAssignment removeAssignment(IAssignment assignment) {
-		return AssignmentTaskStorage.removeAssignment(assignment); 
+	public static IAssignment removeAssignment(IAssignment assignment) {
+		return AssignmentTaskStorage.removeAssignment(assignment, _pool); 
 	}
 	
 	/**
@@ -111,8 +127,8 @@ public class StorageService {
 	 * @return Assignment that was updated, for chaining calls
 	 * @throws StorageServiceException Thrown when the Assignment's associated Template cannot be found in the db
 	 */
-	public static synchronized Assignment updateAssignment(Assignment assignment) throws StorageServiceException {
-	    return AssignmentTaskStorage.updateAssignment(assignment); 
+	public static Assignment updateAssignment(Assignment assignment) throws StorageServiceException {
+	    return AssignmentTaskStorage.updateAssignment(assignment, _pool); 
 	}
 	
 	/**
@@ -121,8 +137,8 @@ public class StorageService {
 	 * @param toBeFoundId Id value of the Assignment to be retrieved
 	 * @return Assignment that was found, or null if the Assignment was not found 
 	 */
-	public static synchronized Assignment getAssignment(String toBeFoundId) {
-		return AssignmentTaskStorage.getAssignment(toBeFoundId, _templates); 
+	public static Assignment getAssignment(String toBeFoundId) {
+		return AssignmentTaskStorage.getAssignment(toBeFoundId, _templates, _pool); 
 	}
 	
 	/**
@@ -132,8 +148,8 @@ public class StorageService {
 	 * @param date2 Upper bound of the date range
 	 * @return List of Assignments whose dueDate falls within the specified date range
 	 */
-	public static synchronized List<Assignment> getAllAssignmentsWithinRange(Date date1, Date date2) {
-		return AssignmentTaskStorage.getAllAssignmentsWithinRange(date1, date2, _templates); 
+	public static List<Assignment> getAllAssignmentsWithinRange(Date date1, Date date2) {
+		return AssignmentTaskStorage.getAllAssignmentsWithinRange(date1, date2, _templates, _pool); 
 	}
 	
 	/**
@@ -144,8 +160,8 @@ public class StorageService {
 	 * @param date2 Upper bound of the date range
 	 * @return List of Tasks that fall within the date range specified
 	 */
-	public static synchronized List<ITask> getAllTasksWithinRange(Date date1, Date date2) {
-		return AssignmentTaskStorage.getAllTasksWithinRange(date1, date2); 
+	public static List<ITask> getAllTasksWithinRange(Date date1, Date date2) {
+		return AssignmentTaskStorage.getAllTasksWithinRange(date1, date2, _pool); 
 	}
 	
 	/*
@@ -163,8 +179,8 @@ public class StorageService {
 	 * @param date2 Upper bound for the date range
 	 * @return List of all the blocks that fall COMPLETELY within these bounds 
 	 */
-	public static synchronized List<UnavailableBlock> getAllUnavailableBlocksWithinRange(Date date1, Date date2) {
-		return TimeBlockStorage.getAllUnavailableBlocksWithinRange(date1, date2); 
+	public static List<UnavailableBlock> getAllUnavailableBlocksWithinRange(Date date1, Date date2) {
+		return TimeBlockStorage.getAllUnavailableBlocksWithinRange(date1, date2, _pool); 
 	}
 	
 	/**
@@ -174,8 +190,8 @@ public class StorageService {
 	 * @param date2 Upper bound for the date range
 	 * @return List of all the blocks that fall COMPLETELY within these bounds 
 	 */
-	public static synchronized List<AssignmentBlock> getAllAssignmentBlocksWithinRange(Date date1, Date date2) {
-		return TimeBlockStorage.getAllAssignmentBlocksWithinRange(date1, date2); 
+	public static List<AssignmentBlock> getAllAssignmentBlocksWithinRange(Date date1, Date date2) {
+		return TimeBlockStorage.getAllAssignmentBlocksWithinRange(date1, date2, _pool); 
 	}
 	
 	/**
@@ -184,8 +200,8 @@ public class StorageService {
 	 * @param blockId Id of the Assignment Block in question 
 	 * @return AssignmentBlock corresponding to the given id 
 	 */
-	public static synchronized AssignmentBlock getAssignmentBlock(String blockId) {
-		return TimeBlockStorage.getAssignmentBlock(blockId); 
+	public static AssignmentBlock getAssignmentBlock(String blockId) {
+		return TimeBlockStorage.getAssignmentBlock(blockId, _pool); 
 	}
 	
 	/**
@@ -194,8 +210,8 @@ public class StorageService {
 	 * @param blockId Block id of the unavailable block
 	 * @return UnavailableBlock found corresponding to the given id 
 	 */
-	public static synchronized UnavailableBlock getUnavailableBlock(String blockId) {
-		return TimeBlockStorage.getUnavailableBlock(blockId); 
+	public static UnavailableBlock getUnavailableBlock(String blockId) {
+		return TimeBlockStorage.getUnavailableBlock(blockId, _pool); 
 	}
 
 	/**
@@ -204,8 +220,8 @@ public class StorageService {
 	 * @param block Block to be stored in the database
 	 * @throws StorageServiceException When the TimeBlock's associated Task is not in the database 
 	 */
-	public static synchronized void addTimeBlock(ITimeBlockable block) throws StorageServiceException {
-		TimeBlockStorage.addTimeBlock(block); 
+	public static void addTimeBlock(ITimeBlockable block) throws StorageServiceException {
+		TimeBlockStorage.addTimeBlock(block, _pool); 
 	}
 	
 	/**
@@ -215,8 +231,8 @@ public class StorageService {
 	 * @param blockList
 	 * @return A list of INVALID TimeBlocks (that is, those whose associated Task cannot be found in the database) that were NOT added/updated
 	 */
-	public static synchronized List<ITimeBlockable> mergeAllTimeBlocks(List<ITimeBlockable> blockList) {
-		return TimeBlockStorage.mergeAllTimeBlocks(blockList); 
+	public static List<ITimeBlockable> mergeAllTimeBlocks(List<ITimeBlockable> blockList) {
+		return TimeBlockStorage.mergeAllTimeBlocks(blockList, _pool); 
 	}
 	
 	/**
@@ -226,8 +242,8 @@ public class StorageService {
 	 * @return Block that was passed in, for chaining calls
 	 * @throws StorageServiceException Thrown when the TimeBlock's associated Task cannot be found in the database
 	 */
-	public static synchronized ITimeBlockable updateTimeBlock(ITimeBlockable block) throws StorageServiceException {
-		return TimeBlockStorage.updateTimeBlock(block); 
+	public static ITimeBlockable updateTimeBlock(ITimeBlockable block) throws StorageServiceException {
+		return TimeBlockStorage.updateTimeBlock(block, _pool); 
 	}
 	
 	/**
@@ -236,8 +252,8 @@ public class StorageService {
 	 * @param block Block to remove from the database
 	 * @return Block that was removed, for chaining calls
 	 */
-	public static synchronized ITimeBlockable removeTimeBlock(ITimeBlockable block) {
-		return TimeBlockStorage.removeTimeBlock(block); 
+	public static ITimeBlockable removeTimeBlock(ITimeBlockable block) {
+		return TimeBlockStorage.removeTimeBlock(block, _pool); 
 	}
 
 	/*
@@ -254,8 +270,8 @@ public class StorageService {
 	 * @param id Id of the template to be found
 	 * @return Found template
 	 */
-	public static synchronized ITemplate getTemplate(String id) {
-		return TemplateStepStorage.getTemplate(id, _templates); 
+	public static ITemplate getTemplate(String id) {
+		return TemplateStepStorage.getTemplate(id, _templates, _pool); 
 	}
 
 	/**
@@ -263,8 +279,8 @@ public class StorageService {
 	 * 
 	 * @return List containing all templates stored in the database
 	 */	
-	public static synchronized List<ITemplate> getAllTemplates() {
-		return TemplateStepStorage.getAllTemplates();
+	public static List<ITemplate> getAllTemplates() {
+		return TemplateStepStorage.getAllTemplates(_pool);
 	}
 	
 	/**
@@ -274,8 +290,8 @@ public class StorageService {
 	 * @return Template that was added, for chaining calls
 	 * @throws StorageServiceException Thrown when the Template has zero TemplateSteps
 	 */
-	public static synchronized ITemplate addTemplate(ITemplate temp) throws StorageServiceException {
-		return TemplateStepStorage.addTemplate(temp); 
+	public static ITemplate addTemplate(ITemplate temp) throws StorageServiceException {
+		return TemplateStepStorage.addTemplate(temp, _pool); 
 	}
 
 	/**
@@ -285,8 +301,8 @@ public class StorageService {
 	 * @return Template that was updated, for chaining calls
 	 * @throws StorageServiceException Thrown when the Template has zero TemplateSteps
 	 */	
-	public static synchronized ITemplate updateTemplate(ITemplate temp) throws StorageServiceException {
-		return TemplateStepStorage.updateTemplate(temp, _templates); 
+	public static ITemplate updateTemplate(ITemplate temp) throws StorageServiceException {
+		return TemplateStepStorage.updateTemplate(temp, _templates, _pool); 
 	}
 	
 	/**
@@ -295,8 +311,8 @@ public class StorageService {
 	 * @param temp Template to be removed
 	 * @return Template that was removed, for chaining method calls
 	 */
-	public static synchronized ITemplate removeTemplate(ITemplate temp) {
-		return TemplateStepStorage.removeTemplate(temp); 
+	public static ITemplate removeTemplate(ITemplate temp) {
+		return TemplateStepStorage.removeTemplate(temp, _pool); 
 	}
 	
 	/*
@@ -307,20 +323,43 @@ public class StorageService {
 	 * ================================================================
 	 */
 	
-	public static synchronized void addSetting(String name, String val) {
-		SettingStorage.addSetting(name, val); 
+	/**
+	 * Merge one setting into the database
+	 * 
+	 * @param name String name of the setting to be merged
+	 * @param val String value of the setting to be merged
+	 */
+	public static void mergeSetting(String name, String val) {
+		SettingStorage.mergeSetting(name, val, _pool); 
 	}
 	
-	public static synchronized boolean addAllSettings(Map<String, String> settings) {
-		return SettingStorage.addAllSettings(settings); 
+	/**
+	 * Merge all settings to the database 
+	 * 
+	 * @param settings Map of String to String where key is the name of the setting and value is the info of the setting
+	 * @return Boolean indicating if ALL settings were merged successfully
+	 */
+	public static boolean mergeAllSettings(Map<String, String> settings) {
+		return SettingStorage.mergeAllSettings(settings, _pool); 
 	}
 	
-	public static synchronized String getSetting(String name) {
-		return SettingStorage.getSetting(name); 
+	/**
+	 * Get the setting information corresponding to the passed-in setting name
+	 * 
+	 * @param name Setting name to retrieve information for
+	 * @return String value for the setting name passed in 
+	 */
+	public static String getSetting(String name) {
+		return SettingStorage.getSetting(name, _pool); 
 	}
 	
-	public static synchronized Map<String, String> getAllSettings() {
-		return SettingStorage.getAllSettings(); 
+	/**
+	 * Gets all the settings stored in the database
+	 * 
+	 * @return Mapping of String to String where key is the name of the setting, and value is the info of the setting
+	 */
+	public static Map<String, String> getAllSettings() {
+		return SettingStorage.getAllSettings(_pool); 
 	}
 	
 	/*
