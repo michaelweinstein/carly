@@ -36,6 +36,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.JTableHeader;
 
+import backend.database.StorageService;
 import data.Assignment;
 import data.ITemplate;
 import data.ITemplateStep;
@@ -125,7 +126,6 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			public void actionPerformed(final ActionEvent e) {
 				try {
 					final Assignment a = parseFields();
-					HubController.passAssignmentToLearner(a);
 					HubController.addAssignmentToCalendar(a);
 					app.reload();
 					clearContents();
@@ -211,8 +211,14 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		}
 		
 		// By this point, all data is great!
-		// TODO: Account for already done templates somehow!! - talk about this
-		return new Assignment(titleText, due, new Template(_templatePicker.getSelectedItem().toString(), steps));
+		ITemplate t = StorageService.getTemplate(((ITemplate) _templatePicker.getSelectedItem()).getID());
+		if (t == null) {
+			t = new Template("Custom");
+			for (final ITemplateStep st : steps) {
+				t.addStep(st);
+			}
+		}
+		return new Assignment(titleText, due, t);
 	}
 	
 	/**
@@ -273,8 +279,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		pane.add(templateLabel, c);
 		
 		// Template picker or own - if they pick Custom (which must be an option), we know it's custom
-		_templatePicker = new JComboBox<>(); // TODO: Actually fill it with template info
-		_templatePicker.addItem(new Template("Custom"));
+		_templatePicker = new JComboBox<>();
 		_templatePicker.addItemListener(new ItemListener() {
 			
 			/**
@@ -289,6 +294,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 						_stepModel.addItem(step);
 					}
 					_stepModel.addBlankItem();
+					repaint();
 				}
 			}
 		});
@@ -369,6 +375,21 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		_dateTimeField.setValue(new Date());
 		_stepModel.clear();
 		_stepModel.addBlankItem();
+	}
+	
+	@Override
+	public void setVisible(final boolean b) {
+		_templatePicker.removeAllItems();
+		_templatePicker.addItem(new Template("Custom"));
+		final List<ITemplate> temps = StorageService.getAllTemplates();
+		if (temps != null) {
+			for (final ITemplate temp : temps) {
+				if (!temp.getName().equals("Custom")) {
+					_templatePicker.addItem(temp);
+				}
+			}
+		}
+		super.setVisible(b);
 	}
 	
 	@Override

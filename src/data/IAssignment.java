@@ -59,4 +59,11 @@ public interface IAssignment {
 	 */
 	public ITemplate getTemplate();
 	
+	/**
+	 * Gives the full string
+	 * 
+	 * @return a string containing all possible information
+	 */
+	public String fullString();
+	
 }
