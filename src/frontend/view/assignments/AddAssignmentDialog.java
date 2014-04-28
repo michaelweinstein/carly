@@ -341,8 +341,6 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		pane.add(_templatePicker, c);
 		
-		// TODO: Fix dragging tasks beyond current week (or change that functionality??)
-		
 		// Tasks label
 		final JLabel taskLabel = new JLabel("Steps: ");
 		Utils.themeComponent(taskLabel);
@@ -412,6 +410,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	private void clearContents() {
 		_statusLabel.setText(DEFAULT_LABEL);
 		_titleField.setText("");
+		_numHours.setText("");
 		_dateTimeField.setValue(new Date());
 		_stepModel.clear();
 		_stepModel.addBlankItem();

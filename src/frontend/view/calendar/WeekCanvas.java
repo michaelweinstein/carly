@@ -149,12 +149,15 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	 * @return the date represented by (x,y) on the canvas, snapped to the nearest 15 minutes
 	 */
 	public Date getTimeForLocation(final Point p) {
-		final int day = (int) Math.floor(((p.getX() - X_OFFSET) / (getWidth() - X_OFFSET)) * DAYS) + 1;
+		int day = (int) Math.floor(((p.getX() - X_OFFSET) / (getWidth() - X_OFFSET)) * DAYS) + 1;
+		day = (day < 1) ? 1 : (day > 7) ? 7 : day;
 		final double hrsAndMin = HRS * ((p.getY() - Y_PAD) / (getHeight() - Y_PAD));
 		final int hours = (int) Math.floor(hrsAndMin);
 		final int min = 10 * (int) (Math.round(((hrsAndMin - hours) * 6)));
 		
 		final Calendar c = CalendarView.getCalendarInstance();
+		c.set(Calendar.WEEK_OF_YEAR, _cv.getCurrentWeek());
+		c.set(Calendar.YEAR, _cv.getCurrentYear());
 		c.set(Calendar.MINUTE, min);
 		c.set(Calendar.HOUR_OF_DAY, hours);
 		c.set(Calendar.DAY_OF_WEEK, day);
@@ -214,16 +217,13 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		
 		// Takes blockables and makes them into rects
 		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 12));
-		ITimeBlockable highlight = null;
 		for (final ITimeBlockable t : _cv.getTimeBlocks()) {
-			if (t.equals(_cv.getHighlightedTask())) {
-				highlight = t;
-			} else {
+			if (!t.equals(_cv.getHighlightedTask())) {
 				placeAndDrawBlock(brush, t);
 			}
 		}
-		if (highlight != null) {
-			placeAndDrawHighlightedBlock(brush, highlight);
+		if (_cv.getHighlightedTask() != null) {
+			placeAndDrawHighlightedBlock(brush, _cv.getHighlightedTask());
 		}
 		for (final ITimeBlockable t : _cv.getUnavailableTimeBlocks()) {
 			placeAndDrawBlock(brush, t);
@@ -238,14 +238,12 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	 * @param t a time blockable to draw
 	 */
 	private void placeAndDrawHighlightedBlock(final Graphics2D brush, final ITimeBlockable t) {
-		// Checks bounds so we know not to place line if dates don't match up
-		if (t.getStart().after(_weekEndDate) || t.getEnd().before(_weekStartDate)) {
-			return;
-		}
 		
 		// Shared measurements
 		final double dayWidth = (getWidth() - X_OFFSET) / DAYS;
 		final Calendar c = CalendarView.getCalendarInstance();
+		c.set(Calendar.WEEK_OF_YEAR, _cv.getCurrentWeek());
+		c.set(Calendar.YEAR, _cv.getCurrentYear());
 		
 		c.setTime(t.getStart());
 		final int startY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
@@ -257,13 +255,12 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		double height = 300;
 		
 		// We know it's the same day if the following is true - otherwise, approximate it with 300
-		if (startDay == endDay && !t.getStart().before(_weekStartDate) && !t.getEnd().after(_weekEndDate)) {
+		if (startDay == endDay) {
 			height = endY - startY;
 		}
 		
 		final TimeRect rect = new TimeRect(_mousePoint.getX(), _mousePoint.getY(), dayWidth, height, t, this);
 		drawBlock(brush, t, rect);
-		
 	}
 	
 	/**
@@ -471,21 +468,25 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	public void mouseDragged(final MouseEvent e) {
 		_mousePoint = e.getPoint();
 		final Rectangle visible = getVisibleRect();
-		
-		// If highlighted and within x bounds
-		if (_cv.getHighlightedTask() != null
-			&& (e.getX() > visible.getX() || e.getX() < visible.getX() + visible.getWidth())) {
+		if (_cv.getHighlightedTask() != null) {
 			
-			// If above visible rect, scroll up
-			if (e.getY() < visible.getY()) {
-				visible.translate(0, -20);
-				scrollRectToVisible(visible);
-			}
-			
-			// If below visible rect, scroll down
-			else if (e.getY() > visible.getY() + visible.getHeight()) {
-				visible.translate(0, 20);
-				scrollRectToVisible(visible);
+			// Scroll left by a week if under min x (or right if over max x) and hasn't switched recently
+			if (e.getX() < visible.getX() && System.currentTimeMillis() - _cv.getTimeChanged() > 500) {
+				_cv.shiftWeekBackwardWithHighlights();
+			} else if (e.getX() > visible.getMaxX() && System.currentTimeMillis() - _cv.getTimeChanged() > 500) {
+				_cv.shiftWeekForwardWithHighlights();
+			} else {
+				// If in bounds and above visible rect, scroll up
+				if (e.getY() < visible.getY()) {
+					visible.translate(0, -20);
+					scrollRectToVisible(visible);
+				}
+				
+				// If in bounds and below visible rect, scroll down
+				else if (e.getY() > visible.getY() + visible.getHeight()) {
+					visible.translate(0, 20);
+					scrollRectToVisible(visible);
+				}
 			}
 		}
 		_cv.repaint();
@@ -508,8 +509,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		
 		// Reset highlights
 		_mousePoint = null;
-		getHighlightedBlocks().remove(_cv.getHighlightedTask());
-		_cv.setHighlightedTask(null);
+		_cv.reloadData();
 		_cv.repaint();
 	}
 	

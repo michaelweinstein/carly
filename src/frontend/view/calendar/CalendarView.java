@@ -42,6 +42,7 @@ public class CalendarView extends JPanel {
 	// Info for view
 	private int							_currWeek;
 	private int							_currYear;
+	private long						_lastChanged;
 	
 	/**
 	 * Getter for a calendar instance with all the correct properties set
@@ -69,6 +70,7 @@ public class CalendarView extends JPanel {
 		_currYear = cal.get(Calendar.YEAR);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		Utils.themeComponentAlt(this);
+		_lastChanged = System.currentTimeMillis();
 		
 		add(makeToolbar());
 		add(makeDays());
@@ -212,9 +214,16 @@ public class CalendarView extends JPanel {
 	 * Repaints children after resetting data
 	 */
 	public void reloadData() {
-		reloadTimeBlocksFromDB();
 		_highlightedTask = null;
 		_weekView.clearHighlights();
+		reloadDataWithHighlights();
+	}
+	
+	/**
+	 * Repaints children after resetting data, keeping the highlights
+	 */
+	public void reloadDataWithHighlights() {
+		reloadTimeBlocksFromDB();
 		_weekView.getViewport().setViewPosition(new Point(0, 0));
 		for (int i = 0; i < _dayLabelList.size(); i++) {
 			_dayLabelList.get(i).setDate(i + 1, getCurrentWeekStartDate());
@@ -237,31 +246,55 @@ public class CalendarView extends JPanel {
 	}
 	
 	/**
-	 * Shifts the current week and full view forward by 1
+	 * Deals with shifting weeks
 	 */
-	public void shiftWeekForward() {
-		_currWeek++;
+	private void shiftHelp() {
+		_lastChanged = System.currentTimeMillis();
 		
 		// Deals with week overflow
 		if (_currWeek > 52) {
 			_currWeek = 1;
 			_currYear++;
+		} else if (_currWeek > 52) {
+			_currWeek = 1;
+			_currYear++;
 		}
+	}
+	
+	/**
+	 * Shifts the current week and full view forward by 1
+	 */
+	public void shiftWeekForward() {
+		_currWeek++;
+		shiftHelp();
 		reloadData();
 	}
 	
 	/**
-	 * Shifts the current week and full view backwards by 1
+	 * Shifts the current week and full view forward by 1 keeping the highlight
+	 */
+	public void shiftWeekForwardWithHighlights() {
+		_currWeek++;
+		shiftHelp();
+		reloadDataWithHighlights();
+	}
+	
+	/**
+	 * Shifts the current week and full view backwards by 1 keeping the highlight
 	 */
 	public void shiftWeekBackward() {
 		_currWeek--;
-		
-		// Deals with week overflow
-		if (_currWeek < 1) {
-			_currWeek = 52;
-			_currYear--;
-		}
+		shiftHelp();
 		reloadData();
+	}
+	
+	/**
+	 * Shifts the current week and full view backwards by 1 keeping the highlight
+	 */
+	public void shiftWeekBackwardWithHighlights() {
+		_currWeek--;
+		shiftHelp();
+		reloadDataWithHighlights();
 	}
 	
 	/**
@@ -372,5 +405,14 @@ public class CalendarView extends JPanel {
 	 */
 	public void setHighlightedTask(final ITimeBlockable highlightedTask) {
 		_highlightedTask = highlightedTask;
+	}
+	
+	/**
+	 * Returns when the week last changed
+	 * 
+	 * @return a long representing system time milliseconds since last change
+	 */
+	public long getTimeChanged() {
+		return _lastChanged;
 	}
 }
