@@ -12,7 +12,7 @@ public class AssignmentBlock implements ITimeBlockable {
 	private final boolean	m_isMovable;
 	
 	public AssignmentBlock(final Date start, final Date end, final ITask task) {
-		m_uniqueId = DataUtil.generateID();
+		m_uniqueId = DataUtil.generateID() + start.getTime() / 100000;
 		m_start = start;
 		m_end = end;
 		m_task = task;

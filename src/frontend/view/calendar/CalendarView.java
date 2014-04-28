@@ -252,9 +252,9 @@ public class CalendarView extends JPanel {
 		_lastChanged = System.currentTimeMillis();
 		
 		// Deals with week overflow
-		if (_currWeek > 52) {
-			_currWeek = 1;
-			_currYear++;
+		if (_currWeek < 1) {
+			_currWeek = 52;
+			_currYear--;
 		} else if (_currWeek > 52) {
 			_currWeek = 1;
 			_currYear++;

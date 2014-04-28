@@ -26,7 +26,7 @@ public class Task implements ITask {
 		/* _assignmentId is not set until Task is added to assignment */
 		_assignmentId = null;
 		// Set UID of this Task
-		_uniqueId = DataUtil.generateID();
+		_uniqueId = DataUtil.generateID() + _name.hashCode();
 		/* Sets _percentComplete, _timeOfDay, _suggestedBlockLength */
 		setInitialValues();
 	}
@@ -38,7 +38,7 @@ public class Task implements ITask {
 		_name = name;
 		handlePercent(percentTotal);
 		_assignmentId = assignmentUID;
-		_uniqueId = DataUtil.generateID();
+		_uniqueId = DataUtil.generateID() + _name.hashCode();
 		setInitialValues();
 	}
 	
@@ -151,11 +151,11 @@ public class Task implements ITask {
 	public int hashCode() {
 		return Objects.hash(_name, _timeOfDay, _suggestedBlockLength, _assignmentId);
 	}
-
+	
 	@Override
 	public String fullString() {
 		return String.format("[Task: id: %s; name: %s; percentOfTotal: %s; assignmentId: %s; "
-				+ "percentComplete: %s; timeOfDay: %s; suggestedBlockLength: %s]", _uniqueId, _name, 
-				_percentOfTotal, _assignmentId, _percentComplete, _timeOfDay.name(), _suggestedBlockLength);
+			+ "percentComplete: %s; timeOfDay: %s; suggestedBlockLength: %s]", _uniqueId, _name, _percentOfTotal,
+				_assignmentId, _percentComplete, _timeOfDay.name(), _suggestedBlockLength);
 	}
 }

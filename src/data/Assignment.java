@@ -23,7 +23,7 @@ public class Assignment implements IAssignment {
 		_deadline = dueDate;
 		_template = template;
 		_expectedHours = DataUtil.DEFAULT_ASSIGNMENT_EXPECTED_HOURS;
-		_uniqueId = DataUtil.generateID();
+		_uniqueId = DataUtil.generateID() + _name.hashCode();
 		
 		_tasks = createTasksFromTemplate(template);
 	}
@@ -36,7 +36,7 @@ public class Assignment implements IAssignment {
 		_deadline = dueDate;
 		_template = template;
 		_expectedHours = exHours;
-		_uniqueId = DataUtil.generateID();
+		_uniqueId = DataUtil.generateID() + _name.hashCode();
 		
 		_tasks = createTasksFromTemplate(template);
 	}
