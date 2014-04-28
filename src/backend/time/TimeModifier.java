@@ -6,6 +6,7 @@ import java.util.List;
 
 import backend.database.StorageService;
 import backend.database.StorageServiceException;
+import data.Assignment;
 import data.AssignmentBlock;
 import data.ITask;
 import data.ITimeBlockable;
@@ -14,6 +15,13 @@ import data.UnavailableBlock;
 public class TimeModifier {
 	
 	public static boolean updateBlock(final ITimeBlockable block, final Date newStart, final Date newEnd) {
+		final Date now = new Date();
+		final Assignment asgn = StorageService.getAssignment(block.getTask().getAssignmentID());
+		
+		//Ensure that a user cannot lengthen, shorten, or drag a block outside of the valid time range
+		if(!newStart.after(now) || !newEnd.before(asgn.getDueDate()))
+			return false;
+		
 		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
 		// get the entire block set from the db...
 		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
@@ -27,7 +35,6 @@ public class TimeModifier {
 		final List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);
 		final List<UnavailableBlock> unavBlocks = StorageService.getAllUnavailableBlocksWithinRange(tempStart, tempEnd);
 		final List<ITimeBlockable> allBlocks = TimeUtilities.zipTimeBlockLists(unavBlocks, asgnBlocks);
-		final Date now = new Date();
 		
 		final Date currStart = block.getStart();
 		final Date currEnd = block.getEnd();

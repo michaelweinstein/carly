@@ -35,8 +35,8 @@ public class TimeUtilities {
 		
 		// Compare to all surrounding pairs in the middle
 		for (ind = 1; ind < size; ++ind) {
-			if (block.getStart().compareTo(allBlocks.get(ind - 1).getStart()) > 0
-				&& block.getStart().compareTo(allBlocks.get(ind).getStart()) < 0) {
+			if (block.getStart().compareTo(allBlocks.get(ind - 1).getEnd()) >= 0
+				&& block.getStart().compareTo(allBlocks.get(ind).getStart()) <= 0) {
 				allBlocks.add(ind, block);
 				return;
 			}

@@ -153,8 +153,9 @@ public class TimeAllocator {
 			
 			// 3. If a fit is found, insert the block into the list, decrement the counter
 			// and continue.
-			final int ind = TimeUtilities.indexOfFitLocn(allBlocks, block.getStart());
-			allBlocks.add(ind, block);
+			TimeUtilities.insertIntoSortedList(allBlocks, block);
+//			final int ind = TimeUtilities.indexOfFitLocn(allBlocks, block.getStart());
+//			allBlocks.add(ind, block);
 			--numBlocksLeft;
 			
 			// 4. Reset the place that the last block was placed for future searches
@@ -173,13 +174,13 @@ public class TimeAllocator {
 		long minTimeLeftover = Long.MAX_VALUE;
 		final long blockLenInMillis = convertHoursToMillis(blockLength);
 		long delta = 0;
+		final ITask task = m_asgn.getTasks().get(step.getStepNumber());
 		
 		if (blockList.size() == 0) {
 			bestStart = start;
 			bestEnd = new Date(bestStart.getTime() + convertHoursToMillis(blockLength));
 			
 			// Get the corresponding task from the Assignment member variable
-			final ITask task = m_asgn.getTasks().get(step.getStepNumber());
 			return new AssignmentBlock(bestStart, bestEnd, task);
 		}
 		
@@ -188,6 +189,7 @@ public class TimeAllocator {
 			bestStart = start;
 			minTimeLeftover = delta - blockLenInMillis;
 			bestEnd = new Date(bestStart.getTime() + blockLenInMillis);
+			return new AssignmentBlock(bestStart, bestEnd, task);
 		}
 		
 		//Iterate so that items of different tasks under the same assignment are
@@ -201,9 +203,13 @@ public class TimeAllocator {
 			if (blockLenInMillis <= (delta = blockList.get(i).getStart().getTime()
 				- blockList.get(i - 1).getEnd().getTime())
 				&& delta - blockLenInMillis < minTimeLeftover) {
+				
 				bestStart = (Date) blockList.get(i - 1).getEnd().clone();
 				minTimeLeftover = delta - blockLenInMillis;
 				bestEnd = new Date(bestStart.getTime() + blockLenInMillis);
+				
+				//Added this to make policy FIRST-FIT rather than best fit
+				return new AssignmentBlock(bestStart, bestEnd, task);
 			}
 		}
 		
@@ -213,14 +219,17 @@ public class TimeAllocator {
 			bestStart = (Date) blockList.get(blockList.size() - 1).getEnd().clone();
 			minTimeLeftover = delta - blockLenInMillis;
 			bestEnd = new Date(bestStart.getTime() + blockLenInMillis);
+			
+			//Added this to make policy FIRST-FIT rather than best fit
+			return new AssignmentBlock(bestStart, bestEnd, task);
 		}
 		
 		if (bestStart == null || bestEnd == null) {
 			return null;
 		}
 		
-		// Create the task to give in the AssignmentBlock constructor
-		final ITask task = m_asgn.getTasks().get(step.getStepNumber());
+		//TODO: REMOVE THIS RETURN STATEMENT, and clean this function up so that it is
+		//		entirely "first-fit" based instead of "best-fit" based
 		return new AssignmentBlock(bestStart, bestEnd, task);
 	}
 	

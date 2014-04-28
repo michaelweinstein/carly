@@ -50,8 +50,8 @@ public class TimeCompactor {
 				lastTimePlaced.setTime(timeToPushTo.getTime());
 			}
 			
-			block.setStart(timeToPushTo);
-			block.setEnd(newEnd);
+			block.setStart(new Date(timeToPushTo.getTime()));
+			block.setEnd(new Date(newEnd.getTime()));
 			
 			//Reset the timeToPushTo pointer to be the newEnd object
 			timeToPushTo = newEnd;
@@ -107,9 +107,9 @@ public class TimeCompactor {
 		//2. Calculate the amount of available free time in the [start, end] range, and
 		//	 the average amount of space that can be placed between blocks.
 		freeTimeBankMillis = end.getTime() - start.getTime() - timeUnavailableMillis;
-//		for(ITimeBlockable itb : asgnBlocks) {
-//			freeTimeBankMillis -= itb.getEnd().getTime() - itb.getStart().getTime();
-//		}
+		for(ITimeBlockable itb : asgnBlocks) {
+			freeTimeBankMillis -= itb.getEnd().getTime() - itb.getStart().getTime();
+		}
 		
 		avgFreeTimeMillis = freeTimeBankMillis / allBlocks.size();
 		
@@ -123,7 +123,7 @@ public class TimeCompactor {
 			//EDGE CASE: What if a block cannot be moved?
 			ITimeBlockable block = asgnBlocks.get(i);
 			long delta = block.getLength();
-			long recommendedStart = timeToStartFrom.getTime() - avgFreeTimeMillis - delta;
+			long recommendedStart = timeToStartFrom.getTime() - avgFreeTimeMillis;
 			long newStart = getBlockInsertLocation(block, allBlocks, recommendedStart);
 			long newEnd = newStart + delta;
 
@@ -131,12 +131,14 @@ public class TimeCompactor {
 			Assignment blockAsgn = StorageService.getAssignment(block.getTask().getAssignmentID());			
 			if(newStart < start.getTime()) {
 				System.err.println("Bad START-insertion attempt!");
+				timeToStartFrom = (Date) block.getStart().clone();
 				//break;
 				continue;
 			}
 			//if(newEnd > end.getTime()) {
 			if(newEnd > blockAsgn.getDueDate().getTime()) {
 				System.err.println("Bad END-insertion attempt!");
+				timeToStartFrom = (Date) block.getStart().clone();
 				//break;
 				continue;
 			}
@@ -144,15 +146,17 @@ public class TimeCompactor {
 			//Place the block in its new location and decrement from the time bank
 			block.getStart().setTime(newStart);
 			block.getEnd().setTime(newEnd);
-			freeTimeBankMillis -= (newEnd - newStart);
-			
+
 			//Reset the location of the block in the list
 			allBlocks.remove(block);
 			TimeUtilities.insertIntoSortedList(allBlocks, block);
 			
 			//Reset the time for where to start on the next iteration
 			timeToStartFrom = (Date) block.getStart().clone();
-
+			freeTimeBankMillis -= (newEnd - timeToStartFrom.getTime());
+			//freeTimeBankMillis -= (newEnd - newStart);
+			
+			
 			if(recommendedStart != newStart) {
 				//Get the previous item in the list, and use this block's start as the new "timeToStartFrom"
 				int insertedLocn = TimeUtilities.indexOfFitLocn(allBlocks, new Date(newStart - 1));
@@ -162,6 +166,11 @@ public class TimeCompactor {
 				//THIS is the old temp solution -- back up timeToStartFrom by fixed amt
 				//timeToStartFrom.setTime(timeToStartFrom.getTime() - delta);
 			}
+			
+			//Reset avgFreeTimeMillis in case not as much free time was used while de-compacting
+			//previous blocks (and vice versa)
+			if(i != 0)
+				avgFreeTimeMillis = freeTimeBankMillis / i;
 			
 			//TODO: WILL THIS CASE OCCUR?
 			//5. Track the amount of free time in the free bank - if the bank is too low on time, restart
