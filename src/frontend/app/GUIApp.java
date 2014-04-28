@@ -43,9 +43,11 @@ public class GUIApp extends App {
 	 * Reloads and redraws whole window
 	 */
 	public void reload() {
-		_window.reloadData();
-		_window.revalidate();
-		_window.repaint();
+		if (_window != null) {
+			_window.reloadData();
+			_window.revalidate();
+			_window.repaint();
+		}
 	}
 	
 	/**

@@ -7,6 +7,7 @@ import static frontend.view.DrawingConstants.Y_PAD;
 import hub.HubController;
 
 import java.awt.BasicStroke;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -48,6 +49,8 @@ import frontend.Utils;
 public class WeekCanvas extends JPanel implements MouseListener, MouseMotionListener {
 	
 	private static final long							serialVersionUID	= 1L;
+	private static final int							CURSOR_CUST			= Cursor.N_RESIZE_CURSOR;
+	private static final int							CURSOR_DEF			= Cursor.DEFAULT_CURSOR;
 	private final Map<ITimeBlockable, List<TimeRect>>	_allBlocks;
 	private final Set<ITimeBlockable>					_highlightedBlocks;
 	private final CalendarView							_cv;
@@ -137,6 +140,26 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 			for (final TimeRect rec : list) {
 				if (rec.contains(mousePoint)) {
 					return t;
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Gets the timerect for a given point
+	 * 
+	 * @param mousePoint a point in 2D space
+	 * @return an ITimeBlockable for a given point
+	 */
+	public TimeRect getRectForPoint(final Point mousePoint) {
+		for (final ITimeBlockable t : getAllBlocks().keySet()) {
+			final List<TimeRect> list = getAllBlocks().get(t);
+			
+			// Checks each block for containment
+			for (final TimeRect rec : list) {
+				if (rec.contains(mousePoint)) {
+					return rec;
 				}
 			}
 		}
@@ -586,7 +609,25 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	}
 	
 	@Override
-	public void mouseMoved(final MouseEvent e) {}
+	public void mouseMoved(final MouseEvent e) {
+		final TimeRect t = getRectForPoint(e.getPoint());
+		final int type = getCursor().getType();
+		final boolean inXBounds = t != null && e.getX() >= t.getMinX() && e.getX() <= t.getMaxX();
+		final boolean atTopEdge = t != null && t.getMinY() + 10 >= e.getY();
+		final boolean atBottomEdge = t != null && t.getMaxY() - 10 <= e.getY();
+		
+		// Top edge or bottom edge
+		if (inXBounds && (atTopEdge || atBottomEdge)) {
+			if (type != CURSOR_CUST) {
+				setCursor(Cursor.getPredefinedCursor(CURSOR_CUST));
+			}
+		}
+		
+		// Not default but should be
+		else if (type != CURSOR_DEF) {
+			setCursor(Cursor.getPredefinedCursor(CURSOR_DEF));
+		}
+	}
 	
 	@Override
 	public void mouseClicked(final MouseEvent e) {}

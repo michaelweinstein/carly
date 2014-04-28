@@ -62,7 +62,10 @@ public class EditAssignmentDialog extends AddAssignmentDialog {
 	
 	@Override
 	public void setVisible(final boolean b) {
+		pack();
 		super.setVisible(b);
+		
+		// Adds the assignment's items as the current steps just in case it wasn't a template
 		if (_assignment != null) {
 			_templatePicker.setSelectedItem(_assignment.getTemplate());
 			_stepModel.clear();
