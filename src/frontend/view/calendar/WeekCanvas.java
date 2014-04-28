@@ -1,9 +1,9 @@
 package frontend.view.calendar;
 
-import static frontend.view.calendar.CanvasConstants.DAYS;
-import static frontend.view.calendar.CanvasConstants.HRS;
-import static frontend.view.calendar.CanvasConstants.X_OFFSET;
-import static frontend.view.calendar.CanvasConstants.Y_PAD;
+import static frontend.view.DrawingConstants.DAYS;
+import static frontend.view.DrawingConstants.HRS;
+import static frontend.view.DrawingConstants.X_OFFSET;
+import static frontend.view.DrawingConstants.Y_PAD;
 import hub.HubController;
 
 import java.awt.Dimension;

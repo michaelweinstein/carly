@@ -21,6 +21,7 @@ import javax.swing.KeyStroke;
 import backend.database.StorageService;
 import data.ITimeBlockable;
 import frontend.Utils;
+import frontend.view.DrawingConstants;
 
 /**
  * Represents the panel holding the line and week views for the calendar
@@ -204,7 +205,7 @@ public class CalendarView extends JPanel {
 			dayOfWeek++;
 		}
 		
-		par.add(Box.createHorizontalStrut(CanvasConstants.X_OFFSET));
+		par.add(Box.createHorizontalStrut(DrawingConstants.X_OFFSET));
 		par.add(days);
 		
 		return par;
@@ -224,7 +225,6 @@ public class CalendarView extends JPanel {
 	 */
 	public void reloadDataWithHighlights() {
 		reloadTimeBlocksFromDB();
-		_weekView.getViewport().setViewPosition(new Point(0, 0));
 		for (int i = 0; i < _dayLabelList.size(); i++) {
 			_dayLabelList.get(i).setDate(i + 1, getCurrentWeekStartDate());
 		}
@@ -259,6 +259,8 @@ public class CalendarView extends JPanel {
 			_currWeek = 1;
 			_currYear++;
 		}
+		
+		_weekView.getViewport().setViewPosition(new Point(0, 0));
 	}
 	
 	/**

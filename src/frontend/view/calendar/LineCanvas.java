@@ -1,13 +1,14 @@
 package frontend.view.calendar;
 
-import static frontend.view.calendar.CanvasConstants.DAYS;
-import static frontend.view.calendar.CanvasConstants.HRS;
-import static frontend.view.calendar.CanvasConstants.X_OFFSET;
-import static frontend.view.calendar.CanvasConstants.Y_PAD;
+import static frontend.view.DrawingConstants.DAYS;
+import static frontend.view.DrawingConstants.HRS;
+import static frontend.view.DrawingConstants.X_OFFSET;
+import static frontend.view.DrawingConstants.Y_PAD;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
@@ -21,6 +22,7 @@ import javax.swing.JPanel;
 
 import data.ITimeBlockable;
 import frontend.Utils;
+import frontend.view.DrawingConstants;
 
 /**
  * Represents a continuous line of calendar data
@@ -29,11 +31,12 @@ import frontend.Utils;
  */
 public class LineCanvas extends JPanel {
 	
+	private static final int	NUM_LINES			= 20;
 	private final CalendarView	_cv;
 	private Date				_weekStartDate;
 	private Date				_weekEndDate;
 	private int					_y;
-	private static final long	serialVersionUID	= 8788849553807412908L;
+	private static final long	serialVersionUID	= 1L;
 	
 	/**
 	 * Creates a canvas object
@@ -58,7 +61,7 @@ public class LineCanvas extends JPanel {
 		
 		// Week box
 		brush.setColor(Utils.COLOR_ALTERNATE);
-		brush.fill(new Rectangle2D.Double(0, 0, CanvasConstants.X_OFFSET, getHeight()));
+		brush.fill(new Rectangle2D.Double(0, 0, DrawingConstants.X_OFFSET, getHeight()));
 		
 		// Do the vertical lines
 		brush.setColor(Utils.COLOR_LIGHT_BG);
@@ -71,21 +74,24 @@ public class LineCanvas extends JPanel {
 		_weekStartDate = _cv.getCurrentWeekStartDate();
 		_weekEndDate = _cv.getCurrentWeekEndDate();
 		
-		// Draws all lines for the tasks, but first checks for validity
+		// Get all tasks and calculate the information
 		final List<ITimeBlockable> timeBlocks = _cv.getTimeBlocks();
-		int size = timeBlocks.size();
-		for (final ITimeBlockable t : timeBlocks) {
-			if (t.getStart().after(_weekEndDate) || t.getEnd().before(_weekStartDate)) {
-				--size;
-			}
-		}
+		final int size = Math.min(timeBlocks.size(), NUM_LINES);
 		_y = (int) (Y_PAD / 2.0);
 		final int height = Math.min((int) ((getHeight() - Y_PAD) / (size + 1)), 18);
 		final int space = (int) ((getHeight() - Y_PAD) / size);
-		for (final ITimeBlockable t : timeBlocks) {
-			if (placeAndDrawLine(brush, t, height)) {
+		
+		// Up to 20 items, draw them out
+		for (int i = 0; i < size; i++) {
+			if (placeAndDrawLine(brush, timeBlocks.get(i), height)) {
 				_y += space;
 			}
+		}
+		// If too long, draw a message to that effect
+		if (timeBlocks.size() > NUM_LINES) {
+			brush.setColor(Utils.COLOR_ACCENT);
+			brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 12));
+			brush.drawString("... and " + (timeBlocks.size() - NUM_LINES) + " more", getWidth() - 88, getHeight() - 8);
 		}
 	}
 	
@@ -143,7 +149,7 @@ public class LineCanvas extends JPanel {
 		final int width = Math.max(endX - startX, 5);
 		final Rectangle2D.Double rect = new Rectangle2D.Double(startX, _y, width, height);
 		final boolean highlighted = _cv.getHighlightedTask() != null && _cv.getHighlightedTask().equals(t);
-		final Color currColor = highlighted ? Utils.COLOR_ACCENT : CanvasConstants.getColor(t);
+		final Color currColor = highlighted ? Utils.COLOR_ACCENT : DrawingConstants.getColor(t);
 		
 		// Draw block
 		if (highlighted) {

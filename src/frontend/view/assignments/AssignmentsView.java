@@ -2,6 +2,8 @@ package frontend.view.assignments;
 
 import java.awt.Dimension;
 import java.awt.Font;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -25,6 +27,7 @@ public class AssignmentsView extends JPanel {
 	
 	private final JScrollPane	scroller;
 	private final JPanel		assignmentItems;
+	private AssignmentItemView	_selected;
 	
 	// Constants
 	private static final long	serialVersionUID	= -3581722774976194311L;
@@ -43,12 +46,9 @@ public class AssignmentsView extends JPanel {
 		assignmentItems = new JPanel();
 		assignmentItems.setLayout(new BoxLayout(assignmentItems, BoxLayout.Y_AXIS));
 		assignmentItems.setAlignmentX(LEFT_ALIGNMENT);
-		Utils.padComponent(assignmentItems, 0, 30);
-		final JPanel aiWrapper = new JPanel();
-		aiWrapper.add(assignmentItems);
-		Utils.themeComponent(aiWrapper);
+		Utils.padComponent(assignmentItems, 10, 0, 40, 0);
 		Utils.themeComponent(assignmentItems);
-		scroller = new JScrollPane(aiWrapper);
+		scroller = new JScrollPane(assignmentItems);
 		scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		scroller.setBorder(null);
 		Utils.themeComponent(scroller);
@@ -80,9 +80,11 @@ public class AssignmentsView extends JPanel {
 			l.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 15));
 			assignmentItems.add(l);
 		} else {
-			// TODO: Order by date!
 			for (final IAssignment a : ass) {
-				assignmentItems.add(new AssignmentItemView(a));
+				final JPanel add = new AssignmentItemView(a, this);
+				Utils.addBorderBottom(add);
+				Utils.padComponentWithBorder(add, 0, 20);
+				assignmentItems.add(add);
 			}
 		}
 	}
@@ -93,7 +95,17 @@ public class AssignmentsView extends JPanel {
 	 * @return a list of IAssignment to use in actually populating the view
 	 */
 	private static List<IAssignment> reloadAllAssignments() {
-		return StorageService.getAllAssignmentsWithinRange(new Date(0), new Date(new Date().getTime() * 5));
+		final List<IAssignment> aments = StorageService.getAllAssignmentsWithinRange(new Date(0), new Date(
+				Long.MAX_VALUE - 1));
+		Collections.sort(aments, new Comparator<IAssignment>() {
+			
+			@Override
+			public int compare(final IAssignment o1, final IAssignment o2) {
+				return o1.getDueDate().compareTo(o2.getDueDate());
+			}
+			
+		});
+		return aments;
 	}
 	
 	@Override
@@ -104,5 +116,24 @@ public class AssignmentsView extends JPanel {
 	@Override
 	public Dimension getMinimumSize() {
 		return new Dimension(220, 200);
+	}
+	
+	/**
+	 * Gives back the selected item
+	 * 
+	 * @return the currently selected AssignmentItemView
+	 */
+	public AssignmentItemView getSelected() {
+		return _selected;
+	}
+	
+	/**
+	 * Sets the selected item
+	 * 
+	 * @param assignmentItemView the currently selected AssignmentItemView
+	 */
+	public void setSelected(final AssignmentItemView assignmentItemView) {
+		_selected = assignmentItemView;
+		repaint();
 	}
 }

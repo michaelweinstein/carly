@@ -1,7 +1,12 @@
 package frontend.view.assignments;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
@@ -20,19 +25,26 @@ import frontend.Utils;
  * 
  * @author dgattey
  */
-public class AssignmentItemView extends JPanel {
+public class AssignmentItemView extends JPanel implements MouseListener {
 	
-	private static final long	serialVersionUID	= -4869025641418957982L;
-	private final IAssignment	assignment;
+	private static final long		serialVersionUID	= 1L;
+	private final IAssignment		assignment;
+	private final AssignmentsView	parent;
+	private JPanel					taskPanel;
+	private StepViewTable			taskTable;
 	
 	/**
 	 * Constructs a view from an assignment object for use later
 	 * 
 	 * @param a an Assignment
+	 * @param parent the containing AssignmentsView
 	 */
-	public AssignmentItemView(final IAssignment a) {
+	public AssignmentItemView(final IAssignment a, final AssignmentsView parent) {
 		assignment = a;
+		this.parent = parent;
+		addMouseListener(this);
 		createView();
+		setFocusable(false);
 	}
 	
 	/**
@@ -40,52 +52,87 @@ public class AssignmentItemView extends JPanel {
 	 */
 	private void createView() {
 		Utils.themeComponent(this);
-		Utils.padComponent(this, 0, 0, 20, 0);
-		Utils.addBorderBottom(this);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setAlignmentX(LEFT_ALIGNMENT);
+		setAlignmentY(LEFT_ALIGNMENT);
 		
 		// Title
 		final String title = assignment.getName();
 		final JLabel titleLabel = new JLabel(title);
+		titleLabel.setToolTipText(title);
 		titleLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 16));
 		Utils.themeComponent(titleLabel);
-		Utils.padComponent(titleLabel, 10, 0);
 		add(titleLabel);
+		add(Box.createVerticalStrut(5));
 		
 		// Date
 		final Date due = assignment.getDueDate();
 		final DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-		final JLabel dueLabel = new JLabel("Due Date: " + formatter.format(due));
-		dueLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.ITALIC, 11));
-		Utils.themeComponent(dueLabel);
-		Utils.padComponent(dueLabel, 10, 0);
+		final JLabel dueLabel = new JLabel("Due: " + formatter.format(due));
+		dueLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.ITALIC, 12));
+		dueLabel.setForeground(Utils.COLOR_FOREGROUND.darker());
 		add(dueLabel);
-		
-		add(Box.createVerticalStrut(20));
+		add(Box.createVerticalStrut(10));
 		
 		// Tasks
 		final List<ITask> tasks = assignment.getTasks();
 		final Object dataValues[][] = new Object[tasks.size()][2];
 		for (int i = 0; i < tasks.size(); i++) {
 			dataValues[i][0] = tasks.get(i).getName().split(":")[1];
-			dataValues[i][1] = tasks.get(i).getPercentOfTotal() * 100 + "%";
+			dataValues[i][1] = Math.round(tasks.get(i).getPercentOfTotal() * 100) + "%";
 			// TODO: More with percent of total, better stuff in general
 		}
 		final String colNames[] = { "Step Name", "% of Total" };
 		final StepModel mod = new StepModel(dataValues, colNames);
 		mod.setEditable(false);
-		final StepViewTable taskTable = new StepViewTable(mod);
-		Utils.themeComponent(taskTable);
-		final JPanel taskPanel = new JPanel();
-		Utils.themeComponent(taskPanel);
-		Utils.padComponent(taskPanel, 0, 0, 20, 0);
+		taskTable = new StepViewTable(mod, assignment);
+		taskTable.setFocusable(false);
+		taskPanel = new JPanel();
 		taskPanel.add(taskTable);
+		taskTable.addMouseListener(this);
+		Utils.themeComponent(taskPanel);
+		Utils.themeComponent(taskTable);
 		add(taskPanel);
+		
+		for (final Component comp : getComponents()) {
+			comp.addMouseListener(this);
+		}
+	}
+	
+	@Override
+	protected void paintComponent(final Graphics g) {
+		final Color c = (parent.getSelected() != null && parent.getSelected().equals(this)) ? new Color(50, 50, 50)
+				: Utils.COLOR_BACKGROUND;
+		setBackground(c);
+		taskPanel.setBackground(c);
+		taskTable.setBackground(c);
+		taskTable.setSelectionBackground(c);
+		super.paintComponent(g);
 	}
 	
 	@Override
 	public Dimension getMaximumSize() {
 		return new Dimension(200, Integer.MAX_VALUE - 1);
 	}
+	
+	@Override
+	public void mouseClicked(final MouseEvent e) {
+		if (parent.getSelected() != this) {
+			parent.setSelected(this);
+		} else {
+			parent.setSelected(null);
+		}
+	}
+	
+	@Override
+	public void mousePressed(final MouseEvent e) {}
+	
+	@Override
+	public void mouseReleased(final MouseEvent e) {}
+	
+	@Override
+	public void mouseEntered(final MouseEvent e) {}
+	
+	@Override
+	public void mouseExited(final MouseEvent e) {}
 }
