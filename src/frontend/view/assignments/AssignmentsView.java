@@ -2,15 +2,19 @@ package frontend.view.assignments;
 
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
+import javax.swing.AbstractAction;
 import javax.swing.BoxLayout;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 
 import backend.database.StorageService;
@@ -48,7 +52,10 @@ public class AssignmentsView extends JPanel {
 		assignmentItems.setAlignmentX(LEFT_ALIGNMENT);
 		Utils.padComponent(assignmentItems, 10, 0, 40, 0);
 		Utils.themeComponent(assignmentItems);
-		scroller = new JScrollPane(assignmentItems);
+		final JPanel holder = new JPanel();
+		Utils.themeComponent(holder);
+		holder.add(assignmentItems);
+		scroller = new JScrollPane(holder);
 		scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		scroller.setBorder(null);
 		Utils.themeComponent(scroller);
@@ -63,6 +70,21 @@ public class AssignmentsView extends JPanel {
 		
 		add(title);
 		add(scroller);
+		
+		// Listens for delete key
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DELETE"), "delete");
+		getActionMap().put("delete", new AbstractAction() {
+			
+			private static final long	serialVersionUID	= 1L;
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				if (getSelected() != null) {
+					StorageService.removeAssignment(getSelected().getAssignment());
+					app.reload();
+				}
+			}
+		});
 		
 		reloadData();
 	}

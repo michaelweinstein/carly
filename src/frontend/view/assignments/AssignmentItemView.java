@@ -135,4 +135,13 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 	
 	@Override
 	public void mouseExited(final MouseEvent e) {}
+	
+	/**
+	 * Gets the associated assignment
+	 * 
+	 * @return the IAssignment object
+	 */
+	public IAssignment getAssignment() {
+		return assignment;
+	}
 }
