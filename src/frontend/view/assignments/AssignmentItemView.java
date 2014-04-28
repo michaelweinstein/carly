@@ -28,10 +28,10 @@ import frontend.Utils;
 public class AssignmentItemView extends JPanel implements MouseListener {
 	
 	private static final long		serialVersionUID	= 1L;
-	private final IAssignment		assignment;
-	private final AssignmentsView	parent;
-	private JPanel					taskPanel;
-	private StepViewTable			taskTable;
+	private final IAssignment		_assignment;
+	private final AssignmentsView	_parent;
+	private JPanel					_taskPanel;
+	private StepViewTable			_taskTable;
 	
 	/**
 	 * Constructs a view from an assignment object for use later
@@ -40,8 +40,8 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 	 * @param parent the containing AssignmentsView
 	 */
 	public AssignmentItemView(final IAssignment a, final AssignmentsView parent) {
-		assignment = a;
-		this.parent = parent;
+		_assignment = a;
+		_parent = parent;
 		addMouseListener(this);
 		createView();
 		setFocusable(false);
@@ -57,7 +57,7 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		setAlignmentY(LEFT_ALIGNMENT);
 		
 		// Title
-		final String title = assignment.getName();
+		final String title = _assignment.getName();
 		final JLabel titleLabel = new JLabel(title);
 		titleLabel.setToolTipText(title);
 		titleLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 16));
@@ -66,7 +66,7 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		add(Box.createVerticalStrut(5));
 		
 		// Date
-		final Date due = assignment.getDueDate();
+		final Date due = _assignment.getDueDate();
 		final DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 		final JLabel dueLabel = new JLabel("Due: " + formatter.format(due));
 		dueLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.ITALIC, 12));
@@ -75,7 +75,7 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		add(Box.createVerticalStrut(10));
 		
 		// Tasks
-		final List<ITask> tasks = assignment.getTasks();
+		final List<ITask> tasks = _assignment.getTasks();
 		final Object dataValues[][] = new Object[tasks.size()][2];
 		for (int i = 0; i < tasks.size(); i++) {
 			dataValues[i][0] = tasks.get(i).getName().split(":")[1];
@@ -85,14 +85,14 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		final String colNames[] = { "Step Name", "% of Total" };
 		final StepModel mod = new StepModel(dataValues, colNames);
 		mod.setEditable(false);
-		taskTable = new StepViewTable(mod, assignment);
-		taskTable.setFocusable(false);
-		taskPanel = new JPanel();
-		taskPanel.add(taskTable);
-		taskTable.addMouseListener(this);
-		Utils.themeComponent(taskPanel);
-		Utils.themeComponent(taskTable);
-		add(taskPanel);
+		_taskTable = new StepViewTable(mod, _assignment);
+		_taskTable.setFocusable(false);
+		_taskPanel = new JPanel();
+		_taskPanel.add(_taskTable);
+		_taskTable.addMouseListener(this);
+		Utils.themeComponent(_taskPanel);
+		Utils.themeComponent(_taskTable);
+		add(_taskPanel);
 		
 		for (final Component comp : getComponents()) {
 			comp.addMouseListener(this);
@@ -101,12 +101,12 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 	
 	@Override
 	protected void paintComponent(final Graphics g) {
-		final Color c = (parent.getSelected() != null && parent.getSelected().equals(this)) ? new Color(50, 50, 50)
+		final Color c = (_parent.getSelected() != null && _parent.getSelected().equals(this)) ? new Color(50, 50, 50)
 				: Utils.COLOR_BACKGROUND;
 		setBackground(c);
-		taskPanel.setBackground(c);
-		taskTable.setBackground(c);
-		taskTable.setSelectionBackground(c);
+		_taskPanel.setBackground(c);
+		_taskTable.setBackground(c);
+		_taskTable.setSelectionBackground(c);
 		super.paintComponent(g);
 	}
 	
@@ -117,10 +117,10 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 	
 	@Override
 	public void mouseClicked(final MouseEvent e) {
-		if (parent.getSelected() != this) {
-			parent.setSelected(this);
+		if (_parent.getSelected() != this) {
+			_parent.setSelected(this);
 		} else {
-			parent.setSelected(null);
+			_parent.setSelected(null);
 		}
 	}
 	
@@ -142,6 +142,6 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 	 * @return the IAssignment object
 	 */
 	public IAssignment getAssignment() {
-		return assignment;
+		return _assignment;
 	}
 }
