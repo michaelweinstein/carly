@@ -21,6 +21,7 @@ import javax.swing.KeyStroke;
 import backend.database.StorageService;
 import data.ITimeBlockable;
 import frontend.Utils;
+import frontend.app.GUIApp;
 import frontend.view.DrawingConstants;
 
 /**
@@ -31,6 +32,7 @@ import frontend.view.DrawingConstants;
 public class CalendarView extends JPanel {
 	
 	private static final long			serialVersionUID	= 1L;
+	private final GUIApp				_app;
 	private final LineCanvas			_lineCanvas;
 	private final WeekView				_weekView;
 	private final List<DayLabel>		_dayLabelList;
@@ -58,8 +60,11 @@ public class CalendarView extends JPanel {
 	
 	/**
 	 * Creates a line and week view and themes things appropriately
+	 * 
+	 * @param app the app running this
 	 */
-	public CalendarView() {
+	public CalendarView(final GUIApp app) {
+		_app = app;
 		_lineCanvas = new LineCanvas(this);
 		_weekView = new WeekView(this);
 		_timeBlocks = new ArrayList<>();
@@ -416,5 +421,12 @@ public class CalendarView extends JPanel {
 	 */
 	public long getTimeChanged() {
 		return _lastChanged;
+	}
+	
+	/**
+	 * Reloads full app
+	 */
+	public void reloadApp() {
+		_app.reload();
 	}
 }

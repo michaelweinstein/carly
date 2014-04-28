@@ -6,6 +6,7 @@ import static frontend.view.DrawingConstants.X_OFFSET;
 import static frontend.view.DrawingConstants.Y_PAD;
 import hub.HubController;
 
+import java.awt.BasicStroke;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -26,11 +27,14 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
 import data.ITimeBlockable;
 import data.Tuple;
@@ -50,6 +54,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	private Date										_weekStartDate;
 	private Date										_weekEndDate;
 	private Point										_mousePoint;
+	private final Timer									_timer;
 	
 	/**
 	 * Constructor
@@ -60,6 +65,20 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		_cv = cv;
 		_allBlocks = new HashMap<>();
 		_highlightedBlocks = new HashSet<>();
+		_timer = new Timer();
+		_timer.scheduleAtFixedRate(new TimerTask() {
+			
+			@Override
+			public void run() {
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						_cv.reloadApp();
+					}
+				});
+			}
+		}, 5000, 60000); // Once a minute, repaint (after 5 seconds)
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		
@@ -222,11 +241,27 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 				placeAndDrawBlock(brush, t);
 			}
 		}
-		if (_cv.getHighlightedTask() != null) {
-			placeAndDrawHighlightedBlock(brush, _cv.getHighlightedTask());
-		}
 		for (final ITimeBlockable t : _cv.getUnavailableTimeBlocks()) {
 			placeAndDrawBlock(brush, t);
+		}
+		
+		// Line for the current time on the current week
+		if (_weekStartDate.before(new Date()) && _weekEndDate.after(new Date())) {
+			final Calendar c = CalendarView.getCalendarInstance();
+			final double min = Math.round((c.get(Calendar.MINUTE) / 60.0) * 12) * 5;
+			final int y = getYPos(c.get(Calendar.HOUR_OF_DAY) + min / 60.0);
+			
+			brush.setStroke(new BasicStroke(3));
+			brush.setColor(Utils.COLOR_ACCENT);
+			brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 12));
+			brush.drawString("Now", X_OFFSET + 15, y + 4);
+			brush.drawLine(X_OFFSET + 48, y, getWidth(), y);
+			brush.drawLine(X_OFFSET, y, X_OFFSET + 8, y);
+		}
+		
+		// Finally, draw the highlighted block
+		if (_cv.getHighlightedTask() != null) {
+			placeAndDrawHighlightedBlock(brush, _cv.getHighlightedTask());
 		}
 		
 	}

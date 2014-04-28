@@ -73,6 +73,7 @@ public class EditAssignmentDialog extends AddAssignmentDialog {
 				final ITemplateStep st = new TemplateStep(name, s.getPercentOfTotal(), i, s.getPreferredTimeOfDay());
 				_stepModel.addItem(st);
 			}
+			_stepModel.addBlankItem();
 			_stepList.revalidate();
 			_stepList.repaint();
 			revalidate();

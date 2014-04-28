@@ -173,7 +173,6 @@ public class AssignmentsView extends JPanel {
 			final String title = view.getAssignment().getName();
 			_deleteText.setText(String.format("Are you sure you want to delete \"%s\"? This action can't be undone.",
 					title));
-			_deletionDialog.setVisible(true);
 			_confirm.removeActionListener(_deleter);
 			_deleter = new ActionListener() {
 				
@@ -185,6 +184,7 @@ public class AssignmentsView extends JPanel {
 				}
 			};
 			_confirm.addActionListener(_deleter);
+			_deletionDialog.setVisible(true);
 		}
 	}
 	
