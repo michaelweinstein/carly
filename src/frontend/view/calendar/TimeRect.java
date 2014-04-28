@@ -9,6 +9,7 @@ import java.util.List;
 
 import data.ITimeBlockable;
 import frontend.Utils;
+import frontend.view.DrawingConstants;
 
 /**
  * Class of rectangle to use only for drawing - associates with others of same time automatically
@@ -37,7 +38,7 @@ public class TimeRect extends Rectangle2D.Double {
 			final WeekCanvas c) {
 		super(x, y, w, h);
 		_t = t;
-		_c = CanvasConstants.getColor(_t);
+		_c = DrawingConstants.getColor(_t);
 		_canvas = c;
 		
 		// Adds to all blocks for use later

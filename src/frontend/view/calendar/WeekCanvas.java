@@ -1,9 +1,9 @@
 package frontend.view.calendar;
 
-import static frontend.view.calendar.CanvasConstants.DAYS;
-import static frontend.view.calendar.CanvasConstants.HRS;
-import static frontend.view.calendar.CanvasConstants.X_OFFSET;
-import static frontend.view.calendar.CanvasConstants.Y_PAD;
+import static frontend.view.DrawingConstants.DAYS;
+import static frontend.view.DrawingConstants.HRS;
+import static frontend.view.DrawingConstants.X_OFFSET;
+import static frontend.view.DrawingConstants.Y_PAD;
 import hub.HubController;
 
 import java.awt.Dimension;
@@ -341,57 +341,94 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		g.setStroke(rect.getStroke());
 		g.draw(rect);
 		
-		// Draw title
-		g.setColor(Utils.contrastingColor(rect.getColor()));
-		final List<String> titleParts = new ArrayList<>(4);
-		titleParts.add(t.getTask().getName());
+		// Wrap titles and draw them
+		final Font aFont = new Font(Utils.APP_FONT_NAME, Font.BOLD, 12);
+		final Font taskFont = new Font(Utils.APP_FONT_NAME, Font.PLAIN | Font.ITALIC, 11);
+		final List<String> taskT = new ArrayList<>(4);
+		final List<String> assT = new ArrayList<>(2);
+		final String fullTitle = t.getTask().getName();
+		final String[] split = fullTitle.split(":");
+		taskT.add(fullTitle.substring(split[0].length() + 1));
+		assT.add(split[0]);
 		int i = 0;
 		
-		// Go through the title parts and check the bounds of each word - while too big, put on next line
-		for (i = 0; i < titleParts.size() && i < 3; ++i) {
-			String currPart = titleParts.get(i);
-			while (g.getFontMetrics().getStringBounds(currPart, g).getWidth() >= rect.getWidth() - 10) {
-				
-				// Split the current title part into words
-				final String[] words = currPart.split("\\s+");
-				if (words.length > 1) {
-					// Put the last word on the next line
-					final String part2 = words[words.length - 1] + " ";
-					currPart = currPart.substring(0, currPart.length() - part2.length());
-					titleParts.set(i, currPart);
-					
-					// Actually put it in the array
-					if (titleParts.size() - 1 == i) {
-						titleParts.add(part2);
-					} else {
-						titleParts.set(i + 1, part2 + titleParts.get(i + 1));
-					}
-				} else {
-					// Last word is too long to fit on line, but no more left, so just set ...
-					titleParts.set(i, "...");
-					break;
-				}
-			}
+		// Wrap the assignment title
+		g.setFont(aFont);
+		for (i = 0; i < assT.size() && i < 3; ++i) {
+			wrapTitleParts(assT, i, g, rect.getWidth() - 10);
 		}
-		// For long titles
-		if (i < titleParts.size()) {
-			titleParts.set(i, "...");
+		if (i < assT.size()) {
+			assT.set(i, "...");
 		}
 		
-		// Finally, draw the title until it doesn't fit
+		// Wrap the task title
+		g.setFont(taskFont);
+		for (i = 0; i < taskT.size() && i < 3; ++i) {
+			wrapTitleParts(taskT, i, g, rect.getWidth() - 10);
+		}
+		if (i < taskT.size()) {
+			taskT.set(i, "...");
+		}
+		
+		// Finally, draw the titles until they don't fit
 		final int xPos = (int) rect.getX();
 		final int space = 15;
 		int yPos = 0;
-		double nextY = 0;
-		for (i = 0; i < titleParts.size(); i++) {
+		final double nextY = 0;
+		g.setColor(Utils.contrastingColor(rect.getColor()));
+		g.setFont(aFont);
+		for (i = 0; i < taskT.size() + assT.size(); i++) {
 			yPos = (int) rect.getY() + (space * (i + 1));
-			nextY = rect.getY() + (space * (i + 2));
+			
+			// Change fonts and colors
+			if (i == assT.size()) {
+				g.setFont(taskFont);
+				yPos += 5;
+			}
+			
+			// Over length of block
 			if (yPos >= rect.getMaxY()) {
 				return;
 			}
-			g.drawString(nextY >= rect.getMaxY() ? "..." : titleParts.get(i), xPos + 5, yPos);
+			
+			final String toDraw = i < assT.size() ? assT.get(i) : taskT.get(i - assT.size());
+			g.drawString(nextY >= rect.getMaxY() ? "..." : toDraw, xPos + 5, yPos);
 		}
 		
+	}
+	
+	/**
+	 * Wraps the title parts in the array for the current index
+	 * 
+	 * @param titleParts an list of strings to wrap
+	 * @param i the index
+	 * @param g the graphics object to use
+	 * @param w the width of the spot to put it
+	 */
+	private static void wrapTitleParts(final List<String> titleParts, final int i, final Graphics2D g, final double w) {
+		String currPart = titleParts.get(i);
+		while (g.getFontMetrics().getStringBounds(currPart, g).getWidth() >= w) {
+			
+			// Split the current title part into words
+			final String[] words = currPart.split("\\s+");
+			if (words.length > 1) {
+				// Put the last word on the next line
+				final String part2 = words[words.length - 1] + " ";
+				currPart = currPart.substring(0, currPart.length() - part2.length());
+				titleParts.set(i, currPart);
+				
+				// Actually put it in the array
+				if (titleParts.size() - 1 == i) {
+					titleParts.add(part2);
+				} else {
+					titleParts.set(i + 1, part2 + titleParts.get(i + 1));
+				}
+			} else {
+				// Last word is too long to fit on line, but no more left, so just set ...
+				titleParts.set(i, "...");
+				break;
+			}
+		}
 	}
 	
 	/**
