@@ -179,7 +179,21 @@ public abstract class Utils {
 		final double g = c.getGreen() * c.getGreen() * .691;
 		final double b = c.getBlue() * c.getBlue() * .068;
 		final double bright = Math.sqrt(r + g + b);
-		return (bright < 130) ? Utils.COLOR_FOREGROUND : Utils.COLOR_BACKGROUND.darker();
+		return (bright < 130) ? Utils.COLOR_FOREGROUND : Utils.COLOR_BACKGROUND.darker().darker();
+	}
+	
+	/**
+	 * Gives a transparent color
+	 * 
+	 * @param c the color to use as base
+	 * @param percent how transparent it should be (1 is opaque, 0 transparent)
+	 * @return a new color with that range
+	 */
+	public static Color transparentColor(final Color c, final double percent) {
+		if (percent < 0 || percent > 1) {
+			throw new IllegalArgumentException("Color can't be that kind of transparent");
+		}
+		return new Color(c.getRed(), c.getGreen(), c.getBlue(), (int) (percent * 255));
 	}
 	
 	/**
