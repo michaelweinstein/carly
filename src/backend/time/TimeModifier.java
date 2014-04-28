@@ -32,7 +32,6 @@ public class TimeModifier {
 		final Date currStart = block.getStart();
 		final Date currEnd = block.getEnd();
 		
-		// TODO: Re-optimize schedule after either type of shortening?
 		// Shortening a block from the top
 		if (currStart.compareTo(newStart) < 0 && currEnd.compareTo(newEnd) == 0) {
 			block.setStart(newStart);
@@ -415,8 +414,8 @@ public class TimeModifier {
 				}
 			}
 			
-			//TODO: At this point, return to the user, regardless of how many millis
-			//		were successfully added.  This is a pretty extreme edge case that
+			//TODO: At this point, return to the user (regardless of how many millis
+			//		were successfully added).  This is a pretty extreme edge case that
 			//		the schedule would be so tight that no blocks could be added anyway...
 			if(totalMillisToAdd > 0) {
 				System.err.println("Total Millis To Add > 0 - sleeping for 5 seconds as punishment :(");

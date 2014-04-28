@@ -137,10 +137,9 @@ public class TimeAllocator {
 					// reference so that it is still accurate
 					TimeCompactor.compact(allBlocks, start, end, lastTimePlaced);
 					hasCompactedOnce = true;
-					continue;
-					// TODO: currently I am compacting all blocks... is a different range better?
-					
-				} else {
+					continue;					
+				} 
+				else {
 					// TODO: Remove this println
 					System.err.println("Could not insert block, even after compacting -- TODO:"
 						+ " Try to move blocks contained by other assignments outside of the range\n"
@@ -191,10 +190,8 @@ public class TimeAllocator {
 			bestEnd = new Date(bestStart.getTime() + blockLenInMillis);
 		}
 		
-		// TODO: BIG PROBLEM: items of different tasks under the same assignment need to be in
-		// the calendar in a sequential order...
-		// --SOL'N 1: use a "lastTimePlaced" block as a starting point for each new task
-		// --SOL'N 2: ??
+		//Iterate so that items of different tasks under the same assignment are
+		//placed in the calendar in correct chronological order
 		for (int i = TimeUtilities.indexOfFitLocn(blockList, start); i < blockList.size(); ++i) {
 			// Ignore this edge case
 			if (i == 0) {
