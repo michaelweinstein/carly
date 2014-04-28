@@ -5,6 +5,8 @@ import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.text.DateFormat;
@@ -13,6 +15,7 @@ import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
@@ -32,6 +35,7 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 	private final AssignmentsView	_parent;
 	private JPanel					_taskPanel;
 	private StepViewTable			_taskTable;
+	private JButton					_delete;
 	
 	/**
 	 * Constructs a view from an assignment object for use later
@@ -73,6 +77,19 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		dueLabel.setForeground(Utils.COLOR_FOREGROUND.darker());
 		add(dueLabel);
 		add(Box.createVerticalStrut(10));
+		
+		// Delete button
+		_delete = new JButton("Delete Assignment");
+		_delete.setVisible(false);
+		_delete.setAlignmentX(LEFT_ALIGNMENT);
+		_delete.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				_parent.showDeleteAssignmentDialog(AssignmentItemView.this);
+			}
+		});
+		add(_delete);
 		
 		// Tasks
 		final List<ITask> tasks = _assignment.getTasks();
@@ -117,9 +134,14 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 	
 	@Override
 	public void mouseClicked(final MouseEvent e) {
+		if (_parent.getSelected() != null && _parent.getSelected()._delete != null) {
+			_parent.getSelected()._delete.setVisible(false);
+		}
 		if (_parent.getSelected() != this) {
+			_delete.setVisible(true);
 			_parent.setSelected(this);
 		} else {
+			_delete.setVisible(false);
 			_parent.setSelected(null);
 		}
 	}

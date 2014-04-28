@@ -34,10 +34,14 @@ import frontend.app.GUIApp;
  */
 public class AssignmentsView extends JPanel {
 	
-	private final JScrollPane	scroller;
-	private final JPanel		assignmentItems;
+	private final JScrollPane	_scroller;
+	private final JPanel		_assignmentItems;
 	private AssignmentItemView	_selected;
 	private JDialog				_deletionDialog;
+	private JTextArea			_deleteText;
+	private JButton				_confirm;
+	private final GUIApp		_app;
+	private ActionListener		_deleter;
 	
 	// Constants
 	private static final long	serialVersionUID	= -3581722774976194311L;
@@ -52,20 +56,22 @@ public class AssignmentsView extends JPanel {
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		Utils.themeComponent(this);
 		
+		_app = app;
+		
 		// Make title and scroll pane and add to view
-		assignmentItems = new JPanel();
-		assignmentItems.setLayout(new BoxLayout(assignmentItems, BoxLayout.Y_AXIS));
-		assignmentItems.setAlignmentX(LEFT_ALIGNMENT);
-		Utils.padComponent(assignmentItems, 10, 0, 40, 0);
-		Utils.themeComponent(assignmentItems);
+		_assignmentItems = new JPanel();
+		_assignmentItems.setLayout(new BoxLayout(_assignmentItems, BoxLayout.Y_AXIS));
+		_assignmentItems.setAlignmentX(LEFT_ALIGNMENT);
+		Utils.padComponent(_assignmentItems, 10, 0, 40, 0);
+		Utils.themeComponent(_assignmentItems);
 		final JPanel holder = new JPanel();
 		Utils.themeComponent(holder);
-		holder.add(assignmentItems);
-		scroller = new JScrollPane(holder);
-		scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		scroller.setBorder(null);
-		Utils.themeComponent(scroller);
-		Utils.themeComponent(scroller.getViewport());
+		holder.add(_assignmentItems);
+		_scroller = new JScrollPane(holder);
+		_scroller.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		_scroller.setBorder(null);
+		Utils.themeComponent(_scroller);
+		Utils.themeComponent(_scroller.getViewport());
 		
 		// Title
 		final JLabel title = new JLabel("All Assignments");
@@ -76,18 +82,16 @@ public class AssignmentsView extends JPanel {
 		Utils.padComponentWithBorder(title, 0, 20);
 		
 		add(title);
-		add(scroller);
-		createDeletionDialog(app);
+		add(_scroller);
+		createDeletionDialog();
 		
 		reloadData();
 	}
 	
 	/**
 	 * Creates the deletion dialog to show later
-	 * 
-	 * @param app the app to use to reload
 	 */
-	private void createDeletionDialog(final GUIApp app) {
+	private void createDeletionDialog() {
 		_deletionDialog = new JDialog();
 		_deletionDialog.setAlwaysOnTop(true);
 		
@@ -100,34 +104,25 @@ public class AssignmentsView extends JPanel {
 		
 		// Delete text and title
 		final JLabel deleteTitle = new JLabel("Delete Assignment?");
-		final JTextArea deleteText = new JTextArea("Are you sure?");
-		deleteText.setAlignmentX(LEFT_ALIGNMENT);
+		_deleteText = new JTextArea("Are you sure?");
+		_deleteText.setAlignmentX(LEFT_ALIGNMENT);
 		deleteTitle.setAlignmentX(LEFT_ALIGNMENT);
-		deleteText.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 14));
-		deleteText.setEditable(false);
-		deleteText.setFocusable(false);
-		deleteText.setWrapStyleWord(true);
-		deleteText.setLineWrap(true);
+		_deleteText.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 14));
+		_deleteText.setEditable(false);
+		_deleteText.setFocusable(false);
+		_deleteText.setWrapStyleWord(true);
+		_deleteText.setLineWrap(true);
 		Utils.themeComponent(deleteTitle);
 		Utils.setFont(deleteTitle, 20);
 		Utils.padComponent(deleteTitle, 0, 0, 20, 0);
 		Utils.addBorderBottom(deleteTitle);
 		Utils.padComponentWithBorder(deleteTitle, 0, 0, 10, 0);
-		Utils.themeComponent(deleteText);
+		Utils.themeComponent(_deleteText);
 		
 		// Create buttons
-		final JButton confirm = new JButton("Delete");
+		_confirm = new JButton("Delete");
 		final JButton cancel = new JButton("Cancel");
-		confirm.setAlignmentX(RIGHT_ALIGNMENT);
-		confirm.addActionListener(new ActionListener() {
-			
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				StorageService.removeAssignment(getSelected().getAssignment());
-				app.reload();
-				_deletionDialog.setVisible(false);
-			}
-		});
+		_confirm.setAlignmentX(RIGHT_ALIGNMENT);
 		cancel.setAlignmentX(RIGHT_ALIGNMENT);
 		cancel.addActionListener(new ActionListener() {
 			
@@ -139,7 +134,7 @@ public class AssignmentsView extends JPanel {
 		final JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
 		buttonPanel.add(Box.createHorizontalGlue());
-		buttonPanel.add(confirm);
+		buttonPanel.add(_confirm);
 		buttonPanel.add(cancel);
 		buttonPanel.setAlignmentX(LEFT_ALIGNMENT);
 		Utils.themeComponent(buttonPanel);
@@ -147,7 +142,7 @@ public class AssignmentsView extends JPanel {
 		// Add all to dialog
 		deleteMain.add(deleteTitle);
 		deleteMain.add(Box.createVerticalStrut(10));
-		deleteMain.add(deleteText);
+		deleteMain.add(_deleteText);
 		deleteMain.add(buttonPanel);
 		_deletionDialog.setContentPane(deleteMain);
 		_deletionDialog.setMinimumSize(new Dimension(350, 200));
@@ -155,41 +150,60 @@ public class AssignmentsView extends JPanel {
 		
 		// Listens for delete key
 		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DELETE"), "delete");
-		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("BACKSPACE"), "delete");
 		getActionMap().put("delete", new AbstractAction() {
 			
 			private static final long	serialVersionUID	= 1L;
 			
 			@Override
 			public void actionPerformed(final ActionEvent e) {
-				if (getSelected() != null) {
-					final String title = getSelected().getAssignment().getName();
-					deleteText.setText(String.format(
-							"Are you sure you want to delete \"%s\"? This action can't be undone.", title));
-					_deletionDialog.setVisible(true);
-				}
+				showDeleteAssignmentDialog(getSelected());
 			}
 		});
+	}
+	
+	/**
+	 * Shows the delete assignment dialog
+	 * 
+	 * @param view the assignment view to show
+	 */
+	public void showDeleteAssignmentDialog(final AssignmentItemView view) {
+		if (view != null) {
+			final String title = view.getAssignment().getName();
+			_deleteText.setText(String.format("Are you sure you want to delete \"%s\"? This action can't be undone.",
+					title));
+			_deletionDialog.setVisible(true);
+			_confirm.removeActionListener(_deleter);
+			_deleter = new ActionListener() {
+				
+				@Override
+				public void actionPerformed(final ActionEvent e) {
+					StorageService.removeAssignment(view.getAssignment());
+					_app.reload();
+					_deletionDialog.setVisible(false);
+				}
+			};
+			_confirm.addActionListener(_deleter);
+		}
 	}
 	
 	/**
 	 * Reloads assignments
 	 */
 	public void reloadData() {
-		assignmentItems.removeAll();
+		_assignmentItems.removeAll();
 		final List<IAssignment> ass = reloadAllAssignments();
 		
 		if (ass == null || ass.isEmpty()) {
 			final JLabel l = new JLabel("You're free!");
 			Utils.themeComponent(l);
 			l.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 15));
-			assignmentItems.add(l);
+			_assignmentItems.add(l);
 		} else {
 			for (final IAssignment a : ass) {
 				final JPanel add = new AssignmentItemView(a, this);
 				Utils.addBorderBottom(add);
 				Utils.padComponentWithBorder(add, 0, 20);
-				assignmentItems.add(add);
+				_assignmentItems.add(add);
 			}
 		}
 	}
