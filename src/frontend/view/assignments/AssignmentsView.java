@@ -1,5 +1,7 @@
 package frontend.view.assignments;
 
+import hub.HubController;
+
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -23,7 +25,11 @@ import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 
 import backend.database.StorageService;
+import data.Assignment;
 import data.IAssignment;
+import data.ITask;
+import data.ITemplateStep;
+import data.TemplateStep;
 import frontend.Utils;
 import frontend.app.GUIApp;
 
@@ -38,6 +44,7 @@ public class AssignmentsView extends JPanel {
 	private final JPanel		_assignmentItems;
 	private AssignmentItemView	_selected;
 	private JDialog				_deletionDialog;
+	private AddAssignmentDialog	_editor;
 	private JTextArea			_deleteText;
 	private JButton				_confirm;
 	private final GUIApp		_app;
@@ -89,6 +96,60 @@ public class AssignmentsView extends JPanel {
 	}
 	
 	/**
+	 * Creates and shows an edit dialog for the assignment
+	 * 
+	 * @param editable the assignment to edit
+	 */
+	protected void createEditDialog(final IAssignment editable) {
+		_editor = new AddAssignmentDialog(_app) {
+			
+			private static final long	serialVersionUID	= 1L;
+			
+			{
+				_dialogTitle.setText("Edit Assignment");
+				_dateTimeField.setValue(editable.getDueDate());
+				_numHours.setText(String.valueOf(editable.getExpectedHours()));
+				_titleField.setText(editable.getName());
+				_addButton.setText("Edit");
+			}
+			
+			@Override
+			protected void addToDatabase() {
+				try {
+					final Assignment a = parseFields();
+					StorageService.removeAssignment(editable);
+					HubController.addAssignmentToCalendar(a);
+					_app.reload();
+					clearContents();
+					dispose();
+				} catch (final IllegalArgumentException e1) {
+					_statusLabel.setText("Oops! " + e1.getMessage());
+				}
+			}
+			
+			@Override
+			public void setVisible(final boolean b) {
+				super.setVisible(b);
+				_templatePicker.setSelectedItem(editable.getTemplate());
+				_stepModel.clear();
+				for (int i = 0; i < editable.getTasks().size(); i++) {
+					final ITask s = editable.getTasks().get(i);
+					String name = s.getName();
+					name = name.substring(name.split(":")[0].length() + 1);
+					final ITemplateStep st = new TemplateStep(name, s.getPercentOfTotal(), i, s.getPreferredTimeOfDay());
+					_stepModel.addItem(st);
+				}
+				_stepList.revalidate();
+				_stepList.repaint();
+				revalidate();
+				repaint();
+				requestFocusInWindow();
+			}
+		};
+		_editor.setVisible(true);
+	}
+	
+	/**
 	 * Creates the deletion dialog to show later
 	 */
 	private void createDeletionDialog() {
@@ -134,8 +195,8 @@ public class AssignmentsView extends JPanel {
 		final JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
 		buttonPanel.add(Box.createHorizontalGlue());
-		buttonPanel.add(_confirm);
 		buttonPanel.add(cancel);
+		buttonPanel.add(_confirm);
 		buttonPanel.setAlignmentX(LEFT_ALIGNMENT);
 		Utils.themeComponent(buttonPanel);
 		
@@ -254,5 +315,15 @@ public class AssignmentsView extends JPanel {
 	public void setSelected(final AssignmentItemView assignmentItemView) {
 		_selected = assignmentItemView;
 		repaint();
+	}
+	
+	/**
+	 * Closes the editor
+	 */
+	public void closeEditor() {
+		if (_editor != null) {
+			_editor.setVisible(false);
+			_editor = null;
+		}
 	}
 }
