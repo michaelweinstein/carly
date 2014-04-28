@@ -18,6 +18,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import data.IAssignment;
 import data.ITask;
@@ -87,8 +88,15 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 			
 			@Override
 			public void actionPerformed(final ActionEvent e) {
-				_parent.closeEditor();
-				_parent.createEditDialog(_assignment);
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						_parent.getEditor().setVisible(false);
+						_parent.getEditor().setAssignment(_assignment);
+						_parent.getEditor().setVisible(true);
+					}
+				});
 			}
 		});
 		add(_edit);
@@ -101,8 +109,14 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 			
 			@Override
 			public void actionPerformed(final ActionEvent e) {
-				_parent.closeEditor();
-				_parent.showDeleteAssignmentDialog(AssignmentItemView.this);
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						_parent.getEditor().setVisible(false);
+						_parent.showDeleteAssignmentDialog(AssignmentItemView.this);
+					};
+				});
 			}
 		});
 		add(_delete);

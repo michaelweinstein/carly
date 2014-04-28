@@ -1,7 +1,5 @@
 package frontend.view.assignments;
 
-import hub.HubController;
-
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -25,11 +23,7 @@ import javax.swing.KeyStroke;
 import javax.swing.ScrollPaneConstants;
 
 import backend.database.StorageService;
-import data.Assignment;
 import data.IAssignment;
-import data.ITask;
-import data.ITemplateStep;
-import data.TemplateStep;
 import frontend.Utils;
 import frontend.app.GUIApp;
 
@@ -40,18 +34,18 @@ import frontend.app.GUIApp;
  */
 public class AssignmentsView extends JPanel {
 	
-	private final JScrollPane	_scroller;
-	private final JPanel		_assignmentItems;
-	private AssignmentItemView	_selected;
-	private JDialog				_deletionDialog;
-	private AddAssignmentDialog	_editor;
-	private JTextArea			_deleteText;
-	private JButton				_confirm;
-	private final GUIApp		_app;
-	private ActionListener		_deleter;
+	private final JScrollPane			_scroller;
+	private final JPanel				_assignmentItems;
+	private AssignmentItemView			_selected;
+	private JDialog						_deletionDialog;
+	private final EditAssignmentDialog	_editor;
+	private JTextArea					_deleteText;
+	private JButton						_confirm;
+	private final GUIApp				_app;
+	private ActionListener				_deleter;
 	
 	// Constants
-	private static final long	serialVersionUID	= -3581722774976194311L;
+	private static final long			serialVersionUID	= -3581722774976194311L;
 	
 	/**
 	 * Constructor sets colors and puts the scroll view in place
@@ -91,62 +85,9 @@ public class AssignmentsView extends JPanel {
 		add(title);
 		add(_scroller);
 		createDeletionDialog();
+		_editor = new EditAssignmentDialog(app);
 		
 		reloadData();
-	}
-	
-	/**
-	 * Creates and shows an edit dialog for the assignment
-	 * 
-	 * @param editable the assignment to edit
-	 */
-	protected void createEditDialog(final IAssignment editable) {
-		_editor = new AddAssignmentDialog(_app) {
-			
-			private static final long	serialVersionUID	= 1L;
-			
-			{
-				_dialogTitle.setText("Edit Assignment");
-				_dateTimeField.setValue(editable.getDueDate());
-				_numHours.setText(String.valueOf(editable.getExpectedHours()));
-				_titleField.setText(editable.getName());
-				_addButton.setText("Edit");
-			}
-			
-			@Override
-			protected void addToDatabase() {
-				try {
-					final Assignment a = parseFields();
-					StorageService.removeAssignment(editable);
-					HubController.addAssignmentToCalendar(a);
-					_app.reload();
-					clearContents();
-					dispose();
-				} catch (final IllegalArgumentException e1) {
-					_statusLabel.setText("Oops! " + e1.getMessage());
-				}
-			}
-			
-			@Override
-			public void setVisible(final boolean b) {
-				super.setVisible(b);
-				_templatePicker.setSelectedItem(editable.getTemplate());
-				_stepModel.clear();
-				for (int i = 0; i < editable.getTasks().size(); i++) {
-					final ITask s = editable.getTasks().get(i);
-					String name = s.getName();
-					name = name.substring(name.split(":")[0].length() + 1);
-					final ITemplateStep st = new TemplateStep(name, s.getPercentOfTotal(), i, s.getPreferredTimeOfDay());
-					_stepModel.addItem(st);
-				}
-				_stepList.revalidate();
-				_stepList.repaint();
-				revalidate();
-				repaint();
-				requestFocusInWindow();
-			}
-		};
-		_editor.setVisible(true);
 	}
 	
 	/**
@@ -318,12 +259,11 @@ public class AssignmentsView extends JPanel {
 	}
 	
 	/**
-	 * Closes the editor
+	 * Gets the editor
+	 * 
+	 * @return the editor dialog
 	 */
-	public void closeEditor() {
-		if (_editor != null) {
-			_editor.setVisible(false);
-			_editor = null;
-		}
+	public EditAssignmentDialog getEditor() {
+		return _editor;
 	}
 }
