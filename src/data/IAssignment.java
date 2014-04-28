@@ -22,7 +22,7 @@ public interface IAssignment {
 	 * 
 	 * @return the total number of hours an assignment may take
 	 */
-	public int getExpectedHours();
+	public double getExpectedHours();
 	
 	/**
 	 * Mutator for number of hours a user expects this Assignment to take.

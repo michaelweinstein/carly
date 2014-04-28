@@ -77,9 +77,10 @@ public class AssignmentsView extends JPanel {
 		if (ass == null || ass.isEmpty()) {
 			final JLabel l = new JLabel("You're free!");
 			Utils.themeComponent(l);
-			l.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 13));
+			l.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 15));
 			assignmentItems.add(l);
 		} else {
+			// TODO: Order by date!
 			for (final IAssignment a : ass) {
 				assignmentItems.add(new AssignmentItemView(a));
 			}
