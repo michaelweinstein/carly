@@ -64,6 +64,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	private JComboBox<ITemplate>	_templatePicker;
 	private StepViewTable			_stepList;
 	private StepModel				_stepModel;
+	private JTextField				_numHours;
 	
 	/**
 	 * Constructor creates all relevant data
@@ -207,7 +208,18 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			steps.add(new TemplateStep(title, perc / 100.0, i));
 		}
 		if (totalPercentage != 100.0) {
-			throw new IllegalArgumentException("Your total % is not 100%...");
+			throw new IllegalArgumentException("Your total task % is not 100%...");
+		}
+		
+		// Get expected num hours
+		double exHours;
+		try {
+			exHours = Double.parseDouble(_numHours.getText());
+			if (exHours < 0) {
+				throw new IllegalArgumentException("Your number of hours is negative.");
+			}
+		} catch (final NumberFormatException e) {
+			throw new IllegalArgumentException("Your number of hours is not a valid number.");
 		}
 		
 		// By this point, all data is great!
@@ -218,7 +230,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 				t.addStep(st);
 			}
 		}
-		return new Assignment(titleText, due, t);
+		return new Assignment(titleText, due, t, exHours);
 	}
 	
 	/**
@@ -228,10 +240,13 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	 */
 	private JPanel createFieldsAndLabels() {
 		final JPanel pane = new JPanel();
+		final Dimension paneSize = getPreferredSize();
+		paneSize.setSize(Math.min(paneSize.getWidth() - 50, 20), 20);
+		pane.setPreferredSize(paneSize);
 		final GridBagConstraints c = new GridBagConstraints();
 		pane.setLayout(new GridBagLayout());
 		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weightx = 1;
+		c.weightx = 0;
 		c.weighty = 0;
 		c.insets = new Insets(0, 0, 10, 0);
 		Utils.themeComponent(pane);
@@ -246,16 +261,18 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		
 		// Title field
 		_titleField = new JTextField();
+		c.weightx = 1;
 		c.gridx = 1;
-		c.gridwidth = GridBagConstraints.REMAINDER;
+		c.gridwidth = 1;
 		pane.add(_titleField, c);
 		
 		// Time and Date label
 		final JLabel timeDateLabel = new JLabel("Due Date: ");
 		Utils.themeComponent(timeDateLabel);
 		Utils.setFont(timeDateLabel, 14);
+		c.weightx = 0;
 		c.gridx = 0;
-		c.gridy = 1;
+		c.gridy = GridBagConstraints.RELATIVE;
 		c.gridwidth = 1;
 		pane.add(timeDateLabel, c);
 		
@@ -265,16 +282,36 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		_dateTimeField.setEditor(timeEditor);
 		_dateTimeField.setValue(new Date());
 		Utils.themeComponent(_dateTimeField);
+		c.weightx = 1;
 		c.gridx = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		pane.add(_dateTimeField, c);
+		
+		// Expected # hours to complete in total
+		final JLabel exLabel = new JLabel("Expected Hours: ");
+		exLabel.setToolTipText("The total number of hours you think it will take you to complete the assignment");
+		Utils.themeComponent(exLabel);
+		Utils.setFont(exLabel, 14);
+		c.gridy = GridBagConstraints.RELATIVE;
+		c.weightx = 0;
+		c.gridx = 0;
+		c.gridwidth = 1;
+		pane.add(exLabel, c);
+		
+		// Expected field
+		_numHours = new JTextField();
+		c.weightx = 1;
+		c.gridx = 1;
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		pane.add(_numHours, c);
 		
 		// Template label
 		final JLabel templateLabel = new JLabel("Template: ");
 		Utils.themeComponent(templateLabel);
 		Utils.setFont(templateLabel, 14);
+		c.weightx = 0;
 		c.gridx = 0;
-		c.gridy = 2;
+		c.gridy = GridBagConstraints.RELATIVE;
 		c.gridwidth = 1;
 		pane.add(templateLabel, c);
 		
@@ -294,23 +331,25 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 						_stepModel.addItem(step);
 					}
 					_stepModel.addBlankItem();
-					repaint();
+					_stepList.revalidate();
+					_stepList.repaint();
 				}
 			}
 		});
 		c.gridx = 1;
+		c.weightx = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		pane.add(_templatePicker, c);
 		
-		// Expected # hours to complete in total
-		// TODO: Expected # hours???
+		// TODO: Fix dragging tasks beyond current week (or change that functionality??)
 		
 		// Tasks label
 		final JLabel taskLabel = new JLabel("Steps: ");
 		Utils.themeComponent(taskLabel);
 		Utils.setFont(taskLabel, 14);
 		c.gridx = 0;
-		c.gridy = 3;
+		c.weightx = 0;
+		c.gridy = GridBagConstraints.RELATIVE;
 		c.gridwidth = 1;
 		pane.add(taskLabel, c);
 		
@@ -322,12 +361,13 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		_stepList = new StepViewTable(_stepModel);
 		Utils.padComponent(_stepList, 10, 30);
 		c.gridx = 1;
+		c.weightx = 1;
 		c.gridheight = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		final JTableHeader header = _stepList.getTableHeader();
 		pane.add(header, c);
 		c.gridx = 1;
-		c.gridy = 4;
+		c.gridy = GridBagConstraints.RELATIVE;
 		c.gridheight = GridBagConstraints.REMAINDER;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		pane.add(_stepList, c);
@@ -347,7 +387,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		}
 		_stepModel.deleteRowsIfEmpty(e.getFirstRow(), e.getLastRow());
 		revalidate();
-		this.repaint();
+		repaint();
 	}
 	
 	/**
@@ -384,6 +424,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		final List<ITemplate> temps = StorageService.getAllTemplates();
 		if (temps != null) {
 			for (final ITemplate temp : temps) {
+				// TODO: Fix so it takes all non-custom from database
 				if (!temp.getName().equals("Custom")) {
 					_templatePicker.addItem(temp);
 				}
@@ -394,7 +435,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	
 	@Override
 	public Dimension getMinimumSize() {
-		return new Dimension(360, 500);
+		return new Dimension(400, 500);
 	}
 	
 }
