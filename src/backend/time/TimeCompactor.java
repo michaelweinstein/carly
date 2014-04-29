@@ -12,6 +12,7 @@ import data.ITimeBlockable;
 
 public class TimeCompactor {
 	
+	private static final int MILLIS_IN_DAY = 86400000;
 	
 	//This function currently compacts all movable blocks in the Date range [start, end]
 	//in order to prevent "external fragmentation" along the client's time stream
@@ -72,8 +73,8 @@ public class TimeCompactor {
 		long freeTimeBankMillis = 0;
 		long avgFreeTimeMillis = 0;
 		List<ITimeBlockable> asgnBlocks = new ArrayList<ITimeBlockable>();
-		Date timeToStartFrom = end;
-
+		Date timeToStartFrom = new Date(end.getTime() - MILLIS_IN_DAY);
+		//TODO: ^^ this timeToStartFrom can be tweaked
 		
 		//TODO: THIS ALGORITHM CURRENTLY FAILS FOR CASES WHERE THERE IS NO FREE TIME AVAILABLE
 		//		AT THE END, BUT RATHER, WHERE IT IS ALL AVAILABLE AT THE BEGINNING.
@@ -151,11 +152,12 @@ public class TimeCompactor {
 			allBlocks.remove(block);
 			TimeUtilities.insertIntoSortedList(allBlocks, block);
 			
-			//Reset the time for where to start on the next iteration
-			timeToStartFrom = (Date) block.getStart().clone();
-			freeTimeBankMillis -= (newEnd - timeToStartFrom.getTime());
+
+			freeTimeBankMillis -= (newStart - timeToStartFrom.getTime());
 			//freeTimeBankMillis -= (newEnd - newStart);
 			
+			//Reset the time for where to start on the next iteration
+			timeToStartFrom = (Date) block.getStart().clone();
 			
 			if(recommendedStart != newStart) {
 				//Get the previous item in the list, and use this block's start as the new "timeToStartFrom"
