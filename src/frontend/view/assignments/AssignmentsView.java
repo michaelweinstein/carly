@@ -34,17 +34,18 @@ import frontend.app.GUIApp;
  */
 public class AssignmentsView extends JPanel {
 	
-	private final JScrollPane	_scroller;
-	private final JPanel		_assignmentItems;
-	private AssignmentItemView	_selected;
-	private JDialog				_deletionDialog;
-	private JTextArea			_deleteText;
-	private JButton				_confirm;
-	private final GUIApp		_app;
-	private ActionListener		_deleter;
+	private final JScrollPane			_scroller;
+	private final JPanel				_assignmentItems;
+	private AssignmentItemView			_selected;
+	private JDialog						_deletionDialog;
+	private final EditAssignmentDialog	_editor;
+	private JTextArea					_deleteText;
+	private JButton						_confirm;
+	private final GUIApp				_app;
+	private ActionListener				_deleter;
 	
 	// Constants
-	private static final long	serialVersionUID	= -3581722774976194311L;
+	private static final long			serialVersionUID	= -3581722774976194311L;
 	
 	/**
 	 * Constructor sets colors and puts the scroll view in place
@@ -84,6 +85,7 @@ public class AssignmentsView extends JPanel {
 		add(title);
 		add(_scroller);
 		createDeletionDialog();
+		_editor = new EditAssignmentDialog(app);
 		
 		reloadData();
 	}
@@ -134,8 +136,8 @@ public class AssignmentsView extends JPanel {
 		final JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
 		buttonPanel.add(Box.createHorizontalGlue());
-		buttonPanel.add(_confirm);
 		buttonPanel.add(cancel);
+		buttonPanel.add(_confirm);
 		buttonPanel.setAlignmentX(LEFT_ALIGNMENT);
 		Utils.themeComponent(buttonPanel);
 		
@@ -171,7 +173,6 @@ public class AssignmentsView extends JPanel {
 			final String title = view.getAssignment().getName();
 			_deleteText.setText(String.format("Are you sure you want to delete \"%s\"? This action can't be undone.",
 					title));
-			_deletionDialog.setVisible(true);
 			_confirm.removeActionListener(_deleter);
 			_deleter = new ActionListener() {
 				
@@ -183,6 +184,7 @@ public class AssignmentsView extends JPanel {
 				}
 			};
 			_confirm.addActionListener(_deleter);
+			_deletionDialog.setVisible(true);
 		}
 	}
 	
@@ -254,5 +256,14 @@ public class AssignmentsView extends JPanel {
 	public void setSelected(final AssignmentItemView assignmentItemView) {
 		_selected = assignmentItemView;
 		repaint();
+	}
+	
+	/**
+	 * Gets the editor
+	 * 
+	 * @return the editor dialog
+	 */
+	public EditAssignmentDialog getEditor() {
+		return _editor;
 	}
 }

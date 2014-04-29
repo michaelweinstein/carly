@@ -41,7 +41,7 @@ public class MainFrame extends JFrame {
 		setResizable(true);
 		
 		// Make child views and add them
-		calendar = new CalendarView();
+		calendar = new CalendarView(app);
 		toolbar = new ToolbarView(app);
 		assignmentsView = new AssignmentsView(app);
 		

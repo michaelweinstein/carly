@@ -18,6 +18,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import data.IAssignment;
 import data.ITask;
@@ -36,6 +37,7 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 	private JPanel					_taskPanel;
 	private StepViewTable			_taskTable;
 	private JButton					_delete;
+	private JButton					_edit;
 	
 	/**
 	 * Constructs a view from an assignment object for use later
@@ -78,6 +80,27 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		add(dueLabel);
 		add(Box.createVerticalStrut(10));
 		
+		// Edit button
+		_edit = new JButton("Edit Assignment");
+		_edit.setVisible(false);
+		_edit.setAlignmentX(LEFT_ALIGNMENT);
+		_edit.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						_parent.getEditor().setVisible(false);
+						_parent.getEditor().setAssignment(_assignment);
+						_parent.getEditor().setVisible(true);
+					}
+				});
+			}
+		});
+		add(_edit);
+		
 		// Delete button
 		_delete = new JButton("Delete Assignment");
 		_delete.setVisible(false);
@@ -86,7 +109,14 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 			
 			@Override
 			public void actionPerformed(final ActionEvent e) {
-				_parent.showDeleteAssignmentDialog(AssignmentItemView.this);
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						_parent.getEditor().setVisible(false);
+						_parent.showDeleteAssignmentDialog(AssignmentItemView.this);
+					};
+				});
 			}
 		});
 		add(_delete);
@@ -136,12 +166,15 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 	public void mouseClicked(final MouseEvent e) {
 		if (_parent.getSelected() != null && _parent.getSelected()._delete != null) {
 			_parent.getSelected()._delete.setVisible(false);
+			_parent.getSelected()._edit.setVisible(false);
 		}
 		if (_parent.getSelected() != this) {
 			_delete.setVisible(true);
+			_edit.setVisible(true);
 			_parent.setSelected(this);
 		} else {
 			_delete.setVisible(false);
+			_edit.setVisible(false);
 			_parent.setSelected(null);
 		}
 	}

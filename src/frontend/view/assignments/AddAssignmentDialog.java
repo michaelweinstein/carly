@@ -52,19 +52,20 @@ import frontend.app.GUIApp;
  */
 public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	
-	private final GUIApp			app;
 	private static final String		DATE_FORMAT_STRING	= "MMMM dd, yyyy 'at' hh:mm a";
 	private static final String		DEFAULT_LABEL		= " ";
 	private static final long		serialVersionUID	= -5465413225077024401L;
+	protected final GUIApp			_app;
 	private JButton					_cancelButton;
-	private JButton					_addButton;
-	private JTextField				_titleField;
-	private JSpinner				_dateTimeField;
-	private JLabel					_statusLabel;
-	private JComboBox<ITemplate>	_templatePicker;
-	private StepViewTable			_stepList;
-	private StepModel				_stepModel;
-	private JTextField				_numHours;
+	protected JButton				_addButton;
+	protected JTextField			_titleField;
+	protected JSpinner				_dateTimeField;
+	protected JLabel				_statusLabel;
+	protected JComboBox<ITemplate>	_templatePicker;
+	protected StepViewTable			_stepList;
+	protected StepModel				_stepModel;
+	protected JTextField			_numHours;
+	public JLabel					_dialogTitle;
 	
 	/**
 	 * Constructor creates all relevant data
@@ -73,14 +74,14 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	 */
 	public AddAssignmentDialog(final GUIApp app) {
 		super();
-		this.app = app;
+		_app = app;
 		
 		Utils.themeComponent(this);
 		Utils.themeComponent(getRootPane());
 		Utils.padComponent(getRootPane(), 15, 15);
 		setMinimumSize(getMinimumSize()); // Silly but required
 		
-		final JLabel dialogTitle = createDialogTitle();
+		_dialogTitle = createDialogTitle();
 		final JPanel centerPane = createFieldsAndLabels();
 		final JScrollPane scroller = new JScrollPane(centerPane);
 		final JPanel bottom = createButtonsAndStatusPane();
@@ -91,7 +92,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		Utils.padComponent(scroller, 0, 0);
 		
 		// Addition of all items to dialog
-		add(dialogTitle, BorderLayout.NORTH);
+		add(_dialogTitle, BorderLayout.NORTH);
 		add(scroller, BorderLayout.CENTER);
 		add(bottom, BorderLayout.SOUTH);
 		pack();
@@ -125,16 +126,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			
 			@Override
 			public void actionPerformed(final ActionEvent e) {
-				try {
-					final Assignment a = parseFields();
-					HubController.addAssignmentToCalendar(a);
-					app.reload();
-					clearContents();
-					dispose();
-				} catch (final IllegalArgumentException e1) {
-					_statusLabel.setText("Oops! " + e1.getMessage());
-				}
-				
+				addToDatabase();
 			}
 			
 		});
@@ -155,6 +147,21 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		Utils.addBorderBottom(_statusLabel);
 		Utils.padComponentWithBorder(_statusLabel, 0, 0, 10, 0);
 		return pane;
+	}
+	
+	/**
+	 * Adds the given assignment to database
+	 */
+	protected void addToDatabase() {
+		try {
+			final Assignment a = parseFields();
+			HubController.addAssignmentToCalendar(a);
+			_app.reload();
+			clearContents();
+			dispose();
+		} catch (final IllegalArgumentException e1) {
+			_statusLabel.setText("Oops! " + e1.getMessage());
+		}
 	}
 	
 	/**
@@ -240,9 +247,6 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	 */
 	private JPanel createFieldsAndLabels() {
 		final JPanel pane = new JPanel();
-		final Dimension paneSize = getPreferredSize();
-		paneSize.setSize(Math.min(paneSize.getWidth() - 50, 20), 20);
-		pane.setPreferredSize(paneSize);
 		final GridBagConstraints c = new GridBagConstraints();
 		pane.setLayout(new GridBagLayout());
 		c.fill = GridBagConstraints.HORIZONTAL;
@@ -261,6 +265,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		
 		// Title field
 		_titleField = new JTextField();
+		_titleField.setColumns(6);
 		c.weightx = 1;
 		c.gridx = 1;
 		c.gridwidth = 1;
@@ -300,6 +305,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		
 		// Expected field
 		_numHours = new JTextField();
+		_numHours.setColumns(6);
 		c.weightx = 1;
 		c.gridx = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
@@ -407,7 +413,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	/**
 	 * Clears the contents of all the fields
 	 */
-	private void clearContents() {
+	protected void clearContents() {
 		_statusLabel.setText(DEFAULT_LABEL);
 		_titleField.setText("");
 		_numHours.setText("");
@@ -434,7 +440,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	
 	@Override
 	public Dimension getMinimumSize() {
-		return new Dimension(400, 500);
+		return new Dimension(410, 500);
 	}
 	
 }
