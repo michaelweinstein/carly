@@ -8,8 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import data.ITimeBlockable;
+import data.Tuple;
 import frontend.Utils;
-import frontend.view.DrawingConstants;
+import frontend.view.CanvasUtils;
+import frontend.view.calendar.CalendarView.DragType;
 
 /**
  * Class of rectangle to use only for drawing - associates with others of same time automatically
@@ -38,7 +40,7 @@ public class TimeRect extends Rectangle2D.Double {
 			final WeekCanvas c) {
 		super(x, y, w, h);
 		_t = t;
-		_c = DrawingConstants.getColor(_t);
+		_c = CanvasUtils.getColor(_t);
 		_canvas = c;
 		
 		// Adds to all blocks for use later
@@ -58,7 +60,7 @@ public class TimeRect extends Rectangle2D.Double {
 	public Color getColor() {
 		if (!_t.isMovable()) {
 			return new Color(120, 120, 120);
-		} else if (_canvas.getHighlightedBlocks().contains(_t)) {
+		} else if (equalsMovingBlock()) {
 			return new Color(_c.getRed(), _c.getGreen(), _c.getBlue(), 100);
 		}
 		return _c;
@@ -73,7 +75,7 @@ public class TimeRect extends Rectangle2D.Double {
 		if (!_t.isMovable()) {
 			return Utils.COLOR_BACKGROUND;
 		}
-		return _canvas.getHighlightedBlocks().contains(_t) ? Utils.COLOR_FOREGROUND : Utils.COLOR_LIGHT_BG;
+		return equalsMovingBlock() ? Utils.COLOR_FOREGROUND : Utils.COLOR_LIGHT_BG;
 	}
 	
 	/**
@@ -82,10 +84,29 @@ public class TimeRect extends Rectangle2D.Double {
 	 * @return the stroke to set around the block
 	 */
 	public Stroke getStroke() {
-		if (_canvas.getHighlightedBlocks().contains(_t)) {
+		if (equalsMovingBlock()) {
 			final float dash1[] = { 4.0f };
 			return new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1, dash1, 0);
 		}
 		return new BasicStroke(1);
+	}
+	
+	/**
+	 * Returns the ITimeBlockable this rect represents
+	 * 
+	 * @return the reference to the ITimeBlockable of this TimeRect
+	 */
+	public ITimeBlockable getBlockable() {
+		return _t;
+	}
+	
+	/**
+	 * Checks if this block is the currently moving one
+	 * 
+	 * @return if this is currently moving
+	 */
+	private boolean equalsMovingBlock() {
+		final Tuple<ITimeBlockable, DragType> move = _canvas.getCalendarView().getMovingBlock();
+		return move != null && move.first.equals(_t);
 	}
 }

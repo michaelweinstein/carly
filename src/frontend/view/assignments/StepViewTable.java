@@ -11,7 +11,7 @@ import javax.swing.table.JTableHeader;
 import data.IAssignment;
 import data.ITask;
 import frontend.Utils;
-import frontend.view.DrawingConstants;
+import frontend.view.CanvasUtils;
 
 public class StepViewTable extends JTable {
 	
@@ -61,7 +61,7 @@ public class StepViewTable extends JTable {
 		if (_assignment != null) {
 			for (int i = 0; i < _assignment.getTasks().size(); i++) {
 				final ITask t = _assignment.getTasks().get(i);
-				final Color c = DrawingConstants.getColor(t);
+				final Color c = CanvasUtils.getColor(t);
 				final Rectangle2D.Double rect = new Rectangle2D.Double(getWidth() - 17, Math.round(i * 24) + 5, 15, 15);
 				canvas.setColor(c);
 				canvas.fill(rect);

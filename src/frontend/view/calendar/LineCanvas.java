@@ -1,9 +1,9 @@
 package frontend.view.calendar;
 
-import static frontend.view.DrawingConstants.DAYS;
-import static frontend.view.DrawingConstants.HRS;
-import static frontend.view.DrawingConstants.X_OFFSET;
-import static frontend.view.DrawingConstants.Y_PAD;
+import static frontend.view.CanvasUtils.DAYS;
+import static frontend.view.CanvasUtils.HRS;
+import static frontend.view.CanvasUtils.X_OFFSET;
+import static frontend.view.CanvasUtils.Y_PAD;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -22,7 +22,7 @@ import javax.swing.JPanel;
 
 import data.ITimeBlockable;
 import frontend.Utils;
-import frontend.view.DrawingConstants;
+import frontend.view.CanvasUtils;
 
 /**
  * Represents a continuous line of calendar data
@@ -61,7 +61,22 @@ public class LineCanvas extends JPanel {
 		
 		// Week box
 		brush.setColor(Utils.COLOR_ALTERNATE);
-		brush.fill(new Rectangle2D.Double(0, 0, DrawingConstants.X_OFFSET, getHeight()));
+		brush.fill(new Rectangle2D.Double(0, 0, CanvasUtils.X_OFFSET, getHeight()));
+		
+		// Reloads week start and end date
+		_weekStartDate = _cv.getCurrentWeekStartDate();
+		_weekEndDate = _cv.getCurrentWeekEndDate();
+		
+		// Today background
+		final double dayWidth = (getWidth() - X_OFFSET - _cv.getScrollWidth()) / DAYS;
+		if (_weekStartDate.before(new Date()) && _weekEndDate.after(new Date())) {
+			brush.setColor(Utils.transparentColor(Utils.COLOR_ACCENT, 0.05));
+			final Calendar c = CalendarView.getCalendarInstance();
+			c.setTime(new Date());
+			final int i = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
+			final int start = (int) ((i / DAYS) * (getWidth() - X_OFFSET - _cv.getScrollWidth()) + X_OFFSET);
+			brush.fillRect(start, 0, (int) dayWidth, getHeight());
+		}
 		
 		// Do the vertical lines
 		brush.setColor(Utils.COLOR_LIGHT_BG);
@@ -69,10 +84,6 @@ public class LineCanvas extends JPanel {
 			final double x = (i / DAYS) * (getWidth() - X_OFFSET - _cv.getScrollWidth()) + X_OFFSET;
 			brush.draw(new Line2D.Double(x, 0, x, getHeight()));
 		}
-		
-		// Reloads week start and end date
-		_weekStartDate = _cv.getCurrentWeekStartDate();
-		_weekEndDate = _cv.getCurrentWeekEndDate();
 		
 		// Get all tasks and calculate the information
 		final List<ITimeBlockable> timeBlocks = _cv.getTimeBlocks();
@@ -148,8 +159,8 @@ public class LineCanvas extends JPanel {
 		// At minimum, width must be 5 pixels - also set color and rect
 		final int width = Math.max(endX - startX, 5);
 		final Rectangle2D.Double rect = new Rectangle2D.Double(startX, _y, width, height);
-		final boolean highlighted = _cv.getHighlightedTask() != null && _cv.getHighlightedTask().equals(t);
-		final Color currColor = highlighted ? Utils.COLOR_ACCENT : DrawingConstants.getColor(t);
+		final boolean highlighted = _cv.getMovingBlock() != null && _cv.getMovingBlock().first.equals(t);
+		final Color currColor = highlighted ? Utils.COLOR_ACCENT : CanvasUtils.getColor(t);
 		
 		// Draw block
 		if (highlighted) {

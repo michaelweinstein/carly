@@ -5,6 +5,8 @@ import java.util.Date;
 
 import javax.swing.JLabel;
 
+import frontend.Utils;
+
 /**
  * Represents a label for a day (Mon 3/5 for example)
  * 
@@ -52,8 +54,19 @@ public class DayLabel extends JLabel {
 	 */
 	private void setTextForDate(final Calendar c) {
 		final int day = c.get(Calendar.DAY_OF_MONTH);
-		final int month = c.get(Calendar.MONTH) + 1;
+		final int month = c.get(Calendar.MONTH);
 		final String dayN = c.getDisplayName(Calendar.DAY_OF_WEEK, Calendar.SHORT, getLocale());
-		setText(dayN + " " + month + "/" + day);
+		setText(dayN + " " + (month + 1) + "/" + day);
+		final int year = c.get(Calendar.YEAR);
+		
+		c.setTime(new Date());
+		final int toDay = c.get(Calendar.DAY_OF_MONTH);
+		final int toMonth = c.get(Calendar.MONTH);
+		final int toYear = c.get(Calendar.YEAR);
+		if (day == toDay && month == toMonth && year == toYear) {
+			setForeground(Utils.COLOR_ACCENT);
+		} else {
+			Utils.themeComponent(this);
+		}
 	}
 }

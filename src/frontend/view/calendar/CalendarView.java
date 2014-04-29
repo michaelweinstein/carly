@@ -20,9 +20,10 @@ import javax.swing.KeyStroke;
 
 import backend.database.StorageService;
 import data.ITimeBlockable;
+import data.Tuple;
 import frontend.Utils;
 import frontend.app.GUIApp;
-import frontend.view.DrawingConstants;
+import frontend.view.CanvasUtils;
 
 /**
  * Represents the panel holding the line and week views for the calendar
@@ -31,21 +32,34 @@ import frontend.view.DrawingConstants;
  */
 public class CalendarView extends JPanel {
 	
-	private static final long			serialVersionUID	= 1L;
-	private final GUIApp				_app;
-	private final LineCanvas			_lineCanvas;
-	private final WeekView				_weekView;
-	private final List<DayLabel>		_dayLabelList;
-	private JLabel						_weekYearLabel;
-	private final List<ITimeBlockable>	_timeBlocks;
-	private final List<ITimeBlockable>	_unavailableBlocks;
+	private static final long				serialVersionUID	= 1L;
+	private final GUIApp					_app;
+	private final LineCanvas				_lineCanvas;
+	private final WeekView					_weekView;
+	private final List<DayLabel>			_dayLabelList;
+	private JLabel							_weekYearLabel;
+	private final List<ITimeBlockable>		_timeBlocks;
+	private final List<ITimeBlockable>		_unavailableBlocks;
 	
-	private ITimeBlockable				_highlightedTask;
+	// Dragging
+	private Tuple<ITimeBlockable, DragType>	_movingBlock;
 	
 	// Info for view
-	private int							_currWeek;
-	private int							_currYear;
-	private long						_lastChanged;
+	private int								_currWeek;
+	private int								_currYear;
+	private long							_lastChanged;
+	
+	/**
+	 * Enum for dragging blocks - Value can either be: <br>
+	 * TOP (the top edge is being dragged)<br>
+	 * BOTTOM (the bottom edge is)<br>
+	 * FULL (the whole block is being moved)
+	 * 
+	 * @author dgattey
+	 */
+	public enum DragType {
+		TOP, BOTTOM, FULL;
+	}
 	
 	/**
 	 * Getter for a calendar instance with all the correct properties set
@@ -210,7 +224,7 @@ public class CalendarView extends JPanel {
 			dayOfWeek++;
 		}
 		
-		par.add(Box.createHorizontalStrut(DrawingConstants.X_OFFSET));
+		par.add(Box.createHorizontalStrut(CanvasUtils.X_OFFSET));
 		par.add(days);
 		
 		return par;
@@ -220,8 +234,7 @@ public class CalendarView extends JPanel {
 	 * Repaints children after resetting data
 	 */
 	public void reloadData() {
-		_highlightedTask = null;
-		_weekView.clearHighlights();
+		_movingBlock = null;
 		reloadDataWithHighlights();
 	}
 	
@@ -399,19 +412,27 @@ public class CalendarView extends JPanel {
 	}
 	
 	/**
-	 * @return the currently highlighted task
+	 * @return the current block in transit
 	 */
-	public ITimeBlockable getHighlightedTask() {
-		return _highlightedTask;
+	public Tuple<ITimeBlockable, DragType> getMovingBlock() {
+		return _movingBlock;
 	}
 	
 	/**
-	 * Sets a new highlighted task
+	 * Sets a new block in transit
 	 * 
-	 * @param highlightedTask the new task
+	 * @param newBlock the new block
+	 * @param drag the drag type
 	 */
-	public void setHighlightedTask(final ITimeBlockable highlightedTask) {
-		_highlightedTask = highlightedTask;
+	public void setMovingBlock(final ITimeBlockable newBlock, final DragType drag) {
+		_movingBlock = new Tuple<>(newBlock, drag);
+	}
+	
+	/**
+	 * Deletes current moving block
+	 */
+	public void clearMovingBlock() {
+		_movingBlock = null;
 	}
 	
 	/**

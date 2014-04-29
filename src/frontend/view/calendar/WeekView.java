@@ -40,11 +40,4 @@ public class WeekView extends JScrollPane {
 		Utils.padComponent(this, 0, 0);
 		Utils.padComponent(_canvas, 0, 0);
 	}
-	
-	/**
-	 * Clears leftover highlights
-	 */
-	public void clearHighlights() {
-		_canvas.clearHighlights();
-	}
 }
