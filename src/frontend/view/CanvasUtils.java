@@ -3,6 +3,8 @@ package frontend.view;
 import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import data.ITask;
@@ -16,10 +18,11 @@ import frontend.Utils;
  */
 public class CanvasUtils {
 	
-	public static final double	DAYS		= 7;
-	public static final double	HRS			= 24;
-	public static final int		X_OFFSET	= 35;
-	public static final double	Y_PAD		= 10;
+	public static final double			DAYS		= 7;
+	public static final double			HRS			= 24;
+	public static final int				X_OFFSET	= 35;
+	public static final double			Y_PAD		= 10;
+	public static Map<Integer, Color>	colors;
 	
 	/**
 	 * Makes a random color from the hash code of the task corresponding to a time block
@@ -29,8 +32,7 @@ public class CanvasUtils {
 	 */
 	public static Color getColor(final ITimeBlockable t) {
 		if (t.isMovable()) {
-			final Random r = new Random(t.getTaskId().hashCode() + t.getTask().getAssignmentID().hashCode());
-			return new Color(r.nextInt(150), r.nextInt(150), r.nextInt(150), 210);
+			return getColor(t.getTask());
 		}
 		return Utils.COLOR_ALTERNATE;
 	}
@@ -42,8 +44,20 @@ public class CanvasUtils {
 	 * @return a new Color for that item
 	 */
 	public static Color getColor(final ITask t) {
-		final Random r = new Random(t.getTaskID().hashCode() + t.getAssignmentID().hashCode());
-		return new Color(r.nextInt(150), r.nextInt(150), r.nextInt(150), 210);
+		final int max = 10000;
+		if (colors == null) {
+			colors = new HashMap<>();
+			for (int i = 0; i <= max; i++) {
+				final Random r = new Random();
+				final int x = r.nextInt(160) + 20;
+				final int y = r.nextInt(160) + 20;
+				final int z = r.nextInt(160) + 20;
+				final Color c = new Color(x, y, z, 215);
+				colors.put(i, c);
+			}
+		}
+		final Random r = new Random((t.getTaskID() + t.getAssignmentID()).hashCode());
+		return colors.get(r.nextInt(max));
 	}
 	
 	/**
