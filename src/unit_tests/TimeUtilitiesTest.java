@@ -25,7 +25,7 @@ public class TimeUtilitiesTest {
 		Date d4 = new Date(d3.getTime() + 3600000); //1 hr later
 		
 		blocks.add(new AssignmentBlock(d1, d2, null));
-		blocks.add(new UnavailableBlock(d3, d4, null, false));
+		blocks.add(new UnavailableBlock(d3, d4, null));
 		
 		//Insert a block at the beginning
 		AssignmentBlock b1 = new AssignmentBlock(new Date(d1.getTime() - 50000), (Date) d1.clone(), null);
@@ -38,7 +38,7 @@ public class TimeUtilitiesTest {
 		assertTrue(blocks.get(blocks.size() - 1) == b2);
 		
 		//Insert a block between existing blocks
-		UnavailableBlock b3 = new UnavailableBlock(new Date(d2.getTime()), new Date(d2.getTime() + 3600000), null, false);
+		UnavailableBlock b3 = new UnavailableBlock(new Date(d2.getTime()), new Date(d2.getTime() + 3600000), null);
 		TimeUtilities.insertIntoSortedList(blocks, b3);
 		assertTrue(blocks.get(2) == b3);
 		
@@ -59,7 +59,7 @@ public class TimeUtilitiesTest {
 		Date d4 = new Date(d3.getTime() + 3600000); //1 hr later
 		
 		blocks.add(new AssignmentBlock(d1, d2, null));
-		blocks.add(new UnavailableBlock(d3, d4, null, false));
+		blocks.add(new UnavailableBlock(d3, d4, null));
 		
 		
 		

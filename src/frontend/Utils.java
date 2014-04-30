@@ -3,12 +3,15 @@ package frontend;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.util.Date;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
+
+import data.Tuple;
 
 /**
  * Constants class to package up strings used in multiple classes
@@ -26,6 +29,7 @@ public abstract class Utils {
 	public static final Color	COLOR_BACKGROUND	= Color.DARK_GRAY;
 	public static final Color	COLOR_FOREGROUND	= Color.WHITE;
 	public static final Color	COLOR_ALTERNATE		= Color.DARK_GRAY.brighter();
+	public static final Color	COLOR_ERROR			= Color.RED;
 	public static final Color	COLOR_LIGHT_BG		= new Color(140, 140, 140);
 	public static final Color	COLOR_ACCENT		= Color.ORANGE;
 	public static final String	APP_FONT_NAME		= "Arial";
@@ -166,6 +170,34 @@ public abstract class Utils {
 	}
 	
 	/**
+	 * Returns a good contrasting color for c based on perceived brightness of a color
+	 * 
+	 * @param c a given color
+	 * @return a new Color representing a contrasting color
+	 */
+	public static Color contrastingColor(final Color c) {
+		final double r = c.getRed() * c.getRed() * .241;
+		final double g = c.getGreen() * c.getGreen() * .691;
+		final double b = c.getBlue() * c.getBlue() * .068;
+		final double bright = Math.sqrt(r + g + b);
+		return (bright < 130) ? Utils.COLOR_FOREGROUND : Utils.COLOR_BACKGROUND.darker().darker();
+	}
+	
+	/**
+	 * Gives a transparent color
+	 * 
+	 * @param c the color to use as base
+	 * @param percent how transparent it should be (1 is opaque, 0 transparent)
+	 * @return a new color with that range
+	 */
+	public static Color transparentColor(final Color c, final double percent) {
+		if (percent < 0 || percent > 1) {
+			throw new IllegalArgumentException("Color can't be that kind of transparent");
+		}
+		return new Color(c.getRed(), c.getGreen(), c.getBlue(), (int) (percent * 255));
+	}
+	
+	/**
 	 * Calculates minimum of many ints
 	 * 
 	 * @param ints a list of ints to find min of
@@ -191,6 +223,23 @@ public abstract class Utils {
 			curr = Math.max(i, curr);
 		}
 		return curr;
+	}
+	
+	/**
+	 * Checks for dates overlapping
+	 * 
+	 * @param d1 a tuple of date ranges
+	 * @param d2 another tuple of date ranges
+	 * @return if d1 and d2 overlap
+	 */
+	public static boolean dateRangesOverlap(final Tuple<Date, Date> d1, final Tuple<Date, Date> d2) {
+		final boolean d1StartInD2 = (d1.first.before(d2.second) || d1.first.equals(d2.second))
+			&& (d1.first.after(d2.first) || d1.first.equals(d2.first));
+		final boolean d1EndInD2 = (d1.second.before(d2.second) || d1.second.equals(d2.second))
+			&& (d1.second.after(d2.first) || d1.second.equals(d2.first));
+		final boolean d1EncompassesD2 = (d1.first.before(d2.first) || d1.first.equals(d2.first))
+			&& (d1.second.after(d2.second) || d1.second.equals(d2.second));
+		return d1StartInD2 || d1EndInD2 || d1EncompassesD2;
 	}
 	
 	/**

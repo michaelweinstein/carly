@@ -6,19 +6,39 @@ import java.util.List;
 
 import backend.database.StorageService;
 import backend.database.StorageServiceException;
+import data.Assignment;
+import data.AssignmentBlock;
 import data.ITask;
 import data.ITimeBlockable;
+import data.UnavailableBlock;
 
 public class TimeModifier {
 	
-	public static boolean updateBlock(final List<ITimeBlockable> allBlocks, final ITimeBlockable block,
-			final Date newStart, final Date newEnd) {
+	public static boolean updateBlock(final ITimeBlockable block, final Date newStart, final Date newEnd) {
 		final Date now = new Date();
+		final Assignment asgn = StorageService.getAssignment(block.getTask().getAssignmentID());
+		
+		//Ensure that a user cannot lengthen, shorten, or drag a block outside of the valid time range
+		if(!newStart.after(now) || !newEnd.before(asgn.getDueDate()))
+			return false;
+		
+		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		// get the entire block set from the db...
+		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		// get the entire block set from the db...
+		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		// get the entire block set from the db...
+		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		// get the entire block set from the db...
+		final Date tempStart = new Date(0);
+		final Date tempEnd = new Date(209769820398203L);
+		final List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);
+		final List<UnavailableBlock> unavBlocks = StorageService.getAllUnavailableBlocksWithinRange(tempStart, tempEnd);
+		final List<ITimeBlockable> allBlocks = TimeUtilities.zipTimeBlockLists(unavBlocks, asgnBlocks);
 		
 		final Date currStart = block.getStart();
 		final Date currEnd = block.getEnd();
 		
-		// TODO: Re-optimize schedule after either type of shortening?
 		// Shortening a block from the top
 		if (currStart.compareTo(newStart) < 0 && currEnd.compareTo(newEnd) == 0) {
 			block.setStart(newStart);
@@ -49,29 +69,64 @@ public class TimeModifier {
 		}
 		// Otherwise the block has been dragged
 		else {
-			
-			//TODO: Try a switch operation if the starts/ends line up and no due date
-			//		violations occur???
-			
 			final int ind = TimeUtilities.indexOfFitLocn(allBlocks, newStart);
 			
 			final ITimeBlockable prev = (ind > 0 ? allBlocks.get(ind - 1) : null);
-			final ITimeBlockable curr = allBlocks.get(ind);
+			final ITimeBlockable curr = (ind <= allBlocks.size() - 1 ? allBlocks.get(ind) : null);
+
 			
-			//Make sure the new block is not overlapping the bounds of "prev" and "curr" -- if so,
-			//push the others backwards/forwards, respectively, to make room.
-			if (prev != null && prev.getEnd().getTime() > newStart.getTime()) {
-				if(!pushBlocksBack(allBlocks, block, now, newStart)) {
-					return false;
-				}
-			} 
-			if (curr.getStart().getTime() < newEnd.getTime()) {
-				if(!pushBlocksForward(allBlocks, block, now, newStart, newEnd)) {
-					return false;
-				}			
+			// Try a switch operation if the starts/ends line up and no due date violations occur
+			if (curr != null && curr.getStart().equals(newStart) && curr.getEnd().equals(newEnd)) {
+				return TimeUtilities.switchTimeBlocks(allBlocks, block, curr);
 			}
 			
-			//Once any overlapping conflicts are resolved, update the db
+			// Make sure the new block is not overlapping the bounds of "prev" and "curr" -- if so,
+			// push the others backwards/forwards, respectively, to make room.
+			if (prev != null && prev.getEnd().getTime() > newStart.getTime()) {
+				
+				//This is the case where a block is being dragged over itself slightly
+				if(prev.equals(block) && (curr == null || curr.getStart().getTime() >= newEnd.getTime())) {
+					block.setStart(newStart);
+					block.setEnd(newEnd);
+					
+					try{
+						StorageService.updateTimeBlock(block);
+						return true;
+					}
+					catch(StorageServiceException sse) {
+						System.err.println("OH NOES");
+						return false;
+					}
+				}
+				
+				//Otherwise, try to push other blocks backwards to make a fit
+				if (!pushBlocksBack(allBlocks, block, now, newStart)) {
+					return false;
+				}
+			}
+			if (curr != null && curr.getStart().getTime() < newEnd.getTime()) {
+				
+				//This is the case where a block is being dragged over itself slightly
+				if(curr.equals(block) && (prev == null || prev.getEnd().getTime() <= newStart.getTime())){
+					block.setStart(newStart);
+					block.setEnd(newEnd);
+					
+					try{
+						StorageService.updateTimeBlock(block);
+						return true;
+					}
+					catch(StorageServiceException sse) {
+						System.err.println("OH NOES");
+						return false;
+					}
+				}
+				
+				if (!pushBlocksForward(allBlocks, block, now, newStart, newEnd)) {
+					return false;
+				}
+			}
+			
+			// Once any overlapping conflicts are resolved, update the db
 			block.setStart(newStart);
 			block.setEnd(newEnd);
 			
@@ -87,16 +142,20 @@ public class TimeModifier {
 		return false;
 	}
 	
-	
-	private static boolean pushBlocksBack(List<ITimeBlockable> allBlocks, ITimeBlockable block,
-			Date now, Date newStart) {
+	private static boolean pushBlocksBack(final List<ITimeBlockable> allBlocks, final ITimeBlockable block,
+			final Date now, final Date newStart) {
 		final int ind = TimeUtilities.indexOfFitLocn(allBlocks, newStart);
 		
 		final ITimeBlockable prev = (ind > 0 ? allBlocks.get(ind - 1) : null);
-		final ITimeBlockable curr = allBlocks.get(ind);
+		final ITimeBlockable curr = (ind < allBlocks.size() ? allBlocks.get(ind) : null);
+		
+		//TODO: FOR NOW, IF PREV IS NULL, RETURN FOR SAFETY CONCERNS
+		//		--If I end up getting the entire block set when calling this function, then there is no concern here
+		if(prev == null || curr == null)
+			return false;
 		
 		// In this case, check to see if newStart overlaps prev's end
-		if (prev.getEnd().getTime() > newStart.getTime()) {
+		if (prev != null && prev.getEnd().getTime() > newStart.getTime()) {
 			final long timeDiff = prev.getEnd().getTime() - newStart.getTime();
 			
 			// No block in front of prev -- use the "now" block at the top of this function for comparison
@@ -118,69 +177,58 @@ public class TimeModifier {
 					return true;
 				}
 				// Not enough space between "now" and "prev" to be able to push "prev" back
-				else {
-					return false;
-				}
+				return false;
 			}
 			// Otherwise, use the block in front of prev for comparison
-			else {
-				final ITimeBlockable pp = allBlocks.get(ind - 2);
-				
-				// TEMP: for now, I just check to see if there is space to push prev back.
-				if (prev.getStart().getTime() - pp.getEnd().getTime() >= timeDiff) {
-					// If there is space to push prev back, update its time ranges and reset curr's range
-					final Date newPrevStart = new Date(prev.getStart().getTime() - timeDiff);
-					prev.setStart(newPrevStart);
-					prev.setEnd(new Date(newPrevStart.getTime() + prev.getLength()));
-					curr.setStart(newStart);
-					
-					// Update the blocks in the db
-					try {
-						StorageService.updateTimeBlock(prev);
-						StorageService.updateTimeBlock(curr);
-					} catch (final StorageServiceException sse) {
-						sse.printStackTrace();
-					}
-					return true;
-				}
-				// Not enough space between "now" and "prev" to be able to push "prev" back
-				else {
-					return false;
-				}
-				
-				// TODO: loop over all sets of previous blocks, pushing them each back as necessary
-				// BE CAREFUL so that I don't update the list in case pushing back is not possible...
-				// while(false) {
-				// System.out.println("todo");
-				// }
-			}
+			final ITimeBlockable pp = allBlocks.get(ind - 2);
 			
+			// TEMP: for now, I just check to see if there is space to push prev back.
+			if (prev.getStart().getTime() - pp.getEnd().getTime() >= timeDiff) {
+				// If there is space to push prev back, update its time ranges and reset curr's range
+				final Date newPrevStart = new Date(prev.getStart().getTime() - timeDiff);
+				prev.setStart(newPrevStart);
+				prev.setEnd(new Date(newPrevStart.getTime() + prev.getLength()));
+				curr.setStart(newStart);
+				
+				// Update the blocks in the db
+				try {
+					StorageService.updateTimeBlock(prev);
+					StorageService.updateTimeBlock(curr);
+				} catch (final StorageServiceException sse) {
+					sse.printStackTrace();
+				}
+				return true;
+			}
+			// Not enough space between "now" and "prev" to be able to push "prev" back
+			return false;
 		}
 		// No overlap occurs, so just update the block in the db
-		else {
-			block.setStart(newStart);
-			
-			try {
-				StorageService.updateTimeBlock(block);
-				return true;
-			} catch (final StorageServiceException e) {
-				e.printStackTrace();
-			}
+		block.setStart(newStart);
+		
+		try {
+			StorageService.updateTimeBlock(block);
+			return true;
+		} catch (final StorageServiceException e) {
+			e.printStackTrace();
 		}
 		
 		return false;
 	}
 	
-	
-	private static boolean pushBlocksForward(List<ITimeBlockable> allBlocks, ITimeBlockable block,
-			Date now, Date newStart, Date newEnd) {
+	private static boolean pushBlocksForward(final List<ITimeBlockable> allBlocks, final ITimeBlockable block,
+			final Date now, final Date newStart, final Date newEnd) {
 		final int ind = TimeUtilities.indexOfFitLocn(allBlocks, newStart);
 		
-		final ITimeBlockable curr = allBlocks.get(ind);
+		final ITimeBlockable curr = (ind < allBlocks.size() ? allBlocks.get(ind) : null);
 		final ITimeBlockable next = (ind < allBlocks.size() - 1 ? allBlocks.get(ind + 1) : null);
 		
+		//TODO: FOR NOW, IF NEXT IS NULL, RETURN FOR SAFETY CONCERNS
+		//		--If I end up getting the entire block set when calling this function, then there is no concern here
+		if(next == null || curr == null)
+			return false;
+		
 		// In this case, check to see if newEnd overlaps next's start
-		if (next.getStart().getTime() < newEnd.getTime()) {
+		if (next != null && next.getStart().getTime() < newEnd.getTime()) {
 			final long timeDiff = newEnd.getTime() - next.getStart().getTime();
 			
 			// No block after "next" -- use the due date for comparison
@@ -229,16 +277,9 @@ public class TimeModifier {
 					}
 					return true;
 				}
-				// Not enough space between "now" and "next" to be able to push "next" forward
-				else {
-					return false;
-				}
 				
-				// TODO: loop over all sets of previous blocks, pushing them each back as necessary
-				// BE CAREFUL so that I don't update the list in case pushing back is not possible...
-				// while(false) {
-				// System.out.println("todo");
-				// }
+				// Not enough space between "now" and "next" to be able to push "next" forward
+				return false;
 			}
 			
 		}
@@ -255,27 +296,32 @@ public class TimeModifier {
 		}
 		
 		return false;
-	
-	}
-	
-	
-	//Delete a block from the calendar, as per the user's request.
-	public static boolean deleteBlock(final ITimeBlockable block) {
-		StorageService.removeTimeBlock(block);
-		
-		//TODO: Do I need to make a call to "updateBlocksInTask()" here in order to update user
-		//		Task percentages, since they just removed a time block from their calendar...?
-		
-		return true;
 	}
 	
 	// This function is called when a user pulls on a slider to convey the message that
 	// they are changing how much progress they have made on completing a particular Task.
-	public static void updateBlocksInTask(final List<ITimeBlockable> allBlocks, final ITask task, final double newPct) {
+	public static void updateBlocksInTask(final ITask task, final double newPct) {
+		
+		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		// get the entire block set from the db...
+		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		// get the entire block set from the db...
+		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		// get the entire block set from the db...
+		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
+		// get the entire block set from the db...
+		final Date tempStart = new Date(0);
+		final Date tempEnd = new Date(209769820398203L);
+		final List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);
+		final List<UnavailableBlock> unavBlocks = StorageService.getAllUnavailableBlocksWithinRange(tempStart, tempEnd);
+		final List<ITimeBlockable> allBlocks = TimeUtilities.zipTimeBlockLists(unavBlocks, asgnBlocks);
+		
 		
 		final Date now = new Date(); // this Date captures where the user is and how much work they've done
+		final Date due = StorageService.getAssignment(task.getAssignmentID()).getDueDate();
 		double currProgress = 0.0;
 		double pctToAdjust = 0.0;
+		//This list contains all blocks that represent the current task, in order sorted by start date
 		final List<ITimeBlockable> taskBlocks = new ArrayList<ITimeBlockable>();
 		long taskLengthInMillis = 0;
 		
@@ -313,16 +359,77 @@ public class TimeModifier {
 			long totalMillisToAdd = (long) (Math.abs(pctToAdjust) * taskLengthInMillis);
 			
 			final int startInd = TimeUtilities.indexOfFitLocn(allBlocks, now);
-			int numFutureBlocks = taskBlocks.size() - startInd;
 			int currInd = startInd;
+			final double blockLengthInHours = task.getSuggestedBlockLength();
+			final long blockLengthInMillis = (long)(blockLengthInHours * 60 * 60 * 1000);
 			
-			//Add as many full-size blocks as possible, then add on extra time to other blocks
-			while(currInd < allBlocks.size() && totalMillisToAdd > 0) {
+			// Add as many full-size blocks as possible, then add on extra time to other blocks
+			while (currInd < allBlocks.size() && totalMillisToAdd > 0) {
+				//Ignore this edge case
+				if(currInd == 0)
+					continue;
 				
+				ITimeBlockable b1 = allBlocks.get(currInd - 1);
+				ITimeBlockable b2 = allBlocks.get(currInd);
+				
+				//Exit the loop early if past the Assignment's due date
+				if(!b2.getStart().before(due))
+					break;
+				
+				//TODO: Exit the loop early if either b1 or b2 is on a Task that occurs
+				//after the current Task chronologically
+				//--PROBLEM: Tasks have no way of knowing what their "TemplateStep" number is
+				//if(b1.getTask().getAssignmentID().equals(task.getAssignmentID()) && task.get(???))
+				
+				//Determine if there is space for a block in between b1 and b2
+				if(b2.getStart().getTime() - b1.getEnd().getTime() >= blockLengthInMillis) {
+					//Insert a block, starting at b1's end
+					AssignmentBlock x = new AssignmentBlock((Date) b1.getEnd().clone(),
+							(Date) b2.getStart().clone(), task);
+					TimeUtilities.insertIntoSortedList(allBlocks, x);
+					TimeUtilities.insertIntoSortedList(taskBlocks, x);
+					
+					totalMillisToAdd -= blockLengthInMillis;
+					currInd = startInd;
+				}
+				else
+					++currInd;
 			}
 			
-			// TODO: 1st priority = insert a new block
-			// TODO: 2nd priority = add time to blocks
+			//Add whatever leftover time there is to-add to the currently existing blocks
+			for(int i = 1; i < allBlocks.size() - 1 && totalMillisToAdd > 0; ++i) {
+				
+				ITimeBlockable b1 = allBlocks.get(i);
+				ITimeBlockable b2 = allBlocks.get(i + 1);
+				
+				if(b1.getTaskId().equals(task.getTaskID())) {
+					long between = getMillisBetween(b1, b2);
+					
+					//Add whatever time is possible
+					if(between > 0) {
+						long amtToAdd = Math.min(between, totalMillisToAdd);
+						b1.setEnd(new Date(b1.getEnd().getTime() + amtToAdd));
+						totalMillisToAdd -= amtToAdd;
+						
+						try {
+							StorageService.updateTimeBlock(b1);
+						} catch (StorageServiceException e) {
+							e.printStackTrace();
+						}
+					}	
+				}
+			}
+			
+			//TODO: At this point, return to the user (regardless of how many millis
+			//		were successfully added).  This is a pretty extreme edge case that
+			//		the schedule would be so tight that no blocks could be added anyway...
+			if(totalMillisToAdd > 0) {
+				System.err.println("Total Millis To Add > 0 - sleeping for 5 seconds as punishment :(");
+				try{
+					Thread.sleep(5000);
+				}
+				catch(InterruptedException ie) {}
+			}
 		}
 		// 5b. The user is ahead, so remove a bit of time from each block
 		else if (pctToAdjust > 0) {
@@ -352,7 +459,6 @@ public class TimeModifier {
 			
 			final long avgTimeToRemove = totalMillisToRemove / numFutureBlocks;
 			// If there is still some time left to remove, remove a bit of time from each block
-			// TODO: Alternate policy = remove all of it from one block
 			if (totalMillisToRemove > 0) {
 				for (int i = allBlocks.size() - 1; i >= startInd; ++i) {
 					final ITimeBlockable block = allBlocks.get(i);
@@ -366,11 +472,14 @@ public class TimeModifier {
 				}
 			}
 		}
-		// If the percent to-adjust-to is the same as the current amount done, return
-		else {
-			return;
-		}
 		
+		// If the percent to-adjust-to is the same as the current amount done, there's 
+		// nothing left to do
+	}
+	
+	//Return the number of milliseconds between the end of "b1" and the start of "b2"
+	private static long getMillisBetween(ITimeBlockable b1, ITimeBlockable b2) {
+		return b2.getStart().getTime() - b1.getEnd().getTime();
 	}
 	
 }

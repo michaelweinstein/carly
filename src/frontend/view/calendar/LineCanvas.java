@@ -1,9 +1,9 @@
 package frontend.view.calendar;
 
-import static frontend.view.calendar.CanvasConstants.DAYS;
-import static frontend.view.calendar.CanvasConstants.HRS;
-import static frontend.view.calendar.CanvasConstants.X_OFFSET;
-import static frontend.view.calendar.CanvasConstants.Y_PAD;
+import static frontend.view.CanvasUtils.DAYS;
+import static frontend.view.CanvasUtils.HRS;
+import static frontend.view.CanvasUtils.X_OFFSET;
+import static frontend.view.CanvasUtils.Y_PAD;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -13,14 +13,19 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JPanel;
 
+import data.ITask;
 import data.ITimeBlockable;
 import frontend.Utils;
+import frontend.view.CanvasUtils;
 
 /**
  * Represents a continuous line of calendar data
@@ -29,11 +34,14 @@ import frontend.Utils;
  */
 public class LineCanvas extends JPanel {
 	
-	private final CalendarView	_cv;
-	private Date				_weekStartDate;
-	private Date				_weekEndDate;
-	private int					_y;
-	private static final long	serialVersionUID	= 8788849553807412908L;
+	private static final int						MAX_BLOCK_HEIGHT	= 18;
+	private static final int						MIN_BLOCK_HEIGHT	= 5;
+	private static final long						serialVersionUID	= 1L;
+	private final CalendarView						_cv;
+	private Date									_weekStartDate;
+	private Date									_weekEndDate;
+	private int										_y;
+	private final Map<ITask, List<ITimeBlockable>>	_taskMap;
 	
 	/**
 	 * Creates a canvas object
@@ -42,6 +50,7 @@ public class LineCanvas extends JPanel {
 	 */
 	public LineCanvas(final CalendarView cv) {
 		_cv = cv;
+		_taskMap = new HashMap<>();
 		Utils.themeComponent(this);
 	}
 	
@@ -58,7 +67,22 @@ public class LineCanvas extends JPanel {
 		
 		// Week box
 		brush.setColor(Utils.COLOR_ALTERNATE);
-		brush.fill(new Rectangle2D.Double(0, 0, CanvasConstants.X_OFFSET, getHeight()));
+		brush.fill(new Rectangle2D.Double(0, 0, CanvasUtils.X_OFFSET, getHeight()));
+		
+		// Reloads week start and end date
+		_weekStartDate = _cv.getCurrentWeekStartDate();
+		_weekEndDate = _cv.getCurrentWeekEndDate();
+		
+		// Today background
+		final double dayWidth = (getWidth() - X_OFFSET - _cv.getScrollWidth()) / DAYS;
+		if (_weekStartDate.before(new Date()) && _weekEndDate.after(new Date())) {
+			brush.setColor(Utils.transparentColor(Utils.COLOR_ACCENT, 0.05));
+			final Calendar c = CalendarView.getCalendarInstance();
+			c.setTime(new Date());
+			final int i = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
+			final int start = (int) ((i / DAYS) * (getWidth() - X_OFFSET - _cv.getScrollWidth()) + X_OFFSET);
+			brush.fillRect(start, 0, (int) dayWidth, getHeight());
+		}
 		
 		// Do the vertical lines
 		brush.setColor(Utils.COLOR_LIGHT_BG);
@@ -67,25 +91,27 @@ public class LineCanvas extends JPanel {
 			brush.draw(new Line2D.Double(x, 0, x, getHeight()));
 		}
 		
-		// Reloads week start and end date
-		_weekStartDate = _cv.getCurrentWeekStartDate();
-		_weekEndDate = _cv.getCurrentWeekEndDate();
-		
-		// Draws all lines for the tasks, but first checks for validity
-		final List<ITimeBlockable> timeBlocks = _cv.getTimeBlocks();
-		int size = timeBlocks.size();
-		for (final ITimeBlockable t : timeBlocks) {
-			if (t.getStart().after(_weekEndDate) || t.getEnd().before(_weekStartDate)) {
-				--size;
+		// Get all tasks and toss them into the task map
+		_taskMap.clear();
+		for (final ITimeBlockable block : _cv.getTimeBlocks()) {
+			List<ITimeBlockable> list = _taskMap.get(block.getTask());
+			if (list == null) {
+				list = new ArrayList<>();
 			}
+			list.add(block);
+			_taskMap.put(block.getTask(), list);
 		}
-		_y = (int) (Y_PAD / 2.0);
-		final int height = Math.min((int) ((getHeight() - Y_PAD) / (size + 1)), 18);
-		final int space = (int) ((getHeight() - Y_PAD) / size);
-		for (final ITimeBlockable t : timeBlocks) {
-			if (placeAndDrawLine(brush, t, height)) {
-				_y += space;
+		_y = (int) Y_PAD / 2;
+		
+		// Draw out all blocks
+		final double height = getHeight() / (_taskMap.keySet().size() * 1.5);
+		final int h = (int) Math.max(Math.min(MAX_BLOCK_HEIGHT, height), MIN_BLOCK_HEIGHT);
+		for (final ITask task : _taskMap.keySet()) {
+			final List<ITimeBlockable> list = _taskMap.get(task);
+			for (final ITimeBlockable block : list) {
+				placeAndDrawLine(brush, block, (h));
 			}
+			_y += h * 1.3;
 		}
 	}
 	
@@ -142,8 +168,8 @@ public class LineCanvas extends JPanel {
 		// At minimum, width must be 5 pixels - also set color and rect
 		final int width = Math.max(endX - startX, 5);
 		final Rectangle2D.Double rect = new Rectangle2D.Double(startX, _y, width, height);
-		final boolean highlighted = _cv.getHighlightedTask() != null && _cv.getHighlightedTask().equals(t);
-		final Color currColor = highlighted ? Utils.COLOR_ACCENT : CanvasConstants.getColor(t);
+		final boolean highlighted = _cv.getMovingBlock() != null && _cv.getMovingBlock().first.equals(t);
+		final Color currColor = highlighted ? Utils.COLOR_ACCENT : CanvasUtils.getColor(t);
 		
 		// Draw block
 		if (highlighted) {

@@ -13,14 +13,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.GregorianCalendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -40,13 +40,10 @@ import javax.swing.table.JTableHeader;
 
 import backend.database.StorageService;
 import data.Assignment;
-import data.AssignmentBlock;
 import data.ITemplate;
 import data.ITemplateStep;
-import data.ITimeBlockable;
 import data.Template;
 import data.TemplateStep;
-import data.UnavailableBlock;
 import frontend.Utils;
 import frontend.app.GUIApp;
 
@@ -57,34 +54,37 @@ import frontend.app.GUIApp;
  */
 public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	
-	private final GUIApp			app;
 	private static final String		DATE_FORMAT_STRING	= "MMMM dd, yyyy 'at' hh:mm a";
 	private static final String		DEFAULT_LABEL		= " ";
 	private static final long		serialVersionUID	= -5465413225077024401L;
+	protected final GUIApp			_app;
 	private JButton					_cancelButton;
-	private JButton					_addButton;
-	private JTextField				_titleField;
-	private JSpinner				_dateTimeField;
-	private JLabel					_statusLabel;
-	private JComboBox<ITemplate>	_templatePicker;
-	private StepViewTable			_stepList;
-	private StepModel				_stepModel;
+	protected JButton				_addButton;
+	protected JTextField			_titleField;
+	protected JSpinner				_dateTimeField;
+	protected JLabel				_statusLabel;
+	protected JComboBox<ITemplate>	_templatePicker;
+	protected StepViewTable			_stepList;
+	protected boolean				_saveTable			= false;
+	protected StepModel				_stepModel;
+	protected JTextField			_numHours;
+	public JLabel					_dialogTitle;
 	
 	/**
 	 * Constructor creates all relevant data
 	 * 
-	 * @param vc the parent view controller
+	 * @param app the app in control
 	 */
 	public AddAssignmentDialog(final GUIApp app) {
 		super();
-		this.app = app;
+		_app = app;
 		
 		Utils.themeComponent(this);
 		Utils.themeComponent(getRootPane());
 		Utils.padComponent(getRootPane(), 15, 15);
 		setMinimumSize(getMinimumSize()); // Silly but required
 		
-		final JLabel dialogTitle = createDialogTitle();
+		_dialogTitle = createDialogTitle();
 		final JPanel centerPane = createFieldsAndLabels();
 		final JScrollPane scroller = new JScrollPane(centerPane);
 		final JPanel bottom = createButtonsAndStatusPane();
@@ -95,7 +95,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		Utils.padComponent(scroller, 0, 0);
 		
 		// Addition of all items to dialog
-		add(dialogTitle, BorderLayout.NORTH);
+		add(_dialogTitle, BorderLayout.NORTH);
 		add(scroller, BorderLayout.CENTER);
 		add(bottom, BorderLayout.SOUTH);
 		pack();
@@ -129,40 +129,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			
 			@Override
 			public void actionPerformed(final ActionEvent e) {
-				try {
-					final Assignment a = parseFields();
-					HubController.passAssignmentToLearner(a);
-					
-					//TODO: EVAN ADDED THIS JUST AS A TEMP TO TEST RENDERING DIRECTLY FROM DB
-					HubController.addAssignmentToCalendar(a);
-					
-					Date startExWeek = new GregorianCalendar(2014, 3, 20, 0, 0, 0).getTime();
-					Date endExWeek = new GregorianCalendar(2014, 3, 26, 23, 59, 59).getTime();
-					
-					List<AssignmentBlock> asgnBlocks = 
-							StorageService.getAllAssignmentBlocksWithinRange(startExWeek, endExWeek);
-					List<UnavailableBlock> unBlocks = 
-							StorageService.getAllUnavailableBlocksWithinRange(startExWeek, endExWeek);
-					
-					//Clear the list for now
-					List<ITimeBlockable> calendarBlocks = app.getCalendarView().getTimeBlocks();
-					calendarBlocks.clear();
-					
-					//Rendering only asgnBlocks for now...
-					calendarBlocks.addAll(asgnBlocks);
-					
-					//END EVAN
-					
-					// FOR TESTING ONLY
-					app.addAssignment(a);
-					app.redraw();
-					// ///////
-					clearContents();
-					dispose();
-				} catch (final IllegalArgumentException e1) {
-					_statusLabel.setText("Oops! " + e1.getMessage());
-				}
-				
+				addToDatabase();
 			}
 			
 		});
@@ -183,6 +150,21 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		Utils.addBorderBottom(_statusLabel);
 		Utils.padComponentWithBorder(_statusLabel, 0, 0, 10, 0);
 		return pane;
+	}
+	
+	/**
+	 * Adds the given assignment to database
+	 */
+	protected void addToDatabase() {
+		try {
+			final Assignment a = parseFields();
+			HubController.addAssignmentToCalendar(a);
+			_app.reload();
+			clearContents();
+			dispose();
+		} catch (final IllegalArgumentException e1) {
+			_statusLabel.setText("Oops! " + e1.getMessage());
+		}
 	}
 	
 	/**
@@ -236,12 +218,35 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			steps.add(new TemplateStep(title, perc / 100.0, i));
 		}
 		if (totalPercentage != 100.0) {
-			throw new IllegalArgumentException("Your total % is not 100%...");
+			throw new IllegalArgumentException("Your total task % is not 100%...");
 		}
 		
-		// By this point, all data is great!
-		// TODO: Account for already done templates somehow!! - talk about this
-		return new Assignment(titleText, due, new Template(_templatePicker.getSelectedItem().toString(), steps));
+		// Get the ID of the template and make a series of steps
+		ITemplate t = StorageService.getTemplate(((ITemplate) _templatePicker.getSelectedItem()).getID());
+		if (t == null) {
+			t = new Template("Custom");
+			final Set<String> stepNames = new HashSet<>();
+			
+			for (final ITemplateStep st : steps) {
+				if (stepNames.contains(st.getName())) {
+					throw new IllegalArgumentException("Tasks can't have duplicate names!");
+				}
+				stepNames.add(st.getName());
+				t.addStep(st);
+			}
+		}
+		
+		// Get expected num hours
+		double exHours;
+		try {
+			exHours = Double.parseDouble(_numHours.getText());
+			if (exHours < 0) {
+				throw new IllegalArgumentException("Your number of hours is negative.");
+			}
+		} catch (final NumberFormatException e) {
+			throw new IllegalArgumentException("Your number of hours is not a valid number.");
+		}
+		return new Assignment(titleText, due, t, exHours);
 	}
 	
 	/**
@@ -254,7 +259,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		final GridBagConstraints c = new GridBagConstraints();
 		pane.setLayout(new GridBagLayout());
 		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weightx = 1;
+		c.weightx = 0;
 		c.weighty = 0;
 		c.insets = new Insets(0, 0, 10, 0);
 		Utils.themeComponent(pane);
@@ -269,16 +274,19 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		
 		// Title field
 		_titleField = new JTextField();
+		_titleField.setColumns(6);
+		c.weightx = 1;
 		c.gridx = 1;
-		c.gridwidth = GridBagConstraints.REMAINDER;
+		c.gridwidth = 1;
 		pane.add(_titleField, c);
 		
 		// Time and Date label
 		final JLabel timeDateLabel = new JLabel("Due Date: ");
 		Utils.themeComponent(timeDateLabel);
 		Utils.setFont(timeDateLabel, 14);
+		c.weightx = 0;
 		c.gridx = 0;
-		c.gridy = 1;
+		c.gridy = GridBagConstraints.RELATIVE;
 		c.gridwidth = 1;
 		pane.add(timeDateLabel, c);
 		
@@ -288,22 +296,42 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		_dateTimeField.setEditor(timeEditor);
 		_dateTimeField.setValue(new Date());
 		Utils.themeComponent(_dateTimeField);
+		c.weightx = 1;
 		c.gridx = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		pane.add(_dateTimeField, c);
+		
+		// Expected # hours to complete in total
+		final JLabel exLabel = new JLabel("Expected Hours: ");
+		exLabel.setToolTipText("The total number of hours you think it will take you to complete the assignment");
+		Utils.themeComponent(exLabel);
+		Utils.setFont(exLabel, 14);
+		c.gridy = GridBagConstraints.RELATIVE;
+		c.weightx = 0;
+		c.gridx = 0;
+		c.gridwidth = 1;
+		pane.add(exLabel, c);
+		
+		// Expected field
+		_numHours = new JTextField();
+		_numHours.setColumns(6);
+		c.weightx = 1;
+		c.gridx = 1;
+		c.gridwidth = GridBagConstraints.REMAINDER;
+		pane.add(_numHours, c);
 		
 		// Template label
 		final JLabel templateLabel = new JLabel("Template: ");
 		Utils.themeComponent(templateLabel);
 		Utils.setFont(templateLabel, 14);
+		c.weightx = 0;
 		c.gridx = 0;
-		c.gridy = 2;
+		c.gridy = GridBagConstraints.RELATIVE;
 		c.gridwidth = 1;
 		pane.add(templateLabel, c);
 		
 		// Template picker or own - if they pick Custom (which must be an option), we know it's custom
-		_templatePicker = new JComboBox<>(); // TODO: Actually fill it with template info
-		_templatePicker.addItem(new Template("Custom"));
+		_templatePicker = new JComboBox<>();
 		_templatePicker.addItemListener(new ItemListener() {
 			
 			/**
@@ -311,29 +339,30 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			 */
 			@Override
 			public void itemStateChanged(final ItemEvent event) {
-				if (event.getStateChange() == ItemEvent.SELECTED) {
+				if (event.getStateChange() == ItemEvent.SELECTED && !_saveTable) {
 					final ITemplate item = (ITemplate) event.getItem();
 					_stepModel.clear();
 					for (final ITemplateStep step : item.getAllSteps()) {
 						_stepModel.addItem(step);
 					}
 					_stepModel.addBlankItem();
+					_stepList.revalidate();
+					_stepList.repaint();
 				}
 			}
 		});
 		c.gridx = 1;
+		c.weightx = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		pane.add(_templatePicker, c);
-		
-		// Expected # hours to complete in total
-		// TODO: Expected # hours???
 		
 		// Tasks label
 		final JLabel taskLabel = new JLabel("Steps: ");
 		Utils.themeComponent(taskLabel);
 		Utils.setFont(taskLabel, 14);
 		c.gridx = 0;
-		c.gridy = 3;
+		c.weightx = 0;
+		c.gridy = GridBagConstraints.RELATIVE;
 		c.gridwidth = 1;
 		pane.add(taskLabel, c);
 		
@@ -345,12 +374,13 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		_stepList = new StepViewTable(_stepModel);
 		Utils.padComponent(_stepList, 10, 30);
 		c.gridx = 1;
+		c.weightx = 1;
 		c.gridheight = 1;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		final JTableHeader header = _stepList.getTableHeader();
 		pane.add(header, c);
 		c.gridx = 1;
-		c.gridy = 4;
+		c.gridy = GridBagConstraints.RELATIVE;
 		c.gridheight = GridBagConstraints.REMAINDER;
 		c.gridwidth = GridBagConstraints.REMAINDER;
 		pane.add(_stepList, c);
@@ -369,8 +399,13 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			_stepModel.addBlankItem();
 		}
 		_stepModel.deleteRowsIfEmpty(e.getFirstRow(), e.getLastRow());
+		if (_templatePicker.getSelectedIndex() != 0) {
+			_saveTable = true;
+			_templatePicker.setSelectedIndex(0);
+			_saveTable = false;
+		}
 		revalidate();
-		this.repaint();
+		repaint();
 	}
 	
 	/**
@@ -392,17 +427,34 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	/**
 	 * Clears the contents of all the fields
 	 */
-	private void clearContents() {
+	protected void clearContents() {
 		_statusLabel.setText(DEFAULT_LABEL);
 		_titleField.setText("");
+		_numHours.setText("");
 		_dateTimeField.setValue(new Date());
 		_stepModel.clear();
 		_stepModel.addBlankItem();
 	}
 	
 	@Override
+	public void setVisible(final boolean b) {
+		_templatePicker.removeAllItems();
+		_templatePicker.addItem(new Template("Custom"));
+		final List<ITemplate> temps = StorageService.getAllTemplates();
+		if (temps != null) {
+			for (final ITemplate temp : temps) {
+				// TODO: Fix so it takes all non-custom from database
+				if (!temp.getName().equals("Custom")) {
+					_templatePicker.addItem(temp);
+				}
+			}
+		}
+		super.setVisible(b);
+	}
+	
+	@Override
 	public Dimension getMinimumSize() {
-		return new Dimension(360, 500);
+		return new Dimension(410, 500);
 	}
 	
 }

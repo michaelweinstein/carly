@@ -78,7 +78,7 @@ public class TimeBlockStorageTest {
 		UnavailableBlock unavailable1 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
-				null, false); 
+				null); 
 		
 		//Add objects in correct order to the db
 		try {
@@ -97,9 +97,9 @@ public class TimeBlockStorageTest {
 		//Add some unavailable blocks to the db
 		Date start = new Date();
 		UnavailableBlock unavailable1 = new UnavailableBlock((Date) start.clone(), 
-				new Date(start.getTime() + 14400000), null, false);
+				new Date(start.getTime() + 14400000), null);
 		UnavailableBlock unavailable2 = new UnavailableBlock(new Date(start.getTime() + 86400000),
-				new Date(start.getTime() + 104400000), null, false);
+				new Date(start.getTime() + 104400000), null);
 		
 		//Add objects in correct order to the db
 		try {
@@ -160,7 +160,7 @@ public class TimeBlockStorageTest {
 		UnavailableBlock unavailable1 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
-				null, false); 
+				null); 
 		
 		//Add objects in correct order to the db
 		try {
@@ -229,7 +229,7 @@ public class TimeBlockStorageTest {
 		UnavailableBlock unavailable1 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
-				null, false); 
+				null); 
 		
 		//Add objects in correct order to the db
 		try {
@@ -282,17 +282,17 @@ public class TimeBlockStorageTest {
 		UnavailableBlock unavailable1 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
-				null, false); 
+				null); 
 		
 		UnavailableBlock unavailable2 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
-				null, false); 
+				null); 
 		
 		UnavailableBlock unavailable3 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 11), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 13), 
-				null, false); 
+				null); 
 		
 		
 		blockList.add(block2); 
@@ -326,7 +326,7 @@ public class TimeBlockStorageTest {
 		UnavailableBlock unavailable4 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 11), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 13), 
-				null, false); 
+				null); 
 				
 		blockList.add(block5); 
 		blockList.add(unavailable4);
@@ -398,15 +398,15 @@ public class TimeBlockStorageTest {
 		UnavailableBlock unavailable1 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
-				null, false); 
+				null); 
 		UnavailableBlock unavailable2 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
-				null, false); 
+				null); 
 		UnavailableBlock unavailable3 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 11), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 13), 
-				null, false); 
+				null); 
 		
 		//Add objects in correct order to the db
 		try {
@@ -465,27 +465,27 @@ public class TimeBlockStorageTest {
 		UnavailableBlock unavailable1 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
-				null, false); 
+				null); 
 		UnavailableBlock unavailable2 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
-				null, false); 
+				null); 
 		UnavailableBlock unavailable3 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 11), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 13), 
-				null, false);
+				null);
 		UnavailableBlock unavailable4 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 1), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
-				null, false); 
+				null); 
 		UnavailableBlock unavailable5 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 6), 
-				null, false); 
+				null); 
 		UnavailableBlock unavailable6 = new UnavailableBlock(
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 1), 
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 7), 
-				null, false); 
+				null); 
 		
 		
 		//Add objects in correct order to the db

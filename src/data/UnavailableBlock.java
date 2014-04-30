@@ -5,22 +5,18 @@ import java.util.Objects;
 
 public class UnavailableBlock implements ITimeBlockable {
 	
-	// TODO: Is the "m_isMovable" boolean trivial? i.e. the AssignmentBlock class should
-	// always support movable blocks, and the UnavailableBlock class should never.
-	// TODO: Proposed solution - continue to store the member variable, but do not need
-	// the extra parameter to the constructor
 	private final String	m_uniqueId;
 	private Date			m_start;
 	private Date			m_end;
 	private ITask			m_task;
 	private final boolean	m_isMovable;
 	
-	public UnavailableBlock(final Date start, final Date end, final ITask task, final boolean movable) {
-		m_uniqueId = DataUtil.generateID();
+	public UnavailableBlock(final Date start, final Date end, final ITask task) {
+		m_uniqueId = DataUtil.generateID() + start.getTime() / 10000;
 		m_start = start;
 		m_end = end;
 		m_task = task;
-		m_isMovable = movable;
+		m_isMovable = false;
 	}
 	
 	/**

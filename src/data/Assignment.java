@@ -10,8 +10,8 @@ public class Assignment implements IAssignment {
 	private final String	_uniqueId;
 	private final String	_name;
 	private final Date		_deadline;
-	private ITemplate	_template;
-	private int				_expectedHours;
+	private ITemplate		_template;
+	private double			_expectedHours;
 	private List<ITask>		_tasks;
 	
 	/**
@@ -23,7 +23,20 @@ public class Assignment implements IAssignment {
 		_deadline = dueDate;
 		_template = template;
 		_expectedHours = DataUtil.DEFAULT_ASSIGNMENT_EXPECTED_HOURS;
-		_uniqueId = DataUtil.generateID();
+		_uniqueId = DataUtil.generateID() + _name.hashCode();
+		
+		_tasks = createTasksFromTemplate(template);
+	}
+	
+	/**
+	 * Gives it an ID in addition to the normal constructor
+	 */
+	public Assignment(final String id, final String name, final Date dueDate, final ITemplate template) {
+		_name = name;
+		_deadline = dueDate;
+		_template = template;
+		_expectedHours = DataUtil.DEFAULT_ASSIGNMENT_EXPECTED_HOURS;
+		_uniqueId = id;
 		
 		_tasks = createTasksFromTemplate(template);
 	}
@@ -31,27 +44,40 @@ public class Assignment implements IAssignment {
 	/**
 	 * Constructor with expectedHours
 	 */
-	public Assignment(final String name, final Date dueDate, final ITemplate template, final int expectedHours) {
+	public Assignment(final String name, final Date dueDate, final ITemplate template, final double exHours) {
 		_name = name;
 		_deadline = dueDate;
 		_template = template;
-		_expectedHours = expectedHours;
-		_uniqueId = DataUtil.generateID();
+		_expectedHours = exHours;
+		_uniqueId = DataUtil.generateID() + _name.hashCode();
 		
 		_tasks = createTasksFromTemplate(template);
 	}
 	
 	/**
-	 * Constructor used by StorageService to rebuild an Assignment
-	 * Template and list of tasks are set later.
+	 * Constructor with expectedHours and id
 	 */
-	public Assignment(String id, String name, Date dueDate, int expectedHours, List<ITask> taskList) {
-		_uniqueId = id; 
-		_name = name; 
-		_deadline = dueDate; 
-		_expectedHours = expectedHours; 
-		_tasks = taskList; 
-		_template = null; 
+	public Assignment(final String id, final String name, final Date dueDate, final ITemplate template,
+			final double exHours) {
+		_name = name;
+		_deadline = dueDate;
+		_template = template;
+		_expectedHours = exHours;
+		_uniqueId = id;
+		
+		_tasks = createTasksFromTemplate(template);
+	}
+	
+	/**
+	 * Constructor used by StorageService to rebuild an Assignment Template and list of tasks are set later.
+	 */
+	public Assignment(final String id, final String name, final Date dueDate, final double d, final List<ITask> taskList) {
+		_uniqueId = id;
+		_name = name;
+		_deadline = dueDate;
+		_expectedHours = d;
+		_tasks = taskList;
+		_template = null;
 	}
 	
 	/* Private methods */
@@ -70,7 +96,8 @@ public class Assignment implements IAssignment {
 			// For each TemplateStep, create new Task
 			for (final ITemplateStep step : steps) {
 				// Task name in the form of Assignment:Step
-				final String taskName = _name + ":" + step.getName();
+				// TODO: CHECK THIS TO MAKE SURE IT DIDN'T BREAK ANYTHING TO NOT HAVE _name: TO PREFACE
+				final String taskName = step.getName();
 				
 				// TODO Should we store actual amount of time in Task
 				// so we don't have to calculate every time?
@@ -141,9 +168,10 @@ public class Assignment implements IAssignment {
 	
 	/**
 	 * Used by Storage Service to reconstruct the Assignment
+	 * 
 	 * @param template
 	 */
-	public void setTemplate(ITemplate template) {
+	public void setTemplate(final ITemplate template) {
 		_template = template;
 	}
 	
@@ -155,7 +183,7 @@ public class Assignment implements IAssignment {
 	}
 	
 	@Override
-	public int getExpectedHours() {
+	public double getExpectedHours() {
 		return _expectedHours;
 	}
 	
@@ -223,10 +251,11 @@ public class Assignment implements IAssignment {
 		return new String(getName() + ", " + getID());
 	}
 	
+	@Override
 	public String fullString() {
-		StringBuilder taskBuilder = new StringBuilder();
-		for (ITask t : this.getTasks()) {
-			taskBuilder.append(t.fullString()); 
+		final StringBuilder taskBuilder = new StringBuilder();
+		for (final ITask t : getTasks()) {
+			taskBuilder.append(t.fullString());
 			taskBuilder.append(", ");
 		}
 		taskBuilder.delete(taskBuilder.length() - 2, taskBuilder.length());

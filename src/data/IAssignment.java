@@ -22,7 +22,7 @@ public interface IAssignment {
 	 * 
 	 * @return the total number of hours an assignment may take
 	 */
-	public int getExpectedHours();
+	public double getExpectedHours();
 	
 	/**
 	 * Mutator for number of hours a user expects this Assignment to take.
@@ -58,5 +58,12 @@ public interface IAssignment {
 	 * @return a template object
 	 */
 	public ITemplate getTemplate();
+	
+	/**
+	 * Gives the full string
+	 * 
+	 * @return a string containing all possible information
+	 */
+	public String fullString();
 	
 }

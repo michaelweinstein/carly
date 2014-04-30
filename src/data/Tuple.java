@@ -9,8 +9,8 @@ package data;
  */
 public class Tuple<A, B> {
 	
-	public final A	a;
-	public final B	b;
+	public final A	first;
+	public final B	second;
 	
 	/**
 	 * Just sets a and b
@@ -19,7 +19,7 @@ public class Tuple<A, B> {
 	 * @param b the b item
 	 */
 	public Tuple(final A a, final B b) {
-		this.a = a;
-		this.b = b;
+		this.first = a;
+		this.second = b;
 	}
 }

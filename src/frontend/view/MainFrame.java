@@ -32,7 +32,7 @@ public class MainFrame extends JFrame {
 	/**
 	 * Constructor sets window properties and adds newly created views
 	 * 
-	 * @param vc the view controller in control
+	 * @param app the app controller in control
 	 */
 	public MainFrame(final GUIApp app) {
 		super(Utils.APP_NAME);
@@ -41,7 +41,7 @@ public class MainFrame extends JFrame {
 		setResizable(true);
 		
 		// Make child views and add them
-		calendar = new CalendarView();
+		calendar = new CalendarView(app);
 		toolbar = new ToolbarView(app);
 		assignmentsView = new AssignmentsView(app);
 		
@@ -54,6 +54,8 @@ public class MainFrame extends JFrame {
 		Utils.themeComponent(mainPanel);
 		tryEnableFullScreenMode(this);
 		pack();
+		
+		reloadData();
 	}
 	
 	/**

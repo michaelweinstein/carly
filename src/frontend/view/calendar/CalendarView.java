@@ -18,10 +18,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
-import data.AssignmentBlock;
+import backend.database.StorageService;
 import data.ITimeBlockable;
-import data.Task;
+import data.Tuple;
 import frontend.Utils;
+import frontend.app.GUIApp;
+import frontend.view.CanvasUtils;
 
 /**
  * Represents the panel holding the line and week views for the calendar
@@ -30,18 +32,34 @@ import frontend.Utils;
  */
 public class CalendarView extends JPanel {
 	
-	private static final long			serialVersionUID	= 1L;
-	private final LineCanvas			_lineCanvas;
-	private final WeekView				_weekView;
-	private final List<DayLabel>		_dayLabelList;
-	private JLabel						_weekYearLabel;
-	private final List<ITimeBlockable>	_timeBlocks;
+	private static final long				serialVersionUID	= 1L;
+	private final GUIApp					_app;
+	private final LineCanvas				_lineCanvas;
+	private final WeekView					_weekView;
+	private final List<DayLabel>			_dayLabelList;
+	private JLabel							_weekYearLabel;
+	private final List<ITimeBlockable>		_timeBlocks;
+	private final List<ITimeBlockable>		_unavailableBlocks;
 	
-	private ITimeBlockable				_highlightedTask;
+	// Dragging
+	private Tuple<ITimeBlockable, DragType>	_movingBlock;
 	
 	// Info for view
-	private int							_currWeek;
-	private int							_currYear;
+	private int								_currWeek;
+	private int								_currYear;
+	private long							_lastChanged;
+	
+	/**
+	 * Enum for dragging blocks - Value can either be: <br>
+	 * TOP (the top edge is being dragged)<br>
+	 * BOTTOM (the bottom edge is)<br>
+	 * FULL (the whole block is being moved)
+	 * 
+	 * @author dgattey
+	 */
+	public enum DragType {
+		TOP, BOTTOM, FULL;
+	}
 	
 	/**
 	 * Getter for a calendar instance with all the correct properties set
@@ -56,11 +74,15 @@ public class CalendarView extends JPanel {
 	
 	/**
 	 * Creates a line and week view and themes things appropriately
+	 * 
+	 * @param app the app running this
 	 */
-	public CalendarView() {
+	public CalendarView(final GUIApp app) {
+		_app = app;
 		_lineCanvas = new LineCanvas(this);
 		_weekView = new WeekView(this);
 		_timeBlocks = new ArrayList<>();
+		_unavailableBlocks = new ArrayList<>();
 		_dayLabelList = new ArrayList<>(7);
 		
 		final Calendar cal = getCalendarInstance();
@@ -68,6 +90,7 @@ public class CalendarView extends JPanel {
 		_currYear = cal.get(Calendar.YEAR);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		Utils.themeComponentAlt(this);
+		_lastChanged = System.currentTimeMillis();
 		
 		add(makeToolbar());
 		add(makeDays());
@@ -96,86 +119,6 @@ public class CalendarView extends JPanel {
 				shiftWeekForward();
 			}
 		});
-		
-		// TESTING TESTING 1 2 3
-		final Calendar c = getCalendarInstance();
-		c.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-		c.set(Calendar.HOUR_OF_DAY, 3);
-		c.set(Calendar.MINUTE, 30);
-		Date start = c.getTime();
-		c.add(Calendar.MINUTE, 30);
-		Date end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Early Morning Task - Wait, $#($32", 0.3)));
-		
-		c.set(Calendar.HOUR_OF_DAY, 20);
-		c.set(Calendar.MINUTE, 15);
-		start = c.getTime();
-		c.add(Calendar.HOUR_OF_DAY, 12);
-		end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Overnight 1", 0.3)));
-		
-		c.add(Calendar.HOUR_OF_DAY, 2);
-		start = c.getTime();
-		c.add(Calendar.HOUR_OF_DAY, 74);
-		end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Overnight Full Days", 0.3)));
-		
-		c.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-		c.set(Calendar.HOUR_OF_DAY, 11);
-		start = c.getTime();
-		c.add(Calendar.HOUR_OF_DAY, 2);
-		c.add(Calendar.MINUTE, 30);
-		end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Sunday Brunch", 0.3)));
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Double Booked!!?", 0.3)));
-		
-		c.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-		c.set(Calendar.HOUR_OF_DAY, 0);
-		c.set(Calendar.MINUTE, 0);
-		start = c.getTime();
-		c.add(Calendar.HOUR_OF_DAY, 12);
-		end = c.getTime();
-		_timeBlocks
-				.add(new AssignmentBlock(start, end, new Task("Half Day Saturday Event with a Very Long Title", 0.3)));
-		
-		c.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-		c.set(Calendar.HOUR_OF_DAY, 10);
-		c.set(Calendar.MINUTE, 47);
-		start = c.getTime();
-		c.add(Calendar.MINUTE, 80000);
-		end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Around the Weekend", 0.3)));
-		
-		c.setTime(new Date());
-		c.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
-		c.set(Calendar.HOUR_OF_DAY, 20);
-		c.set(Calendar.MINUTE, 17);
-		c.add(Calendar.WEEK_OF_YEAR, -1);
-		start = c.getTime();
-		c.add(Calendar.HOUR_OF_DAY, 8);
-		end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Around the Weekend 2", 0.3)));
-		
-		c.setTime(new Date());
-		c.add(Calendar.WEEK_OF_YEAR, -4);
-		start = c.getTime();
-		c.add(Calendar.HOUR_OF_DAY, 8);
-		end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Shouldn't appear before", 0.3)));
-		
-		c.setTime(new Date());
-		c.add(Calendar.WEEK_OF_YEAR, 4);
-		start = c.getTime();
-		c.add(Calendar.YEAR, 2000);
-		end = c.getTime();
-		_timeBlocks.add(new AssignmentBlock(start, end, new Task("Shouldn't appear after", 0.3)));
-		
-		/*
-		 * TheWorst-DoesFULLWEEKc.setTime(new Date()); c.add(Calendar.YEAR, -1); start = c.getTime();
-		 * c.add(Calendar.YEAR, 2); end = c.getTime(); _timeBlocks.add(new AssignmentBlock(start, end, new
-		 * Task("FULL WEEK", 0.3)));
-		 */
-		
 	}
 	
 	/**
@@ -281,37 +224,61 @@ public class CalendarView extends JPanel {
 			dayOfWeek++;
 		}
 		
-		par.add(Box.createHorizontalStrut(CanvasConstants.X_OFFSET));
+		par.add(Box.createHorizontalStrut(CanvasUtils.X_OFFSET));
 		par.add(days);
 		
 		return par;
-	}
-	
-	// TODO: TESTING ONLY
-	public void replaceTimeBlock(final ITimeBlockable t, final ITimeBlockable t2) {
-		final int i = _timeBlocks.indexOf(t);
-		_timeBlocks.remove(i);
-		_timeBlocks.add(i, t2);
-	}
-	
-	// TODO: TESTING ONLY
-	public void addTimeBlock(final ITimeBlockable t) {
-		_timeBlocks.add(t);
 	}
 	
 	/**
 	 * Repaints children after resetting data
 	 */
 	public void reloadData() {
-		_highlightedTask = null;
-		_weekView.repaint();
-		_weekView.clearHighlights();
-		_weekView.getViewport().setViewPosition(new Point(0, 0));
-		_lineCanvas.repaint();
+		_movingBlock = null;
+		reloadDataWithHighlights();
+	}
+	
+	/**
+	 * Repaints children after resetting data, keeping the highlights
+	 */
+	public void reloadDataWithHighlights() {
+		reloadTimeBlocksFromDB();
 		for (int i = 0; i < _dayLabelList.size(); i++) {
 			_dayLabelList.get(i).setDate(i + 1, getCurrentWeekStartDate());
 		}
 		updateWeekYearLabel();
+		_lineCanvas.repaint();
+		_weekView.repaint();
+	}
+	
+	/**
+	 * Reads in all time blocks from database
+	 */
+	private void reloadTimeBlocksFromDB() {
+		final Date start = getCurrentWeekStartDate();
+		final Date end = getCurrentWeekEndDate();
+		_timeBlocks.clear();
+		_unavailableBlocks.clear();
+		_timeBlocks.addAll(StorageService.getAllAssignmentBlocksWithinRange(start, end));
+		_unavailableBlocks.addAll(StorageService.getAllUnavailableBlocksWithinRange(start, end));
+	}
+	
+	/**
+	 * Deals with shifting weeks
+	 */
+	private void shiftHelp() {
+		_lastChanged = System.currentTimeMillis();
+		
+		// Deals with week overflow
+		if (_currWeek < 1) {
+			_currWeek = 52;
+			_currYear--;
+		} else if (_currWeek > 52) {
+			_currWeek = 1;
+			_currYear++;
+		}
+		
+		_weekView.getViewport().setViewPosition(new Point(0, 0));
 	}
 	
 	/**
@@ -319,27 +286,35 @@ public class CalendarView extends JPanel {
 	 */
 	public void shiftWeekForward() {
 		_currWeek++;
-		
-		// Deals with week overflow
-		if (_currWeek > 52) {
-			_currWeek = 1;
-			_currYear++;
-		}
+		shiftHelp();
 		reloadData();
 	}
 	
 	/**
-	 * Shifts the current week and full view backwards by 1
+	 * Shifts the current week and full view forward by 1 keeping the highlight
+	 */
+	public void shiftWeekForwardWithHighlights() {
+		_currWeek++;
+		shiftHelp();
+		reloadDataWithHighlights();
+	}
+	
+	/**
+	 * Shifts the current week and full view backwards by 1 keeping the highlight
 	 */
 	public void shiftWeekBackward() {
 		_currWeek--;
-		
-		// Deals with week overflow
-		if (_currWeek < 1) {
-			_currWeek = 52;
-			_currYear--;
-		}
+		shiftHelp();
 		reloadData();
+	}
+	
+	/**
+	 * Shifts the current week and full view backwards by 1 keeping the highlight
+	 */
+	public void shiftWeekBackwardWithHighlights() {
+		_currWeek--;
+		shiftHelp();
+		reloadDataWithHighlights();
 	}
 	
 	/**
@@ -428,18 +403,51 @@ public class CalendarView extends JPanel {
 	}
 	
 	/**
-	 * @return the currently highlighted task
+	 * Gets the unavailable time blocks for use elsewhere
+	 * 
+	 * @return a list of ITimeBlockables to draw
 	 */
-	public ITimeBlockable getHighlightedTask() {
-		return _highlightedTask;
+	public List<ITimeBlockable> getUnavailableTimeBlocks() {
+		return _unavailableBlocks;
 	}
 	
 	/**
-	 * Sets a new highlighted task
-	 * 
-	 * @param highlightedTask the new task
+	 * @return the current block in transit
 	 */
-	public void setHighlightedTask(final ITimeBlockable highlightedTask) {
-		_highlightedTask = highlightedTask;
+	public Tuple<ITimeBlockable, DragType> getMovingBlock() {
+		return _movingBlock;
+	}
+	
+	/**
+	 * Sets a new block in transit
+	 * 
+	 * @param newBlock the new block
+	 * @param drag the drag type
+	 */
+	public void setMovingBlock(final ITimeBlockable newBlock, final DragType drag) {
+		_movingBlock = new Tuple<>(newBlock, drag);
+	}
+	
+	/**
+	 * Deletes current moving block
+	 */
+	public void clearMovingBlock() {
+		_movingBlock = null;
+	}
+	
+	/**
+	 * Returns when the week last changed
+	 * 
+	 * @return a long representing system time milliseconds since last change
+	 */
+	public long getTimeChanged() {
+		return _lastChanged;
+	}
+	
+	/**
+	 * Reloads full app
+	 */
+	public void reloadApp() {
+		_app.reload();
 	}
 }

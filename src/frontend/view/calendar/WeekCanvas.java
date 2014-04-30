@@ -1,12 +1,13 @@
 package frontend.view.calendar;
 
-import static frontend.view.calendar.CanvasConstants.DAYS;
-import static frontend.view.calendar.CanvasConstants.HRS;
-import static frontend.view.calendar.CanvasConstants.X_OFFSET;
-import static frontend.view.calendar.CanvasConstants.Y_PAD;
+import static frontend.view.CanvasUtils.DAYS;
+import static frontend.view.CanvasUtils.HRS;
+import static frontend.view.CanvasUtils.X_OFFSET;
+import static frontend.view.CanvasUtils.Y_PAD;
+import hub.HubController;
 
 import java.awt.BasicStroke;
-import java.awt.Color;
+import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -14,30 +15,32 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.Stroke;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Line2D;
-import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
 
+import backend.database.StorageService;
 import data.ITimeBlockable;
 import data.Tuple;
 import frontend.Utils;
+import frontend.view.CanvasUtils;
+import frontend.view.calendar.CalendarView.DragType;
 
 /**
  * Draws a week to canvas representation
@@ -46,142 +49,15 @@ import frontend.Utils;
  */
 public class WeekCanvas extends JPanel implements MouseListener, MouseMotionListener {
 	
-	private static final long	serialVersionUID	= 1L;
-	private final CalendarView	_cv;
-	private Date				_weekStartDate;
-	private Date				_weekEndDate;
-	private Point				_mousePoint;
-	
-	/**
-	 * Class of rectangle to use only for drawing - associates with others of same time automatically
-	 * 
-	 * @author dgattey
-	 */
-	private static final class TimeRect extends Rectangle2D.Double {
-		
-		private static final long									serialVersionUID	= 1L;
-		private static final Map<ITimeBlockable, List<TimeRect>>	allBlocks			= new HashMap<>();
-		private static final Set<ITimeBlockable>					highlightedBlocks	= new HashSet<>();
-		
-		private final Color											_c;
-		private final ITimeBlockable								_t;
-		
-		/**
-		 * Creates a new rectangle with the given size and associates t with this rect
-		 * 
-		 * @param x x pos
-		 * @param y y pos
-		 * @param w width of rect
-		 * @param h height of rect
-		 * @param t the TimeBlockable to associate with this
-		 */
-		public TimeRect(final double x, final double y, final double w, final double h, final ITimeBlockable t) {
-			super(x, y, w, h);
-			_t = t;
-			_c = CanvasConstants.getColor(_t);
-			
-			// Adds to all blocks for use later
-			List<TimeRect> currBlocks = allBlocks.get(t);
-			if (currBlocks == null) {
-				currBlocks = new ArrayList<>();
-			}
-			currBlocks.add(this);
-			allBlocks.put(t, currBlocks);
-		}
-		
-		/**
-		 * Returns the color of this block
-		 * 
-		 * @return the expected color
-		 */
-		public Color getColor() {
-			return highlightedBlocks.contains(_t) ? new Color(_c.getRed(), _c.getGreen(), _c.getBlue(), 100) : _c;
-		}
-		
-		/**
-		 * Returns the color of the stroke
-		 * 
-		 * @return the stroke color
-		 */
-		public Color getStrokeColor() {
-			return highlightedBlocks.contains(_t) ? Utils.COLOR_FOREGROUND : Utils.COLOR_LIGHT_BG;
-		}
-		
-		/**
-		 * Returns the actual stroke
-		 * 
-		 * @return the stroke to set around the block
-		 */
-		public Stroke getStroke() {
-			if (highlightedBlocks.contains(_t)) {
-				final float dash1[] = { 4.0f };
-				return new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1, dash1, 0);
-			}
-			return new BasicStroke(1);
-		}
-		
-		/**
-		 * Clears it out!
-		 */
-		public static void clear() {
-			allBlocks.clear();
-		}
-		
-		/**
-		 * Gets the blockable object for a given point
-		 * 
-		 * @param mousePoint a point in 2D space
-		 * @return an ITimeBlockable for a given point
-		 */
-		public static ITimeBlockable blockForPoint(final Point mousePoint) {
-			for (final ITimeBlockable t : allBlocks.keySet()) {
-				final List<TimeRect> list = allBlocks.get(t);
-				
-				// Checks each block for containment
-				for (final TimeRect rec : list) {
-					if (rec.contains(mousePoint)) {
-						return t;
-					}
-				}
-			}
-			return null;
-		}
-		
-		/**
-		 * Checks for dates overlapping
-		 * 
-		 * @param d1 a tuple of date ranges
-		 * @param d2 another tuple of date ranges
-		 * @return if d1 and d2 overlap
-		 */
-		private static boolean overlaps(final Tuple<Date, Date> d1, final Tuple<Date, Date> d2) {
-			final boolean d1StartInD2 = (d1.a.before(d2.b) || d1.a.equals(d2.b))
-				&& (d1.a.after(d2.a) || d1.a.equals(d2.a));
-			final boolean d1EndInD2 = (d1.b.before(d2.b) || d1.b.equals(d2.b))
-				&& (d1.b.after(d2.a) || d1.b.equals(d2.a));
-			final boolean d1EncompassesD2 = (d1.a.before(d2.a) || d1.a.equals(d2.a))
-				&& (d1.b.after(d2.b) || d1.b.equals(d2.b));
-			return d1StartInD2 || d1EndInD2 || d1EncompassesD2;
-		}
-		
-		/**
-		 * Take a time blockable and a new start position and check for overlap across all things
-		 * 
-		 * @param newStart a new start date
-		 * @param oldBlock the old time blockable
-		 * @return if oldBlock with a new date overlaps with any other block
-		 */
-		public static boolean checkForOverlap(final Date newStart, final ITimeBlockable oldBlock) {
-			final Date newEnd = new Date(newStart.getTime() + oldBlock.getLength());
-			for (final ITimeBlockable t : allBlocks.keySet()) {
-				if (!t.equals(oldBlock)
-					&& overlaps(new Tuple<>(newStart, newEnd), new Tuple<>(t.getStart(), t.getEnd()))) {
-					return true;
-				}
-			}
-			return false;
-		}
-	}
+	private static final long							serialVersionUID	= 1L;
+	private static final int							CURSOR_CUST			= Cursor.N_RESIZE_CURSOR;
+	private static final int							CURSOR_DEF			= Cursor.DEFAULT_CURSOR;
+	private final Map<ITimeBlockable, List<TimeRect>>	_allBlocks;
+	private final CalendarView							_cv;
+	private Date										_weekStartDate;
+	private Date										_weekEndDate;
+	private Point										_dragCurrPoint;
+	private final Timer									_timer;
 	
 	/**
 	 * Constructor
@@ -190,6 +66,21 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	 */
 	public WeekCanvas(final CalendarView cv) {
 		_cv = cv;
+		_allBlocks = new HashMap<>();
+		_timer = new Timer();
+		_timer.scheduleAtFixedRate(new TimerTask() {
+			
+			@Override
+			public void run() {
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						_cv.reloadApp();
+					}
+				});
+			}
+		}, 5000, 60000); // Once a minute, repaint (after 5 seconds)
 		addMouseListener(this);
 		addMouseMotionListener(this);
 		
@@ -221,25 +112,73 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	}
 	
 	/**
-	 * Clears leftover highlights
+	 * Clears it out!
 	 */
-	public void clearHighlights() {
-		TimeRect.highlightedBlocks.clear();
+	public void clearAllBlocks() {
+		getAllBlocks().clear();
 	}
 	
 	/**
-	 * Given an x and y, "snaps" to the nearest 15 minute time
+	 * Gets the timerect for a given point
+	 * 
+	 * @param mousePoint a point in 2D space
+	 * @return an ITimeBlockable for a given point
+	 */
+	public TimeRect getRectForPoint(final Point mousePoint) {
+		if (getAllBlocks() == null) {
+			return null;
+		}
+		for (final ITimeBlockable t : getAllBlocks().keySet()) {
+			final List<TimeRect> list = getAllBlocks().get(t);
+			if (list == null) {
+				return null;
+			}
+			
+			// Checks each block for containment
+			for (final TimeRect rec : list) {
+				if (rec.contains(mousePoint)) {
+					return rec;
+				}
+			}
+		}
+		return null;
+	}
+	
+	/**
+	 * Take a time blockable and new start/end positions and checks for overlap across all blockables
+	 * 
+	 * @param newStart a new start date
+	 * @param newEnd a new end date
+	 * @param oldBlock the old time blockable
+	 * @return if oldBlock with a new date overlaps with any other block
+	 */
+	public boolean checkBlockForOverlap(final Date newStart, final Date newEnd, final ITimeBlockable oldBlock) {
+		for (final ITimeBlockable t : getAllBlocks().keySet()) {
+			if (!t.equals(oldBlock)
+				&& Utils.dateRangesOverlap(new Tuple<>(newStart, newEnd), new Tuple<>(t.getStart(), t.getEnd()))) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	/**
+	 * Given an x and y, gets that time ("snaps" to the nearest 10 minute time if snap)
 	 * 
 	 * @param p an x,y point on the canvas
+	 * @param snap if it should snap to nearest time
 	 * @return the date represented by (x,y) on the canvas, snapped to the nearest 15 minutes
 	 */
-	public Date getTimeForLocation(final Point p) {
-		final int day = (int) Math.floor(((p.getX() - X_OFFSET) / (getWidth() - X_OFFSET)) * DAYS) + 1;
+	public Date convertPointToTime(final Point p, final boolean snap) {
+		int day = (int) Math.floor(((p.getX() - X_OFFSET) / (getWidth() - X_OFFSET)) * DAYS) + 1;
+		day = (day < 1) ? 1 : (day > 7) ? 7 : day;
 		final double hrsAndMin = HRS * ((p.getY() - Y_PAD) / (getHeight() - Y_PAD));
 		final int hours = (int) Math.floor(hrsAndMin);
-		final int min = 15 * (int) (Math.floor(((hrsAndMin - hours) * 4)));
+		final int min = (snap ? 10 : 1) * (int) (Math.round(((hrsAndMin - hours) * (snap ? 6 : 60))));
 		
 		final Calendar c = CalendarView.getCalendarInstance();
+		c.set(Calendar.WEEK_OF_YEAR, _cv.getCurrentWeek());
+		c.set(Calendar.YEAR, _cv.getCurrentYear());
 		c.set(Calendar.MINUTE, min);
 		c.set(Calendar.HOUR_OF_DAY, hours);
 		c.set(Calendar.DAY_OF_WEEK, day);
@@ -259,6 +198,23 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		brush.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		brush.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
 		
+		// Reloads week start and end date, plus clears the previous rectangle array
+		_weekStartDate = _cv.getCurrentWeekStartDate();
+		_weekEndDate = _cv.getCurrentWeekEndDate();
+		final Tuple<ITimeBlockable, DragType> currentlyMoving = _cv.getMovingBlock();
+		clearAllBlocks();
+		
+		// Today
+		final double dayWidth = (getWidth() - X_OFFSET - _cv.getScrollWidth()) / DAYS;
+		if (_weekStartDate.before(new Date()) && _weekEndDate.after(new Date())) {
+			brush.setColor(Utils.transparentColor(Utils.COLOR_ACCENT, 0.05));
+			final Calendar c = CalendarView.getCalendarInstance();
+			c.setTime(new Date());
+			final int i = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
+			final int start = (int) ((i / DAYS) * (getWidth() - X_OFFSET) + X_OFFSET);
+			brush.fillRect(start, 0, (int) dayWidth + 1, getHeight());
+		}
+		
 		// Background of labels
 		brush.setColor(Utils.COLOR_ALTERNATE);
 		brush.fillRect(X_OFFSET, 0, getWidth() - X_OFFSET, (int) Y_PAD);
@@ -272,6 +228,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 			brush.draw(new Line2D.Double(x, Y_PAD, x, getHeight() - Y_PAD));
 		}
 		
+		// Horizontal lines plus labels
 		for (int i = 0; i <= HRS; i++) {
 			final double y = (i / HRS) * (getHeight() - Y_PAD) + Y_PAD;
 			
@@ -292,59 +249,35 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 			}
 		}
 		
-		// Reloads week start and end date, plus clears the previous rectangle array
-		_weekStartDate = _cv.getCurrentWeekStartDate();
-		_weekEndDate = _cv.getCurrentWeekEndDate();
-		TimeRect.clear();
-		
-		// Takes blockables and makes them into rects
+		// Takes blockables and makes them into rects - Draws all non-moving blocks first, along with unavailable blocks
 		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 12));
-		ITimeBlockable highlight = null;
+		for (final ITimeBlockable t : _cv.getUnavailableTimeBlocks()) {
+			placeBlock(brush, t);
+		}
 		for (final ITimeBlockable t : _cv.getTimeBlocks()) {
-			if (t.equals(_cv.getHighlightedTask())) {
-				highlight = t;
-			} else {
-				placeAndDrawBlock(brush, t);
+			if ((currentlyMoving != null && !t.equals(currentlyMoving.first)) || currentlyMoving == null) {
+				placeBlock(brush, t);
 			}
 		}
-		if (highlight != null) {
-			placeAndDrawHighlightedBlock(brush, highlight);
+		
+		// Line for the current time on the current week
+		if (_weekStartDate.before(new Date()) && _weekEndDate.after(new Date())) {
+			final Calendar c = CalendarView.getCalendarInstance();
+			final double min = Math.round((c.get(Calendar.MINUTE) / 60.0) * 12) * 5;
+			final int y = getYPos(c.get(Calendar.HOUR_OF_DAY) + min / 60.0);
+			
+			brush.setStroke(new BasicStroke(3));
+			brush.setColor(Utils.COLOR_ACCENT);
+			brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 12));
+			brush.drawString("Now", X_OFFSET + 15, y + 4);
+			brush.drawLine(X_OFFSET + 48, y, getWidth(), y);
+			brush.drawLine(X_OFFSET, y, X_OFFSET + 8, y);
 		}
 		
-	}
-	
-	/**
-	 * Simply draws the highlighted block at the mouse point
-	 * 
-	 * @param brush the brush for the canvas
-	 * @param t a time blockable to draw
-	 */
-	private void placeAndDrawHighlightedBlock(final Graphics2D brush, final ITimeBlockable t) {
-		// Checks bounds so we know not to place line if dates don't match up
-		if (t.getStart().after(_weekEndDate) || t.getEnd().before(_weekStartDate)) {
-			return;
+		// Finally, draw the moving blocks
+		if (currentlyMoving != null) {
+			placeBlock(brush, currentlyMoving.first);
 		}
-		
-		// Shared measurements
-		final double dayWidth = (getWidth() - X_OFFSET) / DAYS;
-		final Calendar c = CalendarView.getCalendarInstance();
-		
-		c.setTime(t.getStart());
-		final int startY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
-		final int startDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
-		c.setTime(t.getEnd());
-		final int endY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
-		final int endDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
-		
-		double height = 300;
-		
-		// We know it's the same day if the following is true - otherwise, approximate it with 300
-		if (startDay == endDay && !t.getStart().before(_weekStartDate) && !t.getEnd().after(_weekEndDate)) {
-			height = endY - startY;
-		}
-		
-		final TimeRect rect = new TimeRect(_mousePoint.getX(), _mousePoint.getY(), dayWidth, height, t);
-		drawBlock(brush, t, rect);
 		
 	}
 	
@@ -354,9 +287,12 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	 * @param brush the brush for the canvas
 	 * @param t a time blockable to draw
 	 */
-	private void placeAndDrawBlock(final Graphics2D brush, final ITimeBlockable t) {
-		// Checks bounds so we know not to place line if dates don't match up
-		if (t.getStart().after(_weekEndDate) || t.getEnd().before(_weekStartDate)) {
+	private void placeBlock(final Graphics2D brush, final ITimeBlockable t) {
+		final Tuple<ITimeBlockable, DragType> moving = _cv.getMovingBlock();
+		
+		// Checks bounds so we know not to place line if dates don't match up and not the moving block
+		if ((moving != null && !t.equals(moving.first) || moving == null)
+			&& (t.getStart().after(_weekEndDate) || t.getEnd().before(_weekStartDate))) {
 			return;
 		}
 		
@@ -364,52 +300,104 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		final double dayWidth = (getWidth() - X_OFFSET) / DAYS;
 		final Calendar c = CalendarView.getCalendarInstance();
 		c.setTime(t.getStart());
-		final Date startDate = c.getTime();
+		Date startDate = c.getTime();
 		int startDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
 		c.setTime(t.getEnd());
-		final Date endDate = c.getTime();
+		Date endDate = c.getTime();
 		int endDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
 		
 		// Sets correct start bounds
-		int startX;
-		int startY;
+		c.setTime(t.getStart());
+		int startX = getXPos((int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS));
+		int startY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
+		if (moving != null && moving.first.equals(t)) {
+			final int set = (int) Math.min(Math.max(_dragCurrPoint.getY(), Y_PAD + 1), getHeight() - Y_PAD);
+			switch (moving.second) {
+			case FULL:
+				startX = (int) _dragCurrPoint.getX();
+				startY = set;
+				startDate = convertPointToTime(new Point(startX, startY), false);
+				break;
+			case TOP:
+				c.setTime(convertPointToTime(new Point((int) _dragCurrPoint.getX(), set), false));
+				startDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
+				startX = getXPos(startDay);
+				startY = set;
+				break;
+			default:
+				break;
+			}
+		}
 		if (startDate.before(_weekStartDate)) {
 			startY = 0;
 			startDay = c.getMinimum(Calendar.DAY_OF_WEEK) - 1;
 			startX = getXPos(startDay);
-		} else {
-			c.setTime(t.getStart());
-			startX = getXPos((int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS));
-			startY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
 		}
 		
 		// Sets correct end bounds
-		int endX;
-		int endY;
+		c.setTime(t.getEnd());
+		int endX = getXPos((int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS));
+		int endY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
+		if (moving != null && moving.first.equals(t)) {
+			final int set = (int) Math.min(Math.max(_dragCurrPoint.getY(), Y_PAD + 1), getHeight() - Y_PAD);
+			switch (moving.second) {
+			case FULL:
+				if (endDay != startDay) {
+					endX = startX;
+					endY = startY + 300;
+				} else {
+					endX = startX;
+					c.setTime(new Date(convertPointToTime(new Point(startX, startY), false).getTime() + t.getLength()));
+					endY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
+				}
+				endDate = convertPointToTime(new Point(endX, endY), false);
+				break;
+			case BOTTOM:
+				c.setTime(convertPointToTime(new Point((int) _dragCurrPoint.getX(), set), false));
+				endDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
+				endX = getXPos(endDay);
+				endY = set;
+				break;
+			default:
+				break;
+			}
+		}
 		if (endDate.after(_weekEndDate)) {
 			endY = getHeight();
 			endDay = c.getMaximum(Calendar.DAY_OF_WEEK) - 1;
 			endX = getXPos(endDay);
-		} else {
-			c.setTime(t.getEnd());
-			endX = getXPos((int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS));
-			endY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
 		}
 		
-		// Simple - start and end on same day!
-		if (startX == endX && startDay == endDay) {
+		if (startDate.after(endDate) && moving != null) {
+			switch (moving.second) {
+			case BOTTOM:
+				_cv.setMovingBlock(t, DragType.TOP);
+				placeBlock(brush, t);
+				return;
+			case TOP:
+				_cv.setMovingBlock(t, DragType.BOTTOM);
+				placeBlock(brush, t);
+				return;
+			default:
+				break;
+			
+			}
+		}
+		
+		// Start and end on same day
+		if (startX == endX) {
 			final int height = endY - startY;
-			drawBlock(brush, t, new TimeRect(startX, startY, dayWidth, height, t));
+			drawBlock(brush, t, new TimeRect(startX, startY, dayWidth, height, t, this));
 			return;
 		}
 		
 		// For events spanning at least one night
-		drawBlock(brush, t, new TimeRect(startX, startY, dayWidth, getHeight() - startY, t));
+		drawBlock(brush, t, new TimeRect(startX, startY, dayWidth, getHeight() - startY, t, this));
 		for (int i = startDay + 1; i < endDay; i++) {
 			// Draw full day
-			drawBlock(brush, t, new TimeRect(getXPos(i), 0, dayWidth, getHeight(), t));
+			drawBlock(brush, t, new TimeRect(getXPos(i), 0, dayWidth, getHeight(), t, this));
 		}
-		drawBlock(brush, t, new TimeRect(endX, 0, dayWidth, endY, t));
+		drawBlock(brush, t, new TimeRect(endX, 0, dayWidth, endY, t, this));
 	}
 	
 	/**
@@ -422,75 +410,96 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	private static void drawBlock(final Graphics2D g, final ITimeBlockable t, final TimeRect rect) {
 		g.setColor(rect.getColor());
 		g.fill(rect);
-		g.setColor(rect.getStrokeColor());
+		g.setColor(t.getEnd().before(new Date()) ? rect.getStrokeColor().darker() : rect.getStrokeColor());
 		g.setStroke(rect.getStroke());
 		g.draw(rect);
 		
-		// Draw title
-		g.setColor(contrastingColor(rect.getColor()));
-		final List<String> titleParts = new ArrayList<>(4);
-		titleParts.add(t.getTask().getName());
+		// Wrap titles and draw them
+		final Font aFont = new Font(Utils.APP_FONT_NAME, Font.BOLD, 12);
+		final Font taskFont = new Font(Utils.APP_FONT_NAME, Font.PLAIN | Font.ITALIC, 11);
+		final List<String> taskT = new ArrayList<>(4);
+		final List<String> assT = new ArrayList<>(2);
+		taskT.add(t.getTask().getName());
+		assT.add(StorageService.getAssignment(t.getTask().getAssignmentID()).getName()); // TODO: FIX SO NOT JANKY
 		int i = 0;
 		
-		// Go through the title parts and check the bounds of each word - while too big, put on next line
-		for (i = 0; i < titleParts.size() && i < 3; ++i) {
-			String currPart = titleParts.get(i);
-			while (g.getFontMetrics().getStringBounds(currPart, g).getWidth() >= rect.getWidth() - 10) {
-				
-				// Split the current title part into words
-				final String[] words = currPart.split("\\s+");
-				if (words.length > 1) {
-					// Put the last word on the next line
-					final String part2 = words[words.length - 1] + " ";
-					currPart = currPart.substring(0, currPart.length() - part2.length());
-					titleParts.set(i, currPart);
-					
-					// Actually put it in the array
-					if (titleParts.size() - 1 == i) {
-						titleParts.add(part2);
-					} else {
-						titleParts.set(i + 1, part2 + titleParts.get(i + 1));
-					}
-				} else {
-					// Last word is too long to fit on line, but no more left, so just set ...
-					titleParts.set(i, "...");
-					break;
-				}
-			}
+		// Wrap the assignment title
+		g.setFont(aFont);
+		for (i = 0; i < assT.size() && i < 3; ++i) {
+			wrapTitleParts(assT, i, g, rect.getWidth() - 10);
 		}
-		// For long titles
-		if (i < titleParts.size()) {
-			titleParts.set(i, "...");
+		if (i < assT.size()) {
+			assT.set(i, "...");
 		}
 		
-		// Finally, draw the title until it doesn't fit
+		// Wrap the task title
+		g.setFont(taskFont);
+		for (i = 0; i < taskT.size() && i < 3; ++i) {
+			wrapTitleParts(taskT, i, g, rect.getWidth() - 10);
+		}
+		if (i < taskT.size()) {
+			taskT.set(i, "...");
+		}
+		
+		// Finally, draw the titles until they don't fit
 		final int xPos = (int) rect.getX();
 		final int space = 15;
 		int yPos = 0;
-		double nextY = 0;
-		for (i = 0; i < titleParts.size(); i++) {
+		final double nextY = 0;
+		g.setColor(t.getEnd().before(new Date()) ? rect.getStrokeColor() : Utils.contrastingColor(rect.getColor()));
+		g.setFont(aFont);
+		for (i = 0; i < taskT.size() + assT.size(); i++) {
 			yPos = (int) rect.getY() + (space * (i + 1));
-			nextY = rect.getY() + (space * (i + 2));
+			
+			// Change fonts and colors
+			if (i == assT.size()) {
+				g.setFont(taskFont);
+				yPos += 5;
+			}
+			
+			// Over length of block
 			if (yPos >= rect.getMaxY()) {
 				return;
 			}
-			g.drawString(nextY >= rect.getMaxY() ? "..." : titleParts.get(i), xPos + 5, yPos);
+			
+			final String toDraw = i < assT.size() ? assT.get(i) : taskT.get(i - assT.size());
+			g.drawString(nextY >= rect.getMaxY() ? "..." : toDraw, xPos + 5, yPos);
 		}
 		
 	}
 	
 	/**
-	 * Returns a good contrasting color for c based on perceived brightness of a color
+	 * Wraps the title parts in the array for the current index
 	 * 
-	 * @param c a given color
-	 * @return a new Color representing a contrasting color
+	 * @param titleParts an list of strings to wrap
+	 * @param i the index
+	 * @param g the graphics object to use
+	 * @param w the width of the spot to put it
 	 */
-	private static Color contrastingColor(final Color c) {
-		final double r = c.getRed() * c.getRed() * .241;
-		final double g = c.getGreen() * c.getGreen() * .691;
-		final double b = c.getBlue() * c.getBlue() * .068;
-		final double bright = Math.sqrt(r + g + b);
-		return (bright < 130) ? Utils.COLOR_FOREGROUND : Utils.COLOR_BACKGROUND.darker();
+	private static void wrapTitleParts(final List<String> titleParts, final int i, final Graphics2D g, final double w) {
+		String currPart = titleParts.get(i);
+		while (g.getFontMetrics().getStringBounds(currPart, g).getWidth() >= w) {
+			
+			// Split the current title part into words
+			final String[] words = currPart.split("\\s+");
+			if (words.length > 1) {
+				// Put the last word on the next line
+				final String part2 = words[words.length - 1] + " ";
+				currPart = currPart.substring(0, currPart.length() - part2.length());
+				titleParts.set(i, currPart);
+				
+				// Actually put it in the array
+				if (titleParts.size() - 1 == i) {
+					titleParts.add(part2);
+				} else {
+					titleParts.set(i + 1, part2 + titleParts.get(i + 1));
+				}
+			} else {
+				// Last word is too long to fit on line, but no more left, so just set ...
+				titleParts.set(i, "...");
+				break;
+			}
+		}
 	}
 	
 	/**
@@ -514,6 +523,24 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	}
 	
 	/**
+	 * Getter for all blocks
+	 * 
+	 * @return the current map of time blockable to list of rects
+	 */
+	public Map<ITimeBlockable, List<TimeRect>> getAllBlocks() {
+		return _allBlocks;
+	}
+	
+	/**
+	 * Getter for the calendar view
+	 * 
+	 * @return the calendar view
+	 */
+	public CalendarView getCalendarView() {
+		return _cv;
+	}
+	
+	/**
 	 * Given an int, gives back an hour string for that
 	 * 
 	 * @param i an int (0 to 24) representing the hour
@@ -527,69 +554,134 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		return hour + (i < 12 || i == 24 ? "am" : "pm");
 	}
 	
+	/**
+	 * Sets the block for the mouse point to be selected
+	 */
 	@Override
 	public void mousePressed(final MouseEvent e) {
-		_mousePoint = e.getPoint();
-		_cv.setHighlightedTask(null);
-		final ITimeBlockable t = TimeRect.blockForPoint(_mousePoint);
-		if (t != null) {
-			TimeRect.highlightedBlocks.add(t);
-			_cv.setHighlightedTask(t);
-			_cv.repaint();
+		_cv.clearMovingBlock();
+		_dragCurrPoint = e.getPoint();
+		final TimeRect rect = getRectForPoint(e.getPoint());
+		if (rect == null) {
+			return;
 		}
+		
+		// Drag type is either top, bottom, or full (default full)
+		DragType drag = DragType.FULL;
+		if (CanvasUtils.atBottomEdge(e, rect, getHeight() - Y_PAD)) {
+			drag = DragType.BOTTOM;
+		} else if (CanvasUtils.atTopEdge(e, rect, Y_PAD)) {
+			drag = DragType.TOP;
+		}
+		
+		// Add to highlighted stuff and repaint
+		_cv.setMovingBlock(rect.getBlockable(), drag);
+		_cv.repaint();
 	}
 	
+	/**
+	 * Scrolls view as well as repainting for the highlighted block drawing to do its thing
+	 */
 	@Override
 	public void mouseDragged(final MouseEvent e) {
-		_mousePoint = e.getPoint();
+		_dragCurrPoint = e.getPoint();
 		final Rectangle visible = getVisibleRect();
 		
-		// If highlighted and within x bounds
-		if (_cv.getHighlightedTask() != null
-			&& (e.getX() > visible.getX() || e.getX() < visible.getX() + visible.getWidth())) {
+		// Scroll to view if need be
+		if (_cv.getMovingBlock() != null) {
 			
-			// If above visible rect, scroll up
-			if (e.getY() < visible.getY()) {
-				visible.translate(0, -20);
-				scrollRectToVisible(visible);
+			// Backward a week
+			if (e.getX() < visible.getX() && System.currentTimeMillis() - _cv.getTimeChanged() > 500) {
+				_cv.shiftWeekBackwardWithHighlights();
 			}
 			
-			// If below visible rect, scroll down
-			else if (e.getY() > visible.getY() + visible.getHeight()) {
-				visible.translate(0, 20);
-				scrollRectToVisible(visible);
+			// Forward a week
+			else if (e.getX() > visible.getMaxX() && System.currentTimeMillis() - _cv.getTimeChanged() > 500) {
+				_cv.shiftWeekForwardWithHighlights();
+			} else {
+				
+				// Up
+				if (e.getY() < visible.getY()) {
+					visible.translate(0, -20);
+					scrollRectToVisible(visible);
+				}
+				
+				// Down
+				else if (e.getY() > visible.getY() + visible.getHeight()) {
+					visible.translate(0, 20);
+					scrollRectToVisible(visible);
+				}
 			}
 		}
 		_cv.repaint();
 	}
 	
+	/**
+	 * Resets the highlights, updates info
+	 */
 	@Override
 	public void mouseReleased(final MouseEvent e) {
-		// Figure out where it dropped and update info
-		if (_mousePoint != null && _cv.getHighlightedTask() != null) {
-			final Date d = getTimeForLocation(_mousePoint);
-			if (!TimeRect.checkForOverlap(d, _cv.getHighlightedTask())) {
-				final ITimeBlockable newBlock = _cv.getHighlightedTask();
-				final long len = newBlock.getLength();
-				newBlock.setStart(d);
-				newBlock.setEnd(new Date(d.getTime() + len));
-				_cv.replaceTimeBlock(_cv.getHighlightedTask(), newBlock);
+		final Tuple<ITimeBlockable, DragType> moving = _cv.getMovingBlock();
+		
+		// If dragged, update DB
+		if (_dragCurrPoint != null && moving != null) {
+			final ITimeBlockable oldTask = moving.first;
+			final DragType drag = moving.second;
+			
+			// Get new start and end points
+			Date start = oldTask.getStart();
+			Date end = oldTask.getEnd();
+			switch (drag) {
+			case FULL:
+				start = convertPointToTime(_dragCurrPoint, true);
+				end = new Date(start.getTime() + oldTask.getLength());
+				break;
+			case TOP:
+				start = convertPointToTime(_dragCurrPoint, true);
+				break;
+			case BOTTOM:
+				end = convertPointToTime(_dragCurrPoint, true);
+				break;
+			default:
+				break;
+			}
+			
+			// Switch if wrong order
+			if (end.before(start)) {
+				final Date x = end;
+				end = start;
+				start = x;
+			}
+			
+			// If it doesn't overlap another block, write to database
+			if (!checkBlockForOverlap(start, end, oldTask)) {
+				HubController.changeTimeBlock(oldTask, start, end);
 			}
 		}
 		
 		// Reset highlights
-		_mousePoint = null;
-		TimeRect.highlightedBlocks.remove(_cv.getHighlightedTask());
-		_cv.setHighlightedTask(null);
+		_dragCurrPoint = null;
+		_cv.clearMovingBlock();
+		_cv.reloadData();
 		_cv.repaint();
 	}
 	
 	@Override
-	public void mouseMoved(final MouseEvent e) {}
-	
-	@Override
-	public Dimension getPreferredSize() {
-		return new Dimension(100, 2000);
+	public void mouseMoved(final MouseEvent e) {
+		final TimeRect t = getRectForPoint(e.getPoint());
+		final int type = getCursor().getType();
+		
+		// Top edge or bottom edge
+		if (CanvasUtils.atTopEdge(e, t, Y_PAD) || CanvasUtils.atBottomEdge(e, t, getHeight() - Y_PAD)) {
+			if (type != CURSOR_CUST) {
+				setCursor(Cursor.getPredefinedCursor(CURSOR_CUST));
+			}
+		}
+		
+		// Not default but should be
+		else if (type != CURSOR_DEF) {
+			setCursor(Cursor.getPredefinedCursor(CURSOR_DEF));
+		}
 	}
 	
 	@Override
@@ -600,4 +692,9 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	
 	@Override
 	public void mouseExited(final MouseEvent e) {}
+	
+	@Override
+	public Dimension getPreferredSize() {
+		return new Dimension(100, 2000);
+	}
 }

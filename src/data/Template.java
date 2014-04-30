@@ -20,7 +20,7 @@ public class Template implements ITemplate {
 	 */
 	public Template(final String name) {
 		_name = name;
-		_uid = DataUtil.generateID();
+		_uid = DataUtil.generateID() + _name.hashCode();
 		_preferredConsecutiveHours = DataUtil.DEFAULT_CONSECUTIVE_HOURS;
 		_steps = new ArrayList<>();
 	}
@@ -31,7 +31,7 @@ public class Template implements ITemplate {
 	public Template(final String name, final double hours) {
 		_name = name;
 		_preferredConsecutiveHours = hours;
-		_uid = DataUtil.generateID();
+		_uid = DataUtil.generateID() + _name.hashCode();
 		_steps = new ArrayList<>();
 	}
 	
@@ -40,7 +40,7 @@ public class Template implements ITemplate {
 	 */
 	public Template(final String name, final List<ITemplateStep> steps) {
 		_name = name;
-		_uid = DataUtil.generateID();
+		_uid = DataUtil.generateID() + _name.hashCode();
 		_preferredConsecutiveHours = DataUtil.DEFAULT_CONSECUTIVE_HOURS;
 		_steps = new ArrayList<>();
 		addAllSteps(steps);
@@ -55,7 +55,7 @@ public class Template implements ITemplate {
 		_preferredConsecutiveHours = hours;
 		_steps = new ArrayList<>();
 		addAllSteps(steps);
-		_uid = DataUtil.generateID();
+		_uid = DataUtil.generateID() + +_name.hashCode();
 	}
 	
 	/**
@@ -72,12 +72,11 @@ public class Template implements ITemplate {
 	/* Private methods */
 	
 	/**
-	 * Adds steps individually (instead of setting _steps = steps)
-	 * because addStep() checks that names are unique.
+	 * Adds steps individually (instead of setting _steps = steps) because addStep() checks that names are unique.
 	 * 
 	 * @param steps, list of steps to add
 	 */
-	private void addAllSteps(List<ITemplateStep> steps) {
+	private void addAllSteps(final List<ITemplateStep> steps) {
 		// Add steps individually to ensure the names are unique
 		for (final ITemplateStep s : steps) {
 			addStep(s);
@@ -160,19 +159,17 @@ public class Template implements ITemplate {
 	}
 	
 	/**
-	 * Clears all TemplateSteps from _steps list, 
-	 * and returns old _steps. Call this and then
-	 * addAllSteps to simulate a replaceSteps method.
+	 * Clears all TemplateSteps from _steps list, and returns old _steps. Call this and then addAllSteps to simulate a
+	 * replaceSteps method.
 	 * 
 	 * @return old List of TemplateSteps
 	 */
 	// TODO: Do I need to declare clearSteps to ITemplate interface?
 	public List<ITemplateStep> clearSteps() {
-		List<ITemplateStep> oldSteps = _steps;
+		final List<ITemplateStep> oldSteps = _steps;
 		_steps.clear();
 		return oldSteps;
 	}
-	
 	
 	/* ITemplate accessors (Commented in interface) */
 	
@@ -191,7 +188,7 @@ public class Template implements ITemplate {
 		return _preferredConsecutiveHours;
 	}
 	
-	/* Holy Trinity (+ fullString())*/
+	/* Holy Trinity (+ fullString()) */
 	
 	@Override
 	public String toString() {

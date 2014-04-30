@@ -6,7 +6,7 @@ public class Task implements ITask {
 	
 	/* global vars */
 	
-	private final String	_uniqueId;
+	private String			_uniqueId;
 	// AssignmentName:StepName format
 	private final String	_name;
 	private double			_percentOfTotal;
@@ -26,7 +26,7 @@ public class Task implements ITask {
 		/* _assignmentId is not set until Task is added to assignment */
 		_assignmentId = null;
 		// Set UID of this Task
-		_uniqueId = DataUtil.generateID();
+		_uniqueId = DataUtil.generateID() + _name.hashCode();
 		/* Sets _percentComplete, _timeOfDay, _suggestedBlockLength */
 		setInitialValues();
 	}
@@ -38,7 +38,7 @@ public class Task implements ITask {
 		_name = name;
 		handlePercent(percentTotal);
 		_assignmentId = assignmentUID;
-		_uniqueId = DataUtil.generateID();
+		_uniqueId = assignmentUID + _name.hashCode();
 		setInitialValues();
 	}
 	
@@ -88,6 +88,9 @@ public class Task implements ITask {
 	@Override
 	public void setAssignmentId(final String id) {
 		_assignmentId = id;
+		
+		// Also updates the block id
+		_uniqueId = id + _name.hashCode();
 	}
 	
 	@Override
@@ -148,14 +151,28 @@ public class Task implements ITask {
 	}
 	
 	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof Task)) {
+			return false;
+		}
+		final Task x = (Task) obj;
+		return _assignmentId.equals(x._assignmentId) && _name.equals(x._name) && _percentComplete == x._percentComplete
+			&& _percentOfTotal == x._percentOfTotal && _suggestedBlockLength == x._suggestedBlockLength
+			&& _timeOfDay.equals(x._timeOfDay) && _uniqueId.equals(x._uniqueId);
+	}
+	
+	@Override
 	public int hashCode() {
 		return Objects.hash(_name, _timeOfDay, _suggestedBlockLength, _assignmentId);
 	}
-
+	
 	@Override
 	public String fullString() {
 		return String.format("[Task: id: %s; name: %s; percentOfTotal: %s; assignmentId: %s; "
-				+ "percentComplete: %s; timeOfDay: %s; suggestedBlockLength: %s]", _uniqueId, _name, 
-				_percentOfTotal, _assignmentId, _percentComplete, _timeOfDay.name(), _suggestedBlockLength);
+			+ "percentComplete: %s; timeOfDay: %s; suggestedBlockLength: %s]", _uniqueId, _name, _percentOfTotal,
+				_assignmentId, _percentComplete, _timeOfDay.name(), _suggestedBlockLength);
 	}
 }

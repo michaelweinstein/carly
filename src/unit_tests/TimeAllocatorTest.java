@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
+import backend.time.NotEnoughTimeException;
 import backend.time.TimeAllocator;
 import data.Assignment;
 import data.ITimeBlockable;
@@ -41,8 +42,13 @@ public class TimeAllocatorTest {
 		Assignment asgn2 = new Assignment("Asgn2", 
 				new Date(due.getTime() + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS)), t2, 21);
 		TimeAllocator talloc = new TimeAllocator(asgn);
-		talloc.insertAsgn(start, due);
 		
+		try {
+			talloc.insertAsgn(start, due);
+		}
+		catch(NotEnoughTimeException net) {
+			System.err.println("ERROR: " + net.getMessage());
+		}
 		List<ITimeBlockable> results = talloc.getEntireBlockSet();
 	}
 	

@@ -30,7 +30,7 @@ public class TimeCompactorTest {
 		Date end = new Date(start.getTime() + 36000000);
 		AssignmentBlock b1 = new AssignmentBlock(start, new Date(start.getTime() + 1080000), null);
 		UnavailableBlock b2 = new UnavailableBlock(new Date(start.getTime() + 1100000), 
-				new Date(start.getTime() + 1800000), null, false);
+				new Date(start.getTime() + 1800000), null);
 		AssignmentBlock b3 = new AssignmentBlock(new Date(start.getTime() + 20000000),
 				new Date(start.getTime() + 25000000), null);
 		AssignmentBlock b4 = new AssignmentBlock(new Date(start.getTime() + 28000000),
@@ -59,7 +59,7 @@ public class TimeCompactorTest {
 		Date end = new Date(start.getTime() + 36000000);
 		AssignmentBlock b1 = new AssignmentBlock(start, new Date(start.getTime() + 1080000), null);
 		UnavailableBlock b2 = new UnavailableBlock(new Date(start.getTime() + 1100000), 
-				new Date(start.getTime() + 1800000), null, false);
+				new Date(start.getTime() + 1800000), null);
 		AssignmentBlock b3 = new AssignmentBlock(new Date(start.getTime() + 20000000),
 				new Date(start.getTime() + 25000000), null);
 		AssignmentBlock b4 = new AssignmentBlock(new Date(start.getTime() + 28000000),
@@ -91,9 +91,9 @@ public class TimeCompactorTest {
 		List<ITimeBlockable> allBlocks = new ArrayList<ITimeBlockable>();
 		
 		//Add the blocks into the list
-		UnavailableBlock ub1 = new UnavailableBlock((Date) start.clone(), new Date(start.getTime() + 14400000), null, false);
+		UnavailableBlock ub1 = new UnavailableBlock((Date) start.clone(), new Date(start.getTime() + 14400000), null);
 		UnavailableBlock ub2 = new UnavailableBlock(new Date(start.getTime() + 86400000),
-				new Date(start.getTime() + 104400000), null, false);
+				new Date(start.getTime() + 104400000), null);
 		allBlocks.add(ub1);
 		allBlocks.add(new AssignmentBlock(new Date(start.getTime() + 14400000), 
 				new Date(start.getTime() + 86300000), null));

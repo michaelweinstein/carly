@@ -1,15 +1,24 @@
 package frontend.view.assignments;
 
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingUtilities;
 
 import data.IAssignment;
 import data.ITask;
@@ -20,19 +29,28 @@ import frontend.Utils;
  * 
  * @author dgattey
  */
-public class AssignmentItemView extends JPanel {
+public class AssignmentItemView extends JPanel implements MouseListener {
 	
-	private static final long	serialVersionUID	= -4869025641418957982L;
-	private final IAssignment	assignment;
+	private static final long		serialVersionUID	= 1L;
+	private final IAssignment		_assignment;
+	private final AssignmentsView	_parent;
+	private JPanel					_taskPanel;
+	private StepViewTable			_taskTable;
+	private JButton					_delete;
+	private JButton					_edit;
 	
 	/**
 	 * Constructs a view from an assignment object for use later
 	 * 
 	 * @param a an Assignment
+	 * @param parent the containing AssignmentsView
 	 */
-	public AssignmentItemView(final IAssignment a) {
-		assignment = a;
+	public AssignmentItemView(final IAssignment a, final AssignmentsView parent) {
+		_assignment = a;
+		_parent = parent;
+		addMouseListener(this);
 		createView();
+		setFocusable(false);
 	}
 	
 	/**
@@ -40,52 +58,155 @@ public class AssignmentItemView extends JPanel {
 	 */
 	private void createView() {
 		Utils.themeComponent(this);
-		Utils.padComponent(this, 0, 0, 20, 0);
-		Utils.addBorderBottom(this);
 		setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 		setAlignmentX(LEFT_ALIGNMENT);
+		setAlignmentY(LEFT_ALIGNMENT);
 		
 		// Title
-		final String title = assignment.getName();
+		final String title = _assignment.getName();
 		final JLabel titleLabel = new JLabel(title);
+		titleLabel.setToolTipText(title);
 		titleLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 16));
 		Utils.themeComponent(titleLabel);
-		Utils.padComponent(titleLabel, 10, 0);
 		add(titleLabel);
+		add(Box.createVerticalStrut(5));
 		
 		// Date
-		final Date due = assignment.getDueDate();
+		final Date due = _assignment.getDueDate();
 		final DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
-		final JLabel dueLabel = new JLabel("Due Date: " + formatter.format(due));
-		dueLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.ITALIC, 11));
-		Utils.themeComponent(dueLabel);
-		Utils.padComponent(dueLabel, 10, 0);
+		final JLabel dueLabel = new JLabel("Due: " + formatter.format(due));
+		dueLabel.setForeground(Utils.COLOR_FOREGROUND.darker());
+		dueLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.ITALIC, 12));
 		add(dueLabel);
+		add(Box.createVerticalStrut(10));
 		
-		add(Box.createVerticalStrut(20));
+		// Edit button
+		_edit = new JButton("Edit Assignment");
+		_edit.setVisible(false);
+		_edit.setAlignmentX(LEFT_ALIGNMENT);
+		_edit.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						_parent.getEditor().setVisible(false);
+						_parent.getEditor().setAssignment(_assignment);
+						_parent.getEditor().setVisible(true);
+					}
+				});
+			}
+		});
+		add(_edit);
+		
+		// Delete button
+		_delete = new JButton("Delete Assignment");
+		_delete.setVisible(false);
+		_delete.setAlignmentX(LEFT_ALIGNMENT);
+		_delete.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						_parent.getEditor().setVisible(false);
+						_parent.showDeleteAssignmentDialog(AssignmentItemView.this);
+					};
+				});
+			}
+		});
+		add(_delete);
 		
 		// Tasks
-		final List<ITask> tasks = assignment.getTasks();
+		final List<ITask> tasks = _assignment.getTasks();
 		final Object dataValues[][] = new Object[tasks.size()][2];
 		for (int i = 0; i < tasks.size(); i++) {
-			dataValues[i][0] = tasks.get(i).getName().split(":")[1];
-			dataValues[i][1] = tasks.get(i).getPercentOfTotal() * 100 + "%";
+			dataValues[i][0] = tasks.get(i).getName();
+			dataValues[i][1] = Math.round(tasks.get(i).getPercentOfTotal() * 100) + "%";
 			// TODO: More with percent of total, better stuff in general
 		}
 		final String colNames[] = { "Step Name", "% of Total" };
 		final StepModel mod = new StepModel(dataValues, colNames);
 		mod.setEditable(false);
-		final StepViewTable taskTable = new StepViewTable(mod);
-		Utils.themeComponent(taskTable);
-		final JPanel taskPanel = new JPanel();
-		Utils.themeComponent(taskPanel);
-		Utils.padComponent(taskPanel, 0, 0, 20, 0);
-		taskPanel.add(taskTable);
-		add(taskPanel);
+		_taskTable = new StepViewTable(mod, _assignment);
+		_taskTable.setFocusable(false);
+		_taskPanel = new JPanel();
+		_taskPanel.add(_taskTable);
+		_taskTable.addMouseListener(this);
+		Utils.themeComponent(_taskPanel);
+		Utils.themeComponent(_taskTable);
+		add(_taskPanel);
+		
+		for (final Component comp : getComponents()) {
+			comp.addMouseListener(this);
+		}
+		
+		// Before now
+		if (due.before(new Date())) {
+			dueLabel.setText("Past " + dueLabel.getText());
+			dueLabel.setForeground(Utils.COLOR_ACCENT);
+			titleLabel.setForeground(Utils.COLOR_LIGHT_BG);
+			_taskTable.setForeground(Utils.COLOR_LIGHT_BG);
+			_taskTable.setSelectionForeground(Utils.COLOR_LIGHT_BG);
+			_taskTable.setGridColor(Utils.COLOR_LIGHT_BG);
+		}
+	}
+	
+	@Override
+	protected void paintComponent(final Graphics g) {
+		final Color c = (_parent.getSelected() != null && _parent.getSelected().equals(this)) ? new Color(50, 50, 50)
+				: Utils.COLOR_BACKGROUND;
+		setBackground(c);
+		_taskPanel.setBackground(c);
+		_taskTable.setBackground(c);
+		_taskTable.setSelectionBackground(c);
+		super.paintComponent(g);
 	}
 	
 	@Override
 	public Dimension getMaximumSize() {
-		return new Dimension(245, Integer.MAX_VALUE - 1);
+		return new Dimension(200, Integer.MAX_VALUE - 1);
+	}
+	
+	@Override
+	public void mouseClicked(final MouseEvent e) {
+		if (_parent.getSelected() != null && _parent.getSelected()._delete != null) {
+			_parent.getSelected()._delete.setVisible(false);
+			_parent.getSelected()._edit.setVisible(false);
+		}
+		if (_parent.getSelected() != this) {
+			_delete.setVisible(true);
+			_edit.setVisible(true);
+			_parent.setSelected(this);
+		} else {
+			_delete.setVisible(false);
+			_edit.setVisible(false);
+			_parent.setSelected(null);
+		}
+	}
+	
+	@Override
+	public void mousePressed(final MouseEvent e) {}
+	
+	@Override
+	public void mouseReleased(final MouseEvent e) {}
+	
+	@Override
+	public void mouseEntered(final MouseEvent e) {}
+	
+	@Override
+	public void mouseExited(final MouseEvent e) {}
+	
+	/**
+	 * Gets the associated assignment
+	 * 
+	 * @return the IAssignment object
+	 */
+	public IAssignment getAssignment() {
+		return _assignment;
 	}
 }
