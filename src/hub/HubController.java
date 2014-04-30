@@ -4,6 +4,7 @@ import java.util.Date;
 
 import backend.database.StorageService;
 import backend.database.StorageServiceException;
+import backend.time.NotEnoughTimeException;
 import backend.time.TimeAllocator;
 import backend.time.TimeModifier;
 import data.Assignment;
@@ -48,7 +49,12 @@ public class HubController {
 		
 		final Date start = new Date();
 		final TimeAllocator talloc = new TimeAllocator(a);
-		talloc.insertAsgn(start, a.getDueDate());
+		try {
+			talloc.insertAsgn(start, a.getDueDate());
+		}
+		catch(NotEnoughTimeException net) {
+			System.err.println("ERROR: " + net.getMessage());
+		}
 		
 		StorageService.mergeAllTimeBlocks(talloc.getEntireBlockSet());
 	}

@@ -56,51 +56,34 @@ public class MainTimeAllocator {
 		}
 		
 		TimeAllocator talloc = new TimeAllocator(asgn);
-		talloc.insertAsgn(start, due);
+		try {
+			talloc.insertAsgn(start, due);
+		}
+		catch(NotEnoughTimeException net) {
+			System.err.println("INSERTION FAILED");
+			return;
+		}
 		
 		//Push to db
 		List<ITimeBlockable> results = talloc.getEntireBlockSet();
 		List<ITimeBlockable> errs = StorageService.mergeAllTimeBlocks(results);
 		if(errs.size() != 0)
 			System.err.println(":(");
-//		List<ITimeBlockable> results = talloc.getEntireBlockSet();
-//		System.out.println("First talloc block set call");
-//		for(int i = 0; i < results.size(); ++i) {
-//			ITimeBlockable block = results.get(i);
-//			System.out.println(block.toString());
-//			
-//			try {
-//				if(block.isMovable()) //Temp fix -- use MERGE functions or ADDALL functions later
-//					StorageService.addTimeBlock(block);
-//			} catch (StorageServiceException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//		System.out.println("results size 1: " + results.size());
+		
 		
 		talloc = new TimeAllocator(asgn2);
-		talloc.insertAsgn(start, due2);
-		
+		try {
+			talloc.insertAsgn(start, due2);
+		}
+		catch(NotEnoughTimeException net) {
+			System.err.println("INSERTION FAILED");
+			return;
+		}		
 		//Push to db
 		results = talloc.getEntireBlockSet();
 		errs = StorageService.mergeAllTimeBlocks(results);
 		if(errs.size() != 0)
 			System.err.println(":( 2");
-//		results = talloc.getEntireBlockSet();
-//		System.out.println("Second talloc block set call");
-//		for(int i = 0; i < results.size(); ++i) {
-//			ITimeBlockable block = results.get(i);			
-//			System.out.println(block.toString());
-//			
-//			try {
-//				if(block.isMovable()) //Temp fix -- use MERGE functions or ADDALL functions later
-//					StorageService.addTimeBlock(block);			
-//				} catch (StorageServiceException e) {
-//				e.printStackTrace();
-//			}
-//		}
-//		System.out.println("results size 2: " + results.size());
-		
 		
 		
 		//Try to insert a 3rd assignment
@@ -128,7 +111,13 @@ public class MainTimeAllocator {
 		
 		
 		talloc = new TimeAllocator(asgn3);
-		talloc.insertAsgn(start3, due3);
+		try {
+			talloc.insertAsgn(start, due3);
+		}
+		catch(NotEnoughTimeException net) {
+			System.err.println("INSERTION FAILED");
+			return;
+		}
 		
 		//Push to db
 		results = talloc.getEntireBlockSet();
@@ -138,8 +127,13 @@ public class MainTimeAllocator {
 		
 		
 		talloc = new TimeAllocator(asgn4);
-		talloc.insertAsgn(start4, due4);
-		
+		try {
+			talloc.insertAsgn(start, due4);
+		}
+		catch(NotEnoughTimeException net) {
+			System.err.println("INSERTION FAILED");
+			return;
+		}		
 		//Push to db
 		results = talloc.getEntireBlockSet();
 		errs = StorageService.mergeAllTimeBlocks(results);

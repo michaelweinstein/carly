@@ -31,7 +31,7 @@ public class TimeAllocator {
 		m_localChangesToBlocks = new ArrayList<ITimeBlockable>();
 	}
 	
-	public void insertAsgn(final Date start, final Date end) {
+	public void insertAsgn(final Date start, final Date end) throws NotEnoughTimeException{
 		double numHoursPerBlock;
 		int numBlocksLeft; // the number of blocks left to place
 		
@@ -49,7 +49,7 @@ public class TimeAllocator {
 		// If there are not enough free hours in the range specified by the new Assignment,
 		// exit this function
 		if (!TimeUtilities.existsPossibleFit(allBlocks, m_asgn, start)) {
-			return;
+			throw new NotEnoughTimeException("Not enough free time available by the specified due date");
 		}
 		
 		// Get the number of subtasks for this assignment, determine how many chunks to break into
@@ -79,8 +79,11 @@ public class TimeAllocator {
 			
 			success = tryUniformInsertion(allBlocks, start, end, lastTimePlaced, step, numBlocksLeft, numHoursPerBlock);
 			
-			// TODO: Attempt alternate insertion policy here
-			if (!success) {}
+			//For the purposes of extensibility, we could try another insertion policy here.
+			//Currently, we choose to throw an exception instead to indicate failure.
+			if (!success) {
+				throw new NotEnoughTimeException("Uniform insertion policy failed");
+			}
 		}
 		
 		// TODO: Then, decompact all AssignmentBlocks so that a user may have a break
