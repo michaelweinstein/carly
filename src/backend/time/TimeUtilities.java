@@ -62,7 +62,6 @@ public class TimeUtilities {
 		
 		// Compare to all surrounding pairs in the middle
 		for (ind = 1; ind < size; ++ind) {
-			// TODO: I just changed the second "compareTo" call to be "<=" instead of "<"... repercussions?
 			if (curr.compareTo(timeList.get(ind - 1).getStart()) > 0
 				&& curr.compareTo(timeList.get(ind).getStart()) <= 0) {
 				return ind;
@@ -86,7 +85,8 @@ public class TimeUtilities {
 		
 		// Add time between start and first block
 		if (allBlocks.size() > 0) {
-			amtFreeTime += allBlocks.get(0).getStart().getTime() - start.getTime();
+			//Use the max function to avoid adding a negative amount of time
+			amtFreeTime += Math.max(allBlocks.get(0).getStart().getTime() - start.getTime(), 0);
 		}
 		
 		// Add time between blocks
@@ -98,7 +98,9 @@ public class TimeUtilities {
 		
 		// Add time between last block and end
 		if (allBlocks.size() > 0) {
-			amtFreeTime += (asgn.getDueDate().getTime() - allBlocks.get(allBlocks.size() - 1).getEnd().getTime());
+			//Use the max function to avoid adding a negative amount of time
+			amtFreeTime += Math.max(0, asgn.getDueDate().getTime() - 
+					allBlocks.get(allBlocks.size() - 1).getEnd().getTime());
 		}
 		
 		final double numFreeHours = TimeUnit.HOURS.convert(amtFreeTime, TimeUnit.MILLISECONDS);
@@ -149,10 +151,7 @@ public class TimeUtilities {
 			} else if (comp > 0) {
 				zippedList.add(asgn[asgnInd]);
 				++asgnInd;
-			} else {
-				; // TODO: ???? there should never be two blocks that are equal
 			}
-			
 		}
 		
 		return zippedList;

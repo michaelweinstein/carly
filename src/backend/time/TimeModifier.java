@@ -30,8 +30,8 @@ public class TimeModifier {
 		// get the entire block set from the db...
 		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
 		// get the entire block set from the db...
-		final Date tempStart = new Date(newStart.getTime() - (86400000 * 4));
-		final Date tempEnd = new Date(newEnd.getTime() + (86400000 * 4));
+		final Date tempStart = new Date(0);
+		final Date tempEnd = new Date(209769820398203L);
 		final List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);
 		final List<UnavailableBlock> unavBlocks = StorageService.getAllUnavailableBlocksWithinRange(tempStart, tempEnd);
 		final List<ITimeBlockable> allBlocks = TimeUtilities.zipTimeBlockLists(unavBlocks, asgnBlocks);
@@ -381,7 +381,6 @@ public class TimeModifier {
 				//--PROBLEM: Tasks have no way of knowing what their "TemplateStep" number is
 				//if(b1.getTask().getAssignmentID().equals(task.getAssignmentID()) && task.get(???))
 				
-				
 				//Determine if there is space for a block in between b1 and b2
 				if(b2.getStart().getTime() - b1.getEnd().getTime() >= blockLengthInMillis) {
 					//Insert a block, starting at b1's end
@@ -460,7 +459,6 @@ public class TimeModifier {
 			
 			final long avgTimeToRemove = totalMillisToRemove / numFutureBlocks;
 			// If there is still some time left to remove, remove a bit of time from each block
-			// TODO: Alternate policy = remove all of it from one block
 			if (totalMillisToRemove > 0) {
 				for (int i = allBlocks.size() - 1; i >= startInd; ++i) {
 					final ITimeBlockable block = allBlocks.get(i);

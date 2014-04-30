@@ -146,7 +146,7 @@ public class TimeCompactor {
 
 			
 			Assignment blockAsgn = StorageService.getAssignment(block.getTask().getAssignmentID());	
-			//Don't let a block be pushed back it's original time
+			//Don't let a block be pushed back its original time
 			if(newStart <= block.getStart().getTime()) {
 				underConstruction.set(i, block);
 				
@@ -154,8 +154,7 @@ public class TimeCompactor {
 				timeToStartFrom = (Date) block.getStart().clone();
 				continue;
 			}
-			
-			//TODO: This is a pretty unlikely case, but it does need to be addressed...
+			//Don't let a block be pushed past its due date
 			if(newEnd > blockAsgn.getDueDate().getTime()) {
 				underConstruction.set(i, block);
 				
@@ -179,14 +178,6 @@ public class TimeCompactor {
 
 			//Reset the time for where to start on the next iteration
 			timeToStartFrom = (Date) block.getStart().clone();
-
-			//DON'T NEED THIS SECTION ANYMORE since I use extra free time rather than less now
-//			if(recommendedStart != newStart) {
-//				//Get the previous item in the list, and use this block's start as the new "timeToStartFrom"
-//				int insertedLocn = TimeUtilities.indexOfFitLocn(allBlocks, new Date(newStart - 1));
-//				ITimeBlockable prevBlock = allBlocks.get(insertedLocn - 1);
-//				timeToStartFrom.setTime(prevBlock.getStart().getTime());
-//			}
 
 			//Reset avgFreeTimeMillis in case not as much free time was used while de-compacting
 			//previous blocks (and vice versa)
@@ -225,7 +216,7 @@ public class TimeCompactor {
 		
 		for(int i = 1; i < allBlocks.size() - 1; ++i) {
 			
-			//Check for (a) 1-2 (b) 2-1 (c) 3 -- look at 1-3-1 if possible  
+			//Check for (a) 1-2 consecutive or (b) 2-1 consecutive
 			
 			ITimeBlockable prev = allBlocks.get(i - 1);
 			ITimeBlockable curr = allBlocks.get(i);
@@ -282,22 +273,6 @@ public class TimeCompactor {
 				//Increment i so that this doesn't get repeated
 				++i;
 			}
-			if (prevID.equals(currID) && currID.equals(nextID)) {
-				//Try to switch with a prev if possible
-				if(i != 1) {
-					ITimeBlockable pp = allBlocks.get(i - 2);
-					//TODO
-				}
-				
-				//Try to switch with a next if possible
-				if(i != allBlocks.size() - 2) {
-					ITimeBlockable nn = allBlocks.get(i + 2);
-					//TODO
-				}
-				
-				i += 2;
-			}
-			
 		}
 	}
 	
