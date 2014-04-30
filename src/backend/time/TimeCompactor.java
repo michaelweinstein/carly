@@ -8,6 +8,7 @@ import java.util.concurrent.TimeUnit;
 import backend.database.StorageService;
 import data.Assignment;
 import data.ITimeBlockable;
+import data.UnavailableBlock;
 
 
 public class TimeCompactor {
@@ -64,29 +65,43 @@ public class TimeCompactor {
 	//to allow (1) breaks between work, (2) a variety of assignments in succession,
 	//(3) work during the preferred time of day
 	public static void decompact(List<ITimeBlockable> allBlocks, Date start, Date end) {
-		
+
 		//Iterate over blocks.  If a block is movable, look at its preferred time of day.
 		//See if there is a block already there.  If not, try to move it there.  If so,
 		//try to switch (in the case of either Pareto improvement or indifference on one end.)
-		
+
 		long timeUnavailableMillis = 0;
 		long freeTimeBankMillis = 0;
 		long avgFreeTimeMillis = 0;
+		
+		//This ArrayList contains the items to-be-de-compacted from the original list
+		//(i.e. all items in the range [start, end])
 		List<ITimeBlockable> asgnBlocks = new ArrayList<ITimeBlockable>();
+		
+		List<UnavailableBlock> unavailables = StorageService.getAllUnavailableBlocksWithinRange(start, end);
+		List<ITimeBlockable> unavailList = new ArrayList<ITimeBlockable>(unavailables.size());
+		//TODO: This is a temp solution because of type problems
+		for(int i = 0; i < unavailables.size(); ++i)
+			unavailList.add(unavailables.get(i));
+		
 		Date timeToStartFrom = new Date(end.getTime() - MILLIS_IN_DAY);
 		//TODO: ^^ this timeToStartFrom can be tweaked
+
+
+		//The range of indices with which we are concerned in the "allBlocks" list
+		int startInd = TimeUtilities.indexOfFitLocn(allBlocks, start);
+		int endInd = TimeUtilities.indexOfFitLocn(allBlocks, end);
 		
-		//TODO: THIS ALGORITHM CURRENTLY FAILS FOR CASES WHERE THERE IS NO FREE TIME AVAILABLE
-		//		AT THE END, BUT RATHER, WHERE IT IS ALL AVAILABLE AT THE BEGINNING.
-		//		--Poss solution: get measures of density of blocks over certain ranges of the list
-		//		then determine whether it is better to start iterating from the end of the list,
-		//		or from the beginning.
+		//This ArrayList will contain the items in sorted order as they are de-compacted.
+		List<ITimeBlockable> underConstruction = new ArrayList<ITimeBlockable>(endInd - startInd);
+		for(int i = 0; i < endInd - startInd; ++i)
+			underConstruction.add(null);
 		
 		//1. Iterate over the allBlocks set and count the number of hours unavailable in
 		//	 the [start, end] range.
-		for(int i = TimeUtilities.indexOfFitLocn(allBlocks, start); i < allBlocks.size(); ++i) {
+		for(int i = startInd; i < endInd; ++i) {
 			ITimeBlockable block = allBlocks.get(i);
-			
+
 			if(!block.isMovable()) {
 				//Only count unavailable hours in the time range in-question
 				if(block.getEnd().getTime() > end.getTime()) {
@@ -102,18 +117,17 @@ public class TimeCompactor {
 				asgnBlocks.add(block);
 			}
 		}
+
 		
-		//TODO: I HAVE BEEN TWEAKING THE COMMENTS AND STUFF HERE TO TEST DIFFERENT
-		//		LEVELS OF EFFECTIVENESS RE: THE DECOMPACTION ALGORITHM
 		//2. Calculate the amount of available free time in the [start, end] range, and
 		//	 the average amount of space that can be placed between blocks.
 		freeTimeBankMillis = end.getTime() - start.getTime() - timeUnavailableMillis;
 		for(ITimeBlockable itb : asgnBlocks) {
 			freeTimeBankMillis -= itb.getEnd().getTime() - itb.getStart().getTime();
 		}
-		
+
 		avgFreeTimeMillis = freeTimeBankMillis / allBlocks.size();
-		
+
 		//3. Iterate over the block list in reverse order, trying to place as much free time between
 		//	 AssignmentBlocks as possible		
 		for(int i = asgnBlocks.size() - 1; i >= 0; --i) {
@@ -124,68 +138,80 @@ public class TimeCompactor {
 			//EDGE CASE: What if a block cannot be moved?
 			ITimeBlockable block = asgnBlocks.get(i);
 			long delta = block.getLength();
-			long recommendedStart = timeToStartFrom.getTime() - avgFreeTimeMillis;
-			long newStart = getBlockInsertLocation(block, allBlocks, recommendedStart);
+			
+			//Get the new start/end time for this block
+			long recommendedStart = timeToStartFrom.getTime() - avgFreeTimeMillis - delta;
+			long newStart = getBlockInsertLocation(block, unavailList, recommendedStart);
 			long newEnd = newStart + delta;
 
-			//Be careful to consider all blocks and their corresponding Assignment start/end times.
-			Assignment blockAsgn = StorageService.getAssignment(block.getTask().getAssignmentID());			
-			if(newStart < start.getTime()) {
-				System.err.println("Bad START-insertion attempt!");
+			
+			Assignment blockAsgn = StorageService.getAssignment(block.getTask().getAssignmentID());	
+			//Don't let a block be pushed back it's original time
+			if(newStart <= block.getStart().getTime()) {
+				underConstruction.set(i, block);
+				
+				//Reset the time for where to start on the next iteration
 				timeToStartFrom = (Date) block.getStart().clone();
-				//break;
 				continue;
 			}
-			//if(newEnd > end.getTime()) {
+			
+			//TODO: This is a pretty unlikely case, but it does need to be addressed...
 			if(newEnd > blockAsgn.getDueDate().getTime()) {
+				underConstruction.set(i, block);
+				
 				System.err.println("Bad END-insertion attempt!");
 				timeToStartFrom = (Date) block.getStart().clone();
 				//break;
 				continue;
 			}
 
-			//Place the block in its new location and decrement from the time bank
+			//Place the block in its new location
 			block.getStart().setTime(newStart);
 			block.getEnd().setTime(newEnd);
 
-			//Reset the location of the block in the list
-			allBlocks.remove(block);
-			TimeUtilities.insertIntoSortedList(allBlocks, block);
+			//Append the block to the front of the "underConstruction" list
+			underConstruction.set(i, block);
 			
+			//Decrement the amount of time placed from the time bank
+			//TODO: This will not work if there is an unavailable block in between the last time placed
+			//		and the newly-placed block
+			freeTimeBankMillis -= (timeToStartFrom.getTime() - newEnd);
 
-			freeTimeBankMillis -= (newStart - timeToStartFrom.getTime());
-			//freeTimeBankMillis -= (newEnd - newStart);
-			
 			//Reset the time for where to start on the next iteration
 			timeToStartFrom = (Date) block.getStart().clone();
-			
-			if(recommendedStart != newStart) {
-				//Get the previous item in the list, and use this block's start as the new "timeToStartFrom"
-				int insertedLocn = TimeUtilities.indexOfFitLocn(allBlocks, new Date(newStart - 1));
-				ITimeBlockable prevBlock = allBlocks.get(insertedLocn - 1);
-				timeToStartFrom.setTime(prevBlock.getStart().getTime());
-				
-				//THIS is the old temp solution -- back up timeToStartFrom by fixed amt
-				//timeToStartFrom.setTime(timeToStartFrom.getTime() - delta);
-			}
-			
+
+			//DON'T NEED THIS SECTION ANYMORE since I use extra free time rather than less now
+//			if(recommendedStart != newStart) {
+//				//Get the previous item in the list, and use this block's start as the new "timeToStartFrom"
+//				int insertedLocn = TimeUtilities.indexOfFitLocn(allBlocks, new Date(newStart - 1));
+//				ITimeBlockable prevBlock = allBlocks.get(insertedLocn - 1);
+//				timeToStartFrom.setTime(prevBlock.getStart().getTime());
+//			}
+
 			//Reset avgFreeTimeMillis in case not as much free time was used while de-compacting
 			//previous blocks (and vice versa)
 			if(i != 0)
 				avgFreeTimeMillis = freeTimeBankMillis / i;
-			
+
 			//TODO: WILL THIS CASE OCCUR?
 			//5. Track the amount of free time in the free bank - if the bank is too low on time, restart
 			//	 the iteration from the beginning and remove a small amount of free time from between 
 			//	 all succeeding elements of blocks in order to ensure that there is enough free time
 			//	 to place the originally-requested block.
 		}
+
+		
+		//Insert the underConstruction blocks in sorted order into the "allBlocks" list
+		for(int i = startInd, constrInd = 0; i < endInd; ++i, ++constrInd) {
+			allBlocks.set(i, underConstruction.get(constrInd));
+		}
 		
 		//Try to switch the order of consecutive blocks that are of the same type
 		trySwitchBlockOrder(allBlocks);
-		
+
 		//Try to move assignments to their preferred time-of-day if possible
 		//optimizePreferredTime(allBlocks);
+
 	}
 	
 	
@@ -286,7 +312,7 @@ public class TimeCompactor {
 	}
 	
 	
-	private static long getBlockInsertLocation(ITimeBlockable block, List<ITimeBlockable> allBlocks, 
+	private static long getBlockInsertLocation(ITimeBlockable block, List<ITimeBlockable> unavailBlocks, 
 			long recommendedStart) {
 		ITimeBlockable pred = null;
 		ITimeBlockable succ = null;
@@ -294,24 +320,24 @@ public class TimeCompactor {
 		long newStart = recommendedStart;
 		long delta = block.getLength();
 		long newEnd = newStart + delta;
-		
 
+		//Make sure that the block does not overlap any unavailable blocks
 		while(true) {
-			int indFit = TimeUtilities.indexOfFitLocn(allBlocks, new Date(newStart));
-			pred = (indFit == 0 ? null : allBlocks.get(indFit - 1));
-			succ = (indFit >= allBlocks.size() - 1 ? null : allBlocks.get(indFit));
+			int indFit = TimeUtilities.indexOfFitLocn(unavailBlocks, new Date(newStart));
+			pred = (indFit == 0 ? null : unavailBlocks.get(indFit - 1));
+			succ = (indFit >= unavailBlocks.size() - 1 ? null : unavailBlocks.get(indFit));
 			
 			//Ensure no overlap with successor
 			if(succ != null && succ.getStart().getTime() < newEnd) {
-				newStart = succ.getEnd().getTime();
-				newEnd = newStart + delta;
+				newEnd = succ.getStart().getTime();
+				newStart = newEnd - delta;
 				continue;
 			}
 		
 			//Ensure no overlap with predecessor
 			if(pred != null && pred.getEnd().getTime() > newStart) {
-				newStart = pred.getEnd().getTime();
-				newEnd = newStart + delta;
+				newEnd = pred.getStart().getTime();
+				newStart = newEnd - delta;
 				continue;
 			}
 			
@@ -321,6 +347,4 @@ public class TimeCompactor {
 		
 		return newStart;
 	}
-	
-	
 }
