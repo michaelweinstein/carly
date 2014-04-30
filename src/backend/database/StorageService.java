@@ -84,7 +84,8 @@ public class StorageService {
 	}
 	
 	/*
-	 * ================================================================ CRUD and dynamic queries for Assignments & Tasks
+	 * ================================================================ 
+	 * CRUD and dynamic queries for Assignments & Tasks
 	 * ================================================================
 	 */
 	
@@ -133,6 +134,15 @@ public class StorageService {
 	}
 	
 	/**
+	 * Retrieves all Assignments
+	 * 
+	 * @return List of all Assignments stored in the db
+	 */
+	public static List<IAssignment> getAllAssignments() {
+		return AssignmentTaskStorage.getAllAssignments(_templates, _pool); 
+	}
+	
+	/**
 	 * Retrieves all Assignments whose dueDate falls into the range specified, inclusive of the bounds
 	 * 
 	 * @param date1 Lower bound of the date range
@@ -156,7 +166,8 @@ public class StorageService {
 	}
 	
 	/*
-	 * ================================================================ CRUD and dynamic queries for TimeBlocks
+	 * ================================================================ 
+	 * CRUD and dynamic queries for TimeBlocks
 	 * ================================================================
 	 */
 	
@@ -246,7 +257,8 @@ public class StorageService {
 	}
 	
 	/*
-	 * ================================================================ CRUD and dynamic queries for Templates and Steps
+	 * ================================================================ 
+	 * CRUD and dynamic queries for Templates and Steps
 	 * ================================================================
 	 */
 	
@@ -302,7 +314,8 @@ public class StorageService {
 	}
 	
 	/*
-	 * ================================================================ CRUD and dynamic queries for Settings
+	 * ================================================================ 
+	 * CRUD and dynamic queries for Settings
 	 * ================================================================
 	 */
 	
@@ -346,7 +359,8 @@ public class StorageService {
 	}
 	
 	/*
-	 * ================================================================ Helper methods
+	 * ================================================================ 
+	 * Helper methods
 	 * ================================================================
 	 */
 	

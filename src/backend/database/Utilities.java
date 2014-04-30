@@ -86,6 +86,12 @@ public abstract class Utilities {
 			"SET ASGN_NAME = ?, ASGN_EXPECTED_HOURS = ?, ASGN_DATE = ?, ASGN_TEMPLATE_ID = ? " + 
 	        "WHERE ASGN_ID = ? ";
 	
+	protected static final String SELECT_ALL_ASGNS = 
+			"SELECT * FROM ASSIGNMENT " +
+			"INNER JOIN TASK " +
+			"ON TASK.ASGN_ID = ASSIGNMENT.ASGN_ID " +
+	        "ORDER BY ASSIGNMENT.ASGN_DATE "; 
+	
 	protected static final String SELECT_ASGNS_TASKS_BY_DATE = 
 			"SELECT * FROM ASSIGNMENT " +
 			"INNER JOIN TASK " +

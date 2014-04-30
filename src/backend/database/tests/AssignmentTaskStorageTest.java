@@ -77,7 +77,7 @@ public class AssignmentTaskStorageTest {
 		final Task task31 = new Task("Task1 in " + assignment3.getName(), 0.25, assignment3.getID());
 		final Task task32 = new Task("Task2 in " + assignment3.getName(), 0.25, assignment3.getID());
 		final Task task33 = new Task("Task3 in " + assignment3.getName(), 0.25, assignment3.getID());
-		final Task task34 = new Task("Task3 in " + assignment3.getName(), 0.25, assignment3.getID());
+		final Task task34 = new Task("Task4 in " + assignment3.getName(), 0.25, assignment3.getID());
 		assignment3.addTask(task31);
 		assignment3.addTask(task32);
 		assignment3.addTask(task33);
@@ -132,7 +132,7 @@ public class AssignmentTaskStorageTest {
 		final Task task31 = new Task("Task1 in " + assignment3.getName(), 0.25, assignment3.getID());
 		final Task task32 = new Task("Task2 in " + assignment3.getName(), 0.25, assignment3.getID());
 		final Task task33 = new Task("Task3 in " + assignment3.getName(), 0.25, assignment3.getID());
-		final Task task34 = new Task("Task3 in " + assignment3.getName(), 0.25, assignment3.getID());
+		final Task task34 = new Task("Task4 in " + assignment3.getName(), 0.25, assignment3.getID());
 		assignment3.addTask(task31);
 		assignment3.addTask(task32);
 		assignment3.addTask(task33);
@@ -225,6 +225,64 @@ public class AssignmentTaskStorageTest {
 	}
 	
 	@Test
+	public void getAllAssignments() {
+		final ArrayList<ITemplateStep> templateSteps = new ArrayList<>();
+		templateSteps.add(new TemplateStep("Step", 1.0, 1));
+		final Template template = new Template("Template", templateSteps);
+		
+		final Assignment assignment1 = new Assignment("Assignment 1", new Date(System.currentTimeMillis()
+			+ (86400 * 1000) * 2), template);
+		final Task task11 = new Task("Task1 in " + assignment1.getName(), 0.5, assignment1.getID());
+		final Task task12 = new Task("Task2 in " + assignment1.getName(), 0.25, assignment1.getID());
+		final Task task13 = new Task("Task3 in " + assignment1.getName(), 0.25, assignment1.getID());
+		assignment1.addTask(task11);
+		assignment1.addTask(task12);
+		assignment1.addTask(task13);
+		
+		final Assignment assignment2 = new Assignment("Assignment 2", new Date(System.currentTimeMillis()
+			+ (86400 * 1000) * 5), template);
+		final Task task21 = new Task("Task1 in " + assignment2.getName(), 0.5, assignment2.getID());
+		final Task task22 = new Task("Task2 in " + assignment2.getName(), 0.5, assignment2.getID());
+		assignment2.addTask(task21);
+		assignment2.addTask(task22);
+		
+		final Assignment assignment3 = new Assignment("Assignment 3", new Date(System.currentTimeMillis()
+			+ (86400 * 1000) * 12), template);
+		final Task task31 = new Task("Task1 in " + assignment3.getName(), 0.25, assignment3.getID());
+		final Task task32 = new Task("Task2 in " + assignment3.getName(), 0.25, assignment3.getID());
+		final Task task33 = new Task("Task3 in " + assignment3.getName(), 0.25, assignment3.getID());
+		final Task task34 = new Task("Task4 in " + assignment3.getName(), 0.25, assignment3.getID());
+		assignment3.addTask(task31);
+		assignment3.addTask(task32);
+		assignment3.addTask(task33);
+		assignment3.addTask(task34);
+		
+		try {
+			StorageService.addTemplate(template);
+			StorageService.addAssignment(assignment1);
+			StorageService.addAssignment(assignment2);
+			StorageService.addAssignment(assignment3);
+		} catch (final StorageServiceException e) {
+			fail(e.getMessage());
+		}
+		
+		final List<IAssignment> asgnList = StorageService.getAllAssignments();
+		
+		int numMatch = 0;
+		for (final IAssignment asgn : asgnList) {
+			if (asgn.fullString().equals(assignment1.fullString())) {
+				numMatch++;
+			} else if (asgn.fullString().equals(assignment2.fullString())) {
+				numMatch++;
+			} else if (asgn.fullString().equals(assignment3.fullString())) {
+				numMatch++;
+			}
+		}
+		
+		assertTrue(numMatch == 3);
+	}
+	
+	@Test
 	public void getAssignmentsWithinRange() {
 		final ArrayList<ITemplateStep> templateSteps = new ArrayList<>();
 		templateSteps.add(new TemplateStep("Step", 1.0, 1));
@@ -251,7 +309,7 @@ public class AssignmentTaskStorageTest {
 		final Task task31 = new Task("Task1 in " + assignment3.getName(), 0.25, assignment3.getID());
 		final Task task32 = new Task("Task2 in " + assignment3.getName(), 0.25, assignment3.getID());
 		final Task task33 = new Task("Task3 in " + assignment3.getName(), 0.25, assignment3.getID());
-		final Task task34 = new Task("Task3 in " + assignment3.getName(), 0.25, assignment3.getID());
+		final Task task34 = new Task("Task4 in " + assignment3.getName(), 0.25, assignment3.getID());
 		assignment3.addTask(task31);
 		assignment3.addTask(task32);
 		assignment3.addTask(task33);
@@ -313,7 +371,7 @@ public class AssignmentTaskStorageTest {
 		final Task task31 = new Task("Task1 in " + assignment3.getName(), 0.25, assignment3.getID());
 		final Task task32 = new Task("Task2 in " + assignment3.getName(), 0.25, assignment3.getID());
 		final Task task33 = new Task("Task3 in " + assignment3.getName(), 0.25, assignment3.getID());
-		final Task task34 = new Task("Task3 in " + assignment3.getName(), 0.25, assignment3.getID());
+		final Task task34 = new Task("Task4 in " + assignment3.getName(), 0.25, assignment3.getID());
 		assignment3.addTask(task31);
 		assignment3.addTask(task32);
 		assignment3.addTask(task33);
