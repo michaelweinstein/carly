@@ -15,13 +15,22 @@ public class TimeCompactor {
 	
 	private static final int MILLIS_IN_DAY = 86400000;
 	
-	//This function currently compacts all movable blocks in the Date range [start, end]
-	//in order to prevent "external fragmentation" along the client's time stream
-	public static void compact(List<ITimeBlockable> allBlocks, Date start, Date end, 
+	/**
+	 * This function currently compacts all movable blocks in the Date range [start, end]
+	 * in order to prevent "external fragmentation" along the client's time stream
+	 * @param allBlocks
+	 * @param start
+	 * @param end
+	 * @param lastTimePlaced
+	 * @return a Date indicating where the block corresponding to the "lastTimePlaced" Date
+	 * 			has been moved -- so upon exiting this function, the reference to lastTimePlaced
+	 *			can be reset to the output of this function
+	 */
+	public static Date compact(List<ITimeBlockable> allBlocks, Date start, Date end, 
 			Date lastTimePlaced) {
 		
 		if(allBlocks.size() == 0)
-			return;
+			return lastTimePlaced;
 		
 		int startInd = TimeUtilities.indexOfFitLocn(allBlocks, start);
 		Date timeToPushTo = allBlocks.get(startInd).getEnd();
@@ -32,7 +41,7 @@ public class TimeCompactor {
 			
 			//If a block goes past the given "end" parameter, stop compacting and return
 			if(block.getEnd().getTime() > end.getTime())
-				return;
+				return lastTimePlaced;
 			
 			if(!block.isMovable()) {
 				//TODO: Currently I reset the time-to-push-to here to guarantee
@@ -58,7 +67,8 @@ public class TimeCompactor {
 			//Reset the timeToPushTo pointer to be the newEnd object
 			timeToPushTo = newEnd;
 		}
-		
+	
+		return lastTimePlaced;
 	}
 
 	//This function uses several human-friendly heuristics to de-compact a schedule

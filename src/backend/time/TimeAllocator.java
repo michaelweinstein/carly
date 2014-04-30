@@ -25,10 +25,12 @@ public class TimeAllocator {
 	
 	private final IAssignment		m_asgn;
 	private List<ITimeBlockable>	m_localChangesToBlocks;
+	private Date					m_lastTimePlaced;
 	
 	public TimeAllocator(final IAssignment asgn) {
 		m_asgn = asgn;
 		m_localChangesToBlocks = new ArrayList<ITimeBlockable>();
+		m_lastTimePlaced = null;
 	}
 	
 	public void insertAsgn(final Date start, final Date end) throws NotEnoughTimeException{
@@ -56,34 +58,38 @@ public class TimeAllocator {
 		// per subtask, and how long per subtask
 		final ITemplate template = m_asgn.getTemplate();
 		numHoursPerBlock = (template == null ? DEFAULT_HRS_PER_BLOCK : template.getPreferredConsecutiveHours());
-		
-		// DEBUG added by Eric
-		System.out.println("MIDDLE: TimeAllocator: getting contents of allBlocks");
-		for (final ITimeBlockable block : allBlocks) {
-			System.out.println("\t" + block.toString());
-		}
-		System.out.println("");
-		// DEBUG
+
 		
 		final List<ITemplateStep> tempSteps = template.getAllSteps();
-		final Date lastTimePlaced = start;
+		m_lastTimePlaced = new Date(start.getTime());
 		boolean success = false;
 		for (int i = 0; i < tempSteps.size(); ++i) {
 			// Get the number of blocks to place for this current step
 			final ITemplateStep step = tempSteps.get(i);
 			final double numHoursInStep = m_asgn.getExpectedHours() * step.getPercentOfTotal();
-			numBlocksLeft = (int) Math.ceil(numHoursInStep / numHoursPerBlock);
 			
-			// TODO: Handle cases where the number of hours of a user-submitted Assignment
-			// is exceedingly low
-			
-			success = tryUniformInsertion(allBlocks, start, end, lastTimePlaced, step, numBlocksLeft, numHoursPerBlock);
+			//Insert as many uniform blocks as possible that are of a consistent length
+			final double exactNumBlocks = numHoursInStep / numHoursPerBlock;
+			numBlocksLeft = (int) Math.floor(exactNumBlocks);
+			success = tryUniformInsertion(allBlocks, start, end, step, numBlocksLeft, numHoursPerBlock);
 			
 			//For the purposes of extensibility, we could try another insertion policy here.
 			//Currently, we choose to throw an exception instead to indicate failure.
 			if (!success) {
 				throw new NotEnoughTimeException("Uniform insertion policy failed");
 			}
+			
+			//Now, insert the remaining time as a smaller block
+			double numHrsLeftover = numHoursInStep - (numBlocksLeft * numHoursPerBlock);
+			numBlocksLeft = 1;
+			success = tryUniformInsertion(allBlocks, start, end, step, numBlocksLeft, numHrsLeftover);
+			
+			//For the purposes of extensibility, we could try another insertion policy here.
+			//Currently, we choose to throw an exception instead to indicate failure.
+			if (!success) {
+				throw new NotEnoughTimeException("Uniform insertion policy failed");
+			}
+			
 		}
 		
 		// TODO: Then, decompact all AssignmentBlocks so that a user may have a break
@@ -122,13 +128,13 @@ public class TimeAllocator {
 	}
 	
 	private boolean tryUniformInsertion(final List<ITimeBlockable> allBlocks, final Date start, final Date end,
-			Date lastTimePlaced, final ITemplateStep step, int numBlocksLeft, final double numHoursPerBlock) {
+			final ITemplateStep step, int numBlocksLeft, final double numHoursPerBlock) {
 		
 		boolean hasCompactedOnce = false;
 		
 		while (numBlocksLeft > 0) {
 			// 1. Use find fit function for the next block (Best-Fit search policy)
-			final AssignmentBlock block = findFit(allBlocks, numHoursPerBlock, (Date) lastTimePlaced.clone(),
+			final AssignmentBlock block = findFit(allBlocks, numHoursPerBlock, (Date) m_lastTimePlaced.clone(),
 					(Date) end.clone(), step);
 			
 			// 2. If no fit can be found, try compaction OR break the loop and move on to
@@ -138,7 +144,7 @@ public class TimeAllocator {
 				if (!hasCompactedOnce) {
 					// Compact existing blocks so that they fit better, and reset the lastTimePlaced
 					// reference so that it is still accurate
-					TimeCompactor.compact(allBlocks, start, end, lastTimePlaced);
+					m_lastTimePlaced = TimeCompactor.compact(allBlocks, start, end, m_lastTimePlaced);
 					hasCompactedOnce = true;
 					continue;					
 				} 
@@ -153,7 +159,7 @@ public class TimeAllocator {
 			--numBlocksLeft;
 			
 			// 4. Reset the place that the last block was placed for future searches
-			lastTimePlaced = block.getStart();
+			m_lastTimePlaced = block.getStart();
 		}
 		
 		return true;
