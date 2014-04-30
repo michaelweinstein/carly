@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Stroke;
 import java.awt.geom.Rectangle2D;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import data.ITimeBlockable;
@@ -62,6 +63,11 @@ public class TimeRect extends Rectangle2D.Double {
 			return new Color(120, 120, 120);
 		} else if (equalsMovingBlock()) {
 			return new Color(_c.getRed(), _c.getGreen(), _c.getBlue(), 100);
+		} else if (_t.getStart().before(new Date())) {
+			final int r = Math.max(_c.getRed() - 30, 20);
+			final int g = Math.max(_c.getGreen() - 30, 20);
+			final int b = Math.max(_c.getBlue() - 30, 20);
+			return new Color(r, g, b, 150);
 		}
 		return _c;
 	}

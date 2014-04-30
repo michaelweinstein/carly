@@ -2,6 +2,8 @@ package hub;
 
 import java.util.Date;
 
+import javax.swing.SwingUtilities;
+
 import backend.database.StorageService;
 import backend.database.StorageServiceException;
 import backend.time.NotEnoughTimeException;
@@ -11,6 +13,7 @@ import data.Assignment;
 import data.ITask;
 import data.ITimeBlockable;
 import frontend.Utils;
+import frontend.app.GUIApp;
 
 /**
  * Controller that deals with handoff between frontend and backend
@@ -19,44 +22,68 @@ import frontend.Utils;
  */
 public class HubController {
 	
+	private static GUIApp	_app;
+	
+	/**
+	 * Constructor for the controller
+	 * 
+	 * @param app the app to use
+	 */
+	public static void initialize(final GUIApp app) {
+		_app = app;
+	}
+	
 	/**
 	 * Adds the assignment to database, updating the learner and such along the way
 	 * 
 	 * @param a the assignment to add
 	 */
 	public static void addAssignmentToCalendar(final Assignment a) {
-		final String tempId = a.getTemplate().getID();
-		
-		// TODO: Make learner act on this
-		
-		// Insert template into db if not already there
-		if (StorageService.getTemplate(tempId) == null) {
-			try {
-				StorageService.addTemplate(a.getTemplate());
-			} catch (final StorageServiceException sse) {
-				Utils.printError("SSE in addAssignmentToCalendar() - inserting ITemplate");
-				return;
+		new Thread() {
+			
+			@Override
+			public void run() {
+				final String tempId = a.getTemplate().getID();
+				
+				// TODO: Make learner act on this
+				
+				// Insert template into db if not already there
+				if (StorageService.getTemplate(tempId) == null) {
+					try {
+						StorageService.addTemplate(a.getTemplate());
+					} catch (final StorageServiceException sse) {
+						Utils.printError("SSE in addAssignmentToCalendar() - inserting ITemplate");
+						return;
+					}
+				}
+				
+				// Insert assignment into db
+				try {
+					StorageService.addAssignment(a);
+				} catch (final StorageServiceException sse) {
+					Utils.printError("SSE in addAssignmentToCalendar() - inserting Assignment");
+					return;
+				}
+				
+				final Date start = new Date();
+				final TimeAllocator talloc = new TimeAllocator(a);
+				try {
+					talloc.insertAsgn(start, a.getDueDate());
+				} catch (final NotEnoughTimeException net) {
+					System.err.println("ERROR: " + net.getMessage());
+				}
+				
+				StorageService.mergeAllTimeBlocks(talloc.getEntireBlockSet());
+				
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						_app.reload();
+					};
+				});
 			}
-		}
-		
-		// Insert assignment into db
-		try {
-			StorageService.addAssignment(a);
-		} catch (final StorageServiceException sse) {
-			Utils.printError("SSE in addAssignmentToCalendar() - inserting Assignment");
-			return;
-		}
-		
-		final Date start = new Date();
-		final TimeAllocator talloc = new TimeAllocator(a);
-		try {
-			talloc.insertAsgn(start, a.getDueDate());
-		}
-		catch(NotEnoughTimeException net) {
-			System.err.println("ERROR: " + net.getMessage());
-		}
-		
-		StorageService.mergeAllTimeBlocks(talloc.getEntireBlockSet());
+		}.start();
 	}
 	
 	/**
@@ -67,12 +94,25 @@ public class HubController {
 	 * @param newEnd the new end time
 	 */
 	public static void changeTimeBlock(final ITimeBlockable oldBlock, final Date newStart, final Date newEnd) {
-		final Date oldStart = new Date(oldBlock.getStart().getTime());
-		final Date oldEnd = new Date(oldBlock.getEnd().getTime());
-		
-		if (TimeModifier.updateBlock(oldBlock, newStart, newEnd)) {
-			// TODO: If successful, update learner using oldStart and oldEnd
-		}
+		new Thread() {
+			
+			@Override
+			public void run() {
+				final Date oldStart = new Date(oldBlock.getStart().getTime());
+				final Date oldEnd = new Date(oldBlock.getEnd().getTime());
+				
+				if (TimeModifier.updateBlock(oldBlock, newStart, newEnd)) {
+					// TODO: If successful, update learner using oldStart and oldEnd
+				}
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						_app.reload();
+					};
+				});
+			}
+		}.start();
 	}
 	
 	/**
@@ -82,8 +122,22 @@ public class HubController {
 	 * @param newCompletion a double between 0 and 1 inclusive to represent percent complete
 	 */
 	public static void changeTask(final ITask oldTask, final double newCompletion) {
-		final double oldCompletion = oldTask.getPercentComplete();
-		TimeModifier.updateBlocksInTask(oldTask, newCompletion);
-		// TODO: Update learner using old percent and new percent
+		new Thread() {
+			
+			@Override
+			public void run() {
+				final double oldCompletion = oldTask.getPercentComplete();
+				TimeModifier.updateBlocksInTask(oldTask, newCompletion);
+				// TODO: Update learner using old percent and new percent
+				
+				SwingUtilities.invokeLater(new Runnable() {
+					
+					@Override
+					public void run() {
+						_app.reload();
+					};
+				});
+			}
+		}.start();
 	}
 }

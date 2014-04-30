@@ -17,8 +17,10 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -63,6 +65,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	protected JLabel				_statusLabel;
 	protected JComboBox<ITemplate>	_templatePicker;
 	protected StepViewTable			_stepList;
+	protected boolean				_saveTable			= false;
 	protected StepModel				_stepModel;
 	protected JTextField			_numHours;
 	public JLabel					_dialogTitle;
@@ -218,6 +221,21 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			throw new IllegalArgumentException("Your total task % is not 100%...");
 		}
 		
+		// Get the ID of the template and make a series of steps
+		ITemplate t = StorageService.getTemplate(((ITemplate) _templatePicker.getSelectedItem()).getID());
+		if (t == null) {
+			t = new Template("Custom");
+			final Set<String> stepNames = new HashSet<>();
+			
+			for (final ITemplateStep st : steps) {
+				if (stepNames.contains(st.getName())) {
+					throw new IllegalArgumentException("Tasks can't have duplicate names!");
+				}
+				stepNames.add(st.getName());
+				t.addStep(st);
+			}
+		}
+		
 		// Get expected num hours
 		double exHours;
 		try {
@@ -227,15 +245,6 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			}
 		} catch (final NumberFormatException e) {
 			throw new IllegalArgumentException("Your number of hours is not a valid number.");
-		}
-		
-		// By this point, all data is great!
-		ITemplate t = StorageService.getTemplate(((ITemplate) _templatePicker.getSelectedItem()).getID());
-		if (t == null) {
-			t = new Template("Custom");
-			for (final ITemplateStep st : steps) {
-				t.addStep(st);
-			}
 		}
 		return new Assignment(titleText, due, t, exHours);
 	}
@@ -330,7 +339,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			 */
 			@Override
 			public void itemStateChanged(final ItemEvent event) {
-				if (event.getStateChange() == ItemEvent.SELECTED) {
+				if (event.getStateChange() == ItemEvent.SELECTED && !_saveTable) {
 					final ITemplate item = (ITemplate) event.getItem();
 					_stepModel.clear();
 					for (final ITemplateStep step : item.getAllSteps()) {
@@ -390,6 +399,11 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			_stepModel.addBlankItem();
 		}
 		_stepModel.deleteRowsIfEmpty(e.getFirstRow(), e.getLastRow());
+		if (_templatePicker.getSelectedIndex() != 0) {
+			_saveTable = true;
+			_templatePicker.setSelectedIndex(0);
+			_saveTable = false;
+		}
 		revalidate();
 		repaint();
 	}
