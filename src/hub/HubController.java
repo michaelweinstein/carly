@@ -94,25 +94,19 @@ public class HubController {
 	 * @param newEnd the new end time
 	 */
 	public static void changeTimeBlock(final ITimeBlockable oldBlock, final Date newStart, final Date newEnd) {
-		new Thread() {
+		final Date oldStart = new Date(oldBlock.getStart().getTime());
+		final Date oldEnd = new Date(oldBlock.getEnd().getTime());
+		
+		if (TimeModifier.updateBlock(oldBlock, newStart, newEnd)) {
+			// TODO: If successful, update learner using oldStart and oldEnd
+		}
+		SwingUtilities.invokeLater(new Runnable() {
 			
 			@Override
 			public void run() {
-				final Date oldStart = new Date(oldBlock.getStart().getTime());
-				final Date oldEnd = new Date(oldBlock.getEnd().getTime());
-				
-				if (TimeModifier.updateBlock(oldBlock, newStart, newEnd)) {
-					// TODO: If successful, update learner using oldStart and oldEnd
-				}
-				SwingUtilities.invokeLater(new Runnable() {
-					
-					@Override
-					public void run() {
-						_app.reload();
-					};
-				});
-			}
-		}.start();
+				_app.reload();
+			};
+		});
 	}
 	
 	/**
@@ -122,22 +116,16 @@ public class HubController {
 	 * @param newCompletion a double between 0 and 1 inclusive to represent percent complete
 	 */
 	public static void changeTask(final ITask oldTask, final double newCompletion) {
-		new Thread() {
+		final double oldCompletion = oldTask.getPercentComplete();
+		TimeModifier.updateBlocksInTask(oldTask, newCompletion);
+		// TODO: Update learner using old percent and new percent
+		
+		SwingUtilities.invokeLater(new Runnable() {
 			
 			@Override
 			public void run() {
-				final double oldCompletion = oldTask.getPercentComplete();
-				TimeModifier.updateBlocksInTask(oldTask, newCompletion);
-				// TODO: Update learner using old percent and new percent
-				
-				SwingUtilities.invokeLater(new Runnable() {
-					
-					@Override
-					public void run() {
-						_app.reload();
-					};
-				});
-			}
-		}.start();
+				_app.reload();
+			};
+		});
 	}
 }

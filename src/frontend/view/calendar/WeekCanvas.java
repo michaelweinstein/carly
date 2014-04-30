@@ -154,6 +154,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	 */
 	public boolean checkBlockForOverlap(final Date newStart, final Date newEnd, final ITimeBlockable oldBlock) {
 		for (final ITimeBlockable t : getAllBlocks().keySet()) {
+			// System.out.println(t."\n\t" +newStart + "\n\t" + newEnd + "\n\t" + t.getStart() + "\n\t" + t.getEnd());
 			if (!t.equals(oldBlock)
 				&& Utils.dateRangesOverlap(new Tuple<>(newStart, newEnd), new Tuple<>(t.getStart(), t.getEnd()))) {
 				return true;
@@ -647,14 +648,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 			}
 			
 			// Switch if wrong order
-			if (end.before(start)) {
-				final Date x = end;
-				end = start;
-				start = x;
-			}
-			
-			// If it doesn't overlap another block, write to database
-			if (!checkBlockForOverlap(start, end, oldTask)) {
+			if (!end.before(start) && !checkBlockForOverlap(start, end, oldTask)) {
 				HubController.changeTimeBlock(oldTask, start, end);
 			}
 		}
