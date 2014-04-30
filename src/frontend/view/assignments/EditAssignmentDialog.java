@@ -29,6 +29,15 @@ public class EditAssignmentDialog extends AddAssignmentDialog {
 	}
 	
 	/**
+	 * Parses like normal but makes an assignmnent using the same IDs
+	 */
+	@Override
+	protected Assignment parseFields() throws IllegalArgumentException {
+		final Assignment a = super.parseFields();
+		return new Assignment(_assignment.getID(), a.getName(), a.getDueDate(), a.getTemplate(), a.getExpectedHours());
+	}
+	
+	/**
 	 * Adds only after removing old one
 	 */
 	@Override

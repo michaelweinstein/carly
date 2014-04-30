@@ -3,6 +3,7 @@ package frontend.view;
 import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
@@ -32,7 +33,14 @@ public class CanvasUtils {
 	 */
 	public static Color getColor(final ITimeBlockable t) {
 		if (t.isMovable()) {
-			return getColor(t.getTask());
+			final Color c = getColor(t.getTask());
+			if (t.getEnd().before(new Date())) {
+				final int r = Math.max(c.getRed() - 30, 0);
+				final int g = Math.max(c.getGreen() - 30, 0);
+				final int b = Math.max(c.getBlue() - 30, 0);
+				return new Color(r, g, b, 100);
+			}
+			return c;
 		}
 		return Utils.COLOR_ALTERNATE;
 	}

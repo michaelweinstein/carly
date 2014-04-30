@@ -29,6 +29,19 @@ public class Assignment implements IAssignment {
 	}
 	
 	/**
+	 * Gives it an ID in addition to the normal constructor
+	 */
+	public Assignment(final String id, final String name, final Date dueDate, final ITemplate template) {
+		_name = name;
+		_deadline = dueDate;
+		_template = template;
+		_expectedHours = DataUtil.DEFAULT_ASSIGNMENT_EXPECTED_HOURS;
+		_uniqueId = id;
+		
+		_tasks = createTasksFromTemplate(template);
+	}
+	
+	/**
 	 * Constructor with expectedHours
 	 */
 	public Assignment(final String name, final Date dueDate, final ITemplate template, final double exHours) {
@@ -42,14 +55,27 @@ public class Assignment implements IAssignment {
 	}
 	
 	/**
+	 * Constructor with expectedHours and id
+	 */
+	public Assignment(final String id, final String name, final Date dueDate, final ITemplate template,
+			final double exHours) {
+		_name = name;
+		_deadline = dueDate;
+		_template = template;
+		_expectedHours = exHours;
+		_uniqueId = id;
+		
+		_tasks = createTasksFromTemplate(template);
+	}
+	
+	/**
 	 * Constructor used by StorageService to rebuild an Assignment Template and list of tasks are set later.
 	 */
-	public Assignment(final String id, final String name, final Date dueDate, final int expectedHours,
-			final List<ITask> taskList) {
+	public Assignment(final String id, final String name, final Date dueDate, final double d, final List<ITask> taskList) {
 		_uniqueId = id;
 		_name = name;
 		_deadline = dueDate;
-		_expectedHours = expectedHours;
+		_expectedHours = d;
 		_tasks = taskList;
 		_template = null;
 	}
