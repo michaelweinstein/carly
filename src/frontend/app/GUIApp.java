@@ -1,5 +1,7 @@
 package frontend.app;
 
+import hub.HubController;
+
 import javax.swing.SwingUtilities;
 
 import frontend.view.MainFrame;
@@ -33,6 +35,7 @@ public class GUIApp extends App {
 			
 			@Override
 			public void run() {
+				HubController.initialize(GUIApp.this);
 				_window.pack();
 				_window.setVisible(true);
 			}

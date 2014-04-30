@@ -410,7 +410,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	private static void drawBlock(final Graphics2D g, final ITimeBlockable t, final TimeRect rect) {
 		g.setColor(rect.getColor());
 		g.fill(rect);
-		g.setColor(rect.getStrokeColor());
+		g.setColor(t.getEnd().before(new Date()) ? rect.getStrokeColor().darker() : rect.getStrokeColor());
 		g.setStroke(rect.getStroke());
 		g.draw(rect);
 		
@@ -446,7 +446,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		final int space = 15;
 		int yPos = 0;
 		final double nextY = 0;
-		g.setColor(Utils.contrastingColor(rect.getColor()));
+		g.setColor(t.getEnd().before(new Date()) ? rect.getStrokeColor() : Utils.contrastingColor(rect.getColor()));
 		g.setFont(aFont);
 		for (i = 0; i < taskT.size() + assT.size(); i++) {
 			yPos = (int) rect.getY() + (space * (i + 1));
