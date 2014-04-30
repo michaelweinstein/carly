@@ -143,13 +143,6 @@ public class TimeAllocator {
 					continue;					
 				} 
 				else {
-					// TODO: Remove this println
-					System.err.println("Could not insert block, even after compacting -- TODO:"
-						+ " Try to move blocks contained by other assignments outside of the range\n"
-						+ " OR use more sophisticated compaction around unmovable blocks\n"
-						+ " OR return FAIL message to the user\n"
-						+ " OR try breaking the remaining blocks into half-size pieces\n");
-					
 					return false;
 				}
 			}
@@ -157,8 +150,6 @@ public class TimeAllocator {
 			// 3. If a fit is found, insert the block into the list, decrement the counter
 			// and continue.
 			TimeUtilities.insertIntoSortedList(allBlocks, block);
-//			final int ind = TimeUtilities.indexOfFitLocn(allBlocks, block.getStart());
-//			allBlocks.add(ind, block);
 			--numBlocksLeft;
 			
 			// 4. Reset the place that the last block was placed for future searches
@@ -170,70 +161,59 @@ public class TimeAllocator {
 	
 	// Return a newly-initialized AssignmentBlock containing the relevant start/end
 	// dates for the current chunk.
-	private AssignmentBlock findFit(final List<ITimeBlockable> blockList, final double blockLength, final Date start,
-			final Date end, final ITemplateStep step) {
-		Date bestStart = null;
-		Date bestEnd = null;
-		long minTimeLeftover = Long.MAX_VALUE;
+	private AssignmentBlock findFit(final List<ITimeBlockable> blockList, final double blockLength, final Date asgnStart,
+			final Date asgnEnd, final ITemplateStep step) {
+		Date fitStart = null;
+		Date fitEnd = null;
 		final long blockLenInMillis = convertHoursToMillis(blockLength);
-		long delta = 0;
 		final ITask task = m_asgn.getTasks().get(step.getStepNumber());
 		
 		if (blockList.size() == 0) {
-			bestStart = start;
-			bestEnd = new Date(bestStart.getTime() + convertHoursToMillis(blockLength));
+			fitStart = asgnStart;
+			fitEnd = new Date(fitStart.getTime() + convertHoursToMillis(blockLength));
 			
 			// Get the corresponding task from the Assignment member variable
-			return new AssignmentBlock(bestStart, bestEnd, task);
+			return new AssignmentBlock(fitStart, fitEnd, task);
 		}
 		
 		// Get free time between start time given and first block in list
-		if (blockLenInMillis <= (delta = blockList.get(0).getStart().getTime() - start.getTime())) {
-			bestStart = start;
-			minTimeLeftover = delta - blockLenInMillis;
-			bestEnd = new Date(bestStart.getTime() + blockLenInMillis);
-			return new AssignmentBlock(bestStart, bestEnd, task);
+		if (blockLenInMillis <= (blockList.get(0).getStart().getTime() - asgnStart.getTime())) {
+			fitStart = asgnStart;
+			fitEnd = new Date(fitStart.getTime() + blockLenInMillis);
+			return new AssignmentBlock(fitStart, fitEnd, task);
 		}
 		
 		//Iterate so that items of different tasks under the same assignment are
 		//placed in the calendar in correct chronological order
-		for (int i = TimeUtilities.indexOfFitLocn(blockList, start); i < blockList.size(); ++i) {
+		for (int i = TimeUtilities.indexOfFitLocn(blockList, asgnStart); i < blockList.size(); ++i) {
 			// Ignore this edge case
 			if (i == 0) {
 				continue;
 			}
 			// Get free time between two blocks in the list
-			if (blockLenInMillis <= (delta = blockList.get(i).getStart().getTime()
-				- blockList.get(i - 1).getEnd().getTime())
-				&& delta - blockLenInMillis < minTimeLeftover) {
+			if (blockLenInMillis <= (blockList.get(i).getStart().getTime()
+				- blockList.get(i - 1).getEnd().getTime())) {
 				
-				bestStart = (Date) blockList.get(i - 1).getEnd().clone();
-				minTimeLeftover = delta - blockLenInMillis;
-				bestEnd = new Date(bestStart.getTime() + blockLenInMillis);
+				fitStart = (Date) blockList.get(i - 1).getEnd().clone();
+				fitEnd = new Date(fitStart.getTime() + blockLenInMillis);
 				
 				//Added this to make policy FIRST-FIT rather than best fit
-				return new AssignmentBlock(bestStart, bestEnd, task);
+				return new AssignmentBlock(fitStart, fitEnd, task);
 			}
 		}
 		
 		// Get free time between last block in list and end time given
-		if (blockLenInMillis <= (delta = end.getTime() - blockList.get(blockList.size() - 1).getEnd().getTime())
-			&& delta - blockLenInMillis < minTimeLeftover) {
-			bestStart = (Date) blockList.get(blockList.size() - 1).getEnd().clone();
-			minTimeLeftover = delta - blockLenInMillis;
-			bestEnd = new Date(bestStart.getTime() + blockLenInMillis);
+		if (blockLenInMillis <= (asgnEnd.getTime() - blockList.get(blockList.size() - 1).getEnd().getTime())) {
+			fitStart = (Date) blockList.get(blockList.size() - 1).getEnd().clone();
+			fitEnd = new Date(fitStart.getTime() + blockLenInMillis);
 			
 			//Added this to make policy FIRST-FIT rather than best fit
-			return new AssignmentBlock(bestStart, bestEnd, task);
+			return new AssignmentBlock(fitStart, fitEnd, task);
 		}
 		
-		if (bestStart == null || bestEnd == null) {
-			return null;
-		}
-		
-		//TODO: REMOVE THIS RETURN STATEMENT, and clean this function up so that it is
-		//		entirely "first-fit" based instead of "best-fit" based
-		return new AssignmentBlock(bestStart, bestEnd, task);
+		//In this case, no fit was found anywhere in the time stream,
+		//so return null to indicate failure
+		return null;
 	}
 	
 	private long convertHoursToMillis(final double hrs) {
