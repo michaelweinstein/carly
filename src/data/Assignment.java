@@ -70,7 +70,8 @@ public class Assignment implements IAssignment {
 			// For each TemplateStep, create new Task
 			for (final ITemplateStep step : steps) {
 				// Task name in the form of Assignment:Step
-				final String taskName = _name + ":" + step.getName();
+				// TODO: CHECK THIS TO MAKE SURE IT DIDN'T BREAK ANYTHING TO NOT HAVE _name: TO PREFACE
+				final String taskName = step.getName();
 				
 				// TODO Should we store actual amount of time in Task
 				// so we don't have to calculate every time?

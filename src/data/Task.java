@@ -148,6 +148,20 @@ public class Task implements ITask {
 	}
 	
 	@Override
+	public boolean equals(final Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (!(obj instanceof Task)) {
+			return false;
+		}
+		final Task x = (Task) obj;
+		return _assignmentId.equals(x._assignmentId) && _name.equals(x._name) && _percentComplete == x._percentComplete
+			&& _percentOfTotal == x._percentOfTotal && _suggestedBlockLength == x._suggestedBlockLength
+			&& _timeOfDay.equals(x._timeOfDay) && _uniqueId.equals(x._uniqueId);
+	}
+	
+	@Override
 	public int hashCode() {
 		return Objects.hash(_name, _timeOfDay, _suggestedBlockLength, _assignmentId);
 	}

@@ -29,6 +29,7 @@ public abstract class Utils {
 	public static final Color	COLOR_BACKGROUND	= Color.DARK_GRAY;
 	public static final Color	COLOR_FOREGROUND	= Color.WHITE;
 	public static final Color	COLOR_ALTERNATE		= Color.DARK_GRAY.brighter();
+	public static final Color	COLOR_ERROR			= Color.RED;
 	public static final Color	COLOR_LIGHT_BG		= new Color(140, 140, 140);
 	public static final Color	COLOR_ACCENT		= Color.ORANGE;
 	public static final String	APP_FONT_NAME		= "Arial";
@@ -232,8 +233,10 @@ public abstract class Utils {
 	 * @return if d1 and d2 overlap
 	 */
 	public static boolean dateRangesOverlap(final Tuple<Date, Date> d1, final Tuple<Date, Date> d2) {
-		final boolean d1StartInD2 = (d1.first.before(d2.second) || d1.first.equals(d2.second)) && (d1.first.after(d2.first) || d1.first.equals(d2.first));
-		final boolean d1EndInD2 = (d1.second.before(d2.second) || d1.second.equals(d2.second)) && (d1.second.after(d2.first) || d1.second.equals(d2.first));
+		final boolean d1StartInD2 = (d1.first.before(d2.second) || d1.first.equals(d2.second))
+			&& (d1.first.after(d2.first) || d1.first.equals(d2.first));
+		final boolean d1EndInD2 = (d1.second.before(d2.second) || d1.second.equals(d2.second))
+			&& (d1.second.after(d2.first) || d1.second.equals(d2.first));
 		final boolean d1EncompassesD2 = (d1.first.before(d2.first) || d1.first.equals(d2.first))
 			&& (d1.second.after(d2.second) || d1.second.equals(d2.second));
 		return d1StartInD2 || d1EndInD2 || d1EncompassesD2;

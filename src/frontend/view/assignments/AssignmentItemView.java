@@ -75,8 +75,8 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		final Date due = _assignment.getDueDate();
 		final DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 		final JLabel dueLabel = new JLabel("Due: " + formatter.format(due));
-		dueLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.ITALIC, 12));
 		dueLabel.setForeground(Utils.COLOR_FOREGROUND.darker());
+		dueLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.ITALIC, 12));
 		add(dueLabel);
 		add(Box.createVerticalStrut(10));
 		
@@ -125,7 +125,7 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		final List<ITask> tasks = _assignment.getTasks();
 		final Object dataValues[][] = new Object[tasks.size()][2];
 		for (int i = 0; i < tasks.size(); i++) {
-			dataValues[i][0] = tasks.get(i).getName().split(":")[1];
+			dataValues[i][0] = tasks.get(i).getName();
 			dataValues[i][1] = Math.round(tasks.get(i).getPercentOfTotal() * 100) + "%";
 			// TODO: More with percent of total, better stuff in general
 		}
@@ -143,6 +143,16 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		
 		for (final Component comp : getComponents()) {
 			comp.addMouseListener(this);
+		}
+		
+		// Before now
+		if (due.before(new Date())) {
+			dueLabel.setText("Past " + dueLabel.getText());
+			dueLabel.setForeground(Utils.COLOR_ACCENT);
+			titleLabel.setForeground(Utils.COLOR_LIGHT_BG);
+			_taskTable.setForeground(Utils.COLOR_LIGHT_BG);
+			_taskTable.setSelectionForeground(Utils.COLOR_LIGHT_BG);
+			_taskTable.setGridColor(Utils.COLOR_LIGHT_BG);
 		}
 	}
 	

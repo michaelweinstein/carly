@@ -35,6 +35,7 @@ import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
+import backend.database.StorageService;
 import data.ITimeBlockable;
 import data.Tuple;
 import frontend.Utils;
@@ -418,10 +419,8 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		final Font taskFont = new Font(Utils.APP_FONT_NAME, Font.PLAIN | Font.ITALIC, 11);
 		final List<String> taskT = new ArrayList<>(4);
 		final List<String> assT = new ArrayList<>(2);
-		final String fullTitle = t.getTask().getName();
-		final String[] split = fullTitle.split(":");
-		taskT.add(fullTitle.substring(split[0].length() + 1));
-		assT.add(split[0]);
+		taskT.add(t.getTask().getName());
+		assT.add(StorageService.getAssignment(t.getTask().getAssignmentID()).getName()); // TODO: FIX SO NOT JANKY
 		int i = 0;
 		
 		// Wrap the assignment title

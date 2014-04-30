@@ -196,10 +196,16 @@ public class AssignmentsView extends JPanel {
 		final List<IAssignment> ass = reloadAllAssignments();
 		
 		if (ass == null || ass.isEmpty()) {
-			final JLabel l = new JLabel("You're free!");
+			final JLabel l = new JLabel("You have nothing left to do!");
+			final JLabel l2 = new JLabel("<html>Add an assignment using <br/> the button above.</html>");
+			Utils.padComponent(l, 40, 0, 10, 0);
 			Utils.themeComponent(l);
+			Utils.themeComponent(l2);
 			l.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 15));
+			l2.setFont(new Font(Utils.APP_FONT_NAME, Font.ITALIC, 12));
+			l2.setForeground(Utils.COLOR_FOREGROUND.darker());
 			_assignmentItems.add(l);
+			_assignmentItems.add(l2);
 		} else {
 			for (final IAssignment a : ass) {
 				final JPanel add = new AssignmentItemView(a, this);

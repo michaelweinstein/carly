@@ -71,8 +71,7 @@ public class EditAssignmentDialog extends AddAssignmentDialog {
 			_stepModel.clear();
 			for (int i = 0; i < _assignment.getTasks().size(); i++) {
 				final ITask s = _assignment.getTasks().get(i);
-				String name = s.getName();
-				name = name.substring(name.split(":")[0].length() + 1);
+				final String name = s.getName();
 				final ITemplateStep st = new TemplateStep(name, s.getPercentOfTotal(), i, s.getPreferredTimeOfDay());
 				_stepModel.addItem(st);
 			}

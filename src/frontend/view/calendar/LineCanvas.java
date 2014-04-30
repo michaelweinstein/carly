@@ -8,18 +8,21 @@ import static frontend.view.CanvasUtils.Y_PAD;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.JPanel;
 
+import data.ITask;
 import data.ITimeBlockable;
 import frontend.Utils;
 import frontend.view.CanvasUtils;
@@ -31,12 +34,14 @@ import frontend.view.CanvasUtils;
  */
 public class LineCanvas extends JPanel {
 	
-	private static final int	NUM_LINES			= 20;
-	private final CalendarView	_cv;
-	private Date				_weekStartDate;
-	private Date				_weekEndDate;
-	private int					_y;
-	private static final long	serialVersionUID	= 1L;
+	private static final int						MAX_BLOCK_HEIGHT	= 18;
+	private static final int						MIN_BLOCK_HEIGHT	= 5;
+	private static final long						serialVersionUID	= 1L;
+	private final CalendarView						_cv;
+	private Date									_weekStartDate;
+	private Date									_weekEndDate;
+	private int										_y;
+	private final Map<ITask, List<ITimeBlockable>>	_taskMap;
 	
 	/**
 	 * Creates a canvas object
@@ -45,6 +50,7 @@ public class LineCanvas extends JPanel {
 	 */
 	public LineCanvas(final CalendarView cv) {
 		_cv = cv;
+		_taskMap = new HashMap<>();
 		Utils.themeComponent(this);
 	}
 	
@@ -85,24 +91,27 @@ public class LineCanvas extends JPanel {
 			brush.draw(new Line2D.Double(x, 0, x, getHeight()));
 		}
 		
-		// Get all tasks and calculate the information
-		final List<ITimeBlockable> timeBlocks = _cv.getTimeBlocks();
-		final int size = Math.min(timeBlocks.size(), NUM_LINES);
-		_y = (int) (Y_PAD / 2.0);
-		final int height = Math.min((int) ((getHeight() - Y_PAD) / (size + 1)), 18);
-		final int space = (int) ((getHeight() - Y_PAD) / size);
-		
-		// Up to 20 items, draw them out
-		for (int i = 0; i < size; i++) {
-			if (placeAndDrawLine(brush, timeBlocks.get(i), height)) {
-				_y += space;
+		// Get all tasks and toss them into the task map
+		_taskMap.clear();
+		for (final ITimeBlockable block : _cv.getTimeBlocks()) {
+			List<ITimeBlockable> list = _taskMap.get(block.getTask());
+			if (list == null) {
+				list = new ArrayList<>();
 			}
+			list.add(block);
+			_taskMap.put(block.getTask(), list);
 		}
-		// If too long, draw a message to that effect
-		if (timeBlocks.size() > NUM_LINES) {
-			brush.setColor(Utils.COLOR_ACCENT);
-			brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 12));
-			brush.drawString("... and " + (timeBlocks.size() - NUM_LINES) + " more", getWidth() - 88, getHeight() - 8);
+		_y = (int) Y_PAD / 2;
+		
+		// Draw out all blocks
+		final double height = getHeight() / (_taskMap.keySet().size() * 1.5);
+		final int h = (int) Math.max(Math.min(MAX_BLOCK_HEIGHT, height), MIN_BLOCK_HEIGHT);
+		for (final ITask task : _taskMap.keySet()) {
+			final List<ITimeBlockable> list = _taskMap.get(task);
+			for (final ITimeBlockable block : list) {
+				placeAndDrawLine(brush, block, (h));
+			}
+			_y += h * 1.3;
 		}
 	}
 	
