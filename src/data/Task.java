@@ -6,7 +6,7 @@ public class Task implements ITask {
 	
 	/* global vars */
 	
-	private final String	_uniqueId;
+	private String			_uniqueId;
 	// AssignmentName:StepName format
 	private final String	_name;
 	private double			_percentOfTotal;
@@ -38,7 +38,7 @@ public class Task implements ITask {
 		_name = name;
 		handlePercent(percentTotal);
 		_assignmentId = assignmentUID;
-		_uniqueId = DataUtil.generateID() + _name.hashCode();
+		_uniqueId = assignmentUID + _name.hashCode();
 		setInitialValues();
 	}
 	
@@ -88,6 +88,9 @@ public class Task implements ITask {
 	@Override
 	public void setAssignmentId(final String id) {
 		_assignmentId = id;
+		
+		// Also updates the block id
+		_uniqueId = id + _name.hashCode();
 	}
 	
 	@Override
