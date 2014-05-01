@@ -371,7 +371,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		final String colNames[] = { "Step Name", "% of Total" };
 		_stepModel = new StepModel(dataValues, colNames);
 		_stepModel.addTableModelListener(this);
-		_stepList = new StepViewTable(_stepModel);
+		_stepList = new StepViewTable(_stepModel, false);
 		Utils.padComponent(_stepList, 10, 30);
 		c.gridx = 1;
 		c.weightx = 1;

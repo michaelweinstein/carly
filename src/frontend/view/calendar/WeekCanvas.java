@@ -555,8 +555,11 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		final TimeRect rect = getRectForPoint(e.getPoint());
 		
 		// Doesn't allow editing of blocks before the current time
-		if (rect == null
-			|| convertPointToTime(new Point((int) rect.getMaxX(), (int) rect.getMaxY()), false).before(new Date())) {
+		if (rect == null) {
+			return;
+		}
+		if (convertPointToTime(new Point((int) rect.getMinX(), (int) rect.getMaxY()), false).before(new Date())) {
+			_cv.repaint();
 			return;
 		}
 		

@@ -132,7 +132,7 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		final String colNames[] = { "Step Name", "% of Total" };
 		final StepModel mod = new StepModel(dataValues, colNames);
 		mod.setEditable(false);
-		_taskTable = new StepViewTable(mod, _assignment);
+		_taskTable = new StepViewTable(mod, _assignment, true);
 		_taskTable.setFocusable(false);
 		_taskPanel = new JPanel();
 		_taskPanel.add(_taskTable);

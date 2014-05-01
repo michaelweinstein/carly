@@ -321,7 +321,7 @@ public class TemplateWizardView extends JPanel {
 		// TODO: Table needs to have max height and start scrolling
 		
 		// Instantiate StepViewTable
-		final StepViewTable stepTable = new StepViewTable(model);
+		final StepViewTable stepTable = new StepViewTable(model, false);
 		// Create Header
 		final JTableHeader header = stepTable.getTableHeader();
 		// Style Header
@@ -645,12 +645,12 @@ public class TemplateWizardView extends JPanel {
 			total += s.getPercentOfTotal();
 		}
 		// If less than 100%
-		if (total < 1.0) {
+		if (total < 0.999999999) {
 			alertUser("Invalid Input: Step percents sum to less than 100%");
 			return false;
 		}
 		// If greater than 100%
-		else if (total > 1.0) {
+		else if (total > 1.0000001) {
 			alertUser("Invalid Input: Step percents sum to over 100%");
 			return false;
 		}
