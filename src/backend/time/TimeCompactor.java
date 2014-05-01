@@ -43,10 +43,10 @@ public class TimeCompactor {
 			if(block.getEnd().getTime() > end.getTime())
 				return lastTimePlaced;
 			
+			//If a block is unmovable, use the end of that block as the time to push to
+			//for safety purposes (i.e. when compacting future blocks, it is not known
+			//how much space there is between "block" and the last item that was compacted)
 			if(!block.isMovable()) {
-				//TODO: Currently I reset the time-to-push-to here to guarantee
-				//		no errors... however, I may be able to do a check to make sure
-				//		a block can fit between the last timeToPushTo and this unmovable block
 				timeToPushTo = block.getEnd();
 				continue;
 			}
@@ -138,14 +138,13 @@ public class TimeCompactor {
 
 		avgFreeTimeMillis = freeTimeBankMillis / allBlocks.size();
 
-		//3. Iterate over the block list in reverse order, trying to place as much free time between
-		//	 AssignmentBlocks as possible		
+		//3. Iterate over the AssignmentBlock list in reverse order, trying to place as much free time
+		//	 between AssignmentBlocks as possible		
 		for(int i = asgnBlocks.size() - 1; i >= 0; --i) {
 			//4. Try to put the average amount of free time between the previously placed block
 			//	 and the block currently being placed.  If there is a conflict with an unmovable block
 			//	 that resides there, find the end of the unmovable zone (WATCH for multiple unmovables)
 			//	 then try to place the block there.
-			//EDGE CASE: What if a block cannot be moved?
 			ITimeBlockable block = asgnBlocks.get(i);
 			long delta = block.getLength();
 			
@@ -154,9 +153,8 @@ public class TimeCompactor {
 			long newStart = getBlockInsertLocation(block, unavailList, recommendedStart);
 			long newEnd = newStart + delta;
 
-			
-			Assignment blockAsgn = StorageService.getAssignment(block.getTask().getAssignmentID());	
 			//Don't let a block be pushed back its original time
+			Assignment blockAsgn = StorageService.getAssignment(block.getTask().getAssignmentID());	
 			if(newStart <= block.getStart().getTime()) {
 				underConstruction.set(i, block);
 				
@@ -168,9 +166,8 @@ public class TimeCompactor {
 			if(newEnd > blockAsgn.getDueDate().getTime()) {
 				underConstruction.set(i, block);
 				
-				System.err.println("Bad END-insertion attempt!");
+				//Reset the time for where to start on the next iteration
 				timeToStartFrom = (Date) block.getStart().clone();
-				//break;
 				continue;
 			}
 
@@ -182,10 +179,28 @@ public class TimeCompactor {
 			underConstruction.set(i, block);
 			
 			//Decrement the amount of time placed from the time bank
-			//TODO: This will not work if there is an unavailable block in between the last time placed
-			//		and the newly-placed block
-			freeTimeBankMillis -= (timeToStartFrom.getTime() - newEnd);
-
+			//--This case indicates that there are unavailable blocks in between the time that
+			//	"newStart" was actually allocated and the original recommended time.
+			if(recommendedStart > newStart) {
+				//Subtract the amount of free time in between recommendedStart and newStart
+				int newStartInd = TimeUtilities.indexOfFitLocn(allBlocks, new Date(newStart));
+				int recStartInd = TimeUtilities.indexOfFitLocn(allBlocks, new Date(recommendedStart));
+				
+				//Iterate over all blocks in between the two times, and subtract the empty space between them
+				for(int j = newStartInd; j < recStartInd; ++j) {
+					if(j + 1 > allBlocks.size())
+						break;
+					
+					ITimeBlockable b1 = allBlocks.get(j);
+					ITimeBlockable b2 = allBlocks.get(j + 1);
+					freeTimeBankMillis -= (b2.getStart().getTime() - b1.getEnd().getTime());
+				}
+			}
+			//Otherwise, decrement the amount of time as normal
+			else {
+				freeTimeBankMillis -= (timeToStartFrom.getTime() - newEnd);
+			}
+			
 			//Reset the time for where to start on the next iteration
 			timeToStartFrom = (Date) block.getStart().clone();
 
