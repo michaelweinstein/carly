@@ -22,7 +22,6 @@ import java.util.Map;
 
 import javax.swing.JPanel;
 
-import data.ITask;
 import data.ITimeBlockable;
 import frontend.Utils;
 import frontend.view.CanvasUtils;
@@ -41,7 +40,7 @@ public class LineCanvas extends JPanel {
 	private Date									_weekStartDate;
 	private Date									_weekEndDate;
 	private int										_y;
-	private final Map<ITask, List<ITimeBlockable>>	_taskMap;
+	private final Map<String, List<ITimeBlockable>>	_assignmentMap;
 	
 	/**
 	 * Creates a canvas object
@@ -50,7 +49,7 @@ public class LineCanvas extends JPanel {
 	 */
 	public LineCanvas(final CalendarView cv) {
 		_cv = cv;
-		_taskMap = new HashMap<>();
+		_assignmentMap = new HashMap<>();
 		Utils.themeComponent(this);
 	}
 	
@@ -92,22 +91,22 @@ public class LineCanvas extends JPanel {
 		}
 		
 		// Get all tasks and toss them into the task map
-		_taskMap.clear();
+		_assignmentMap.clear();
 		for (final ITimeBlockable block : _cv.getTimeBlocks()) {
-			List<ITimeBlockable> list = _taskMap.get(block.getTask());
+			List<ITimeBlockable> list = _assignmentMap.get(block.getTask().getAssignmentID());
 			if (list == null) {
 				list = new ArrayList<>();
 			}
 			list.add(block);
-			_taskMap.put(block.getTask(), list);
+			_assignmentMap.put(block.getTask().getAssignmentID(), list);
 		}
 		_y = (int) Y_PAD / 2;
 		
 		// Draw out all blocks
-		final double height = getHeight() / (_taskMap.keySet().size() * 1.5);
+		final double height = getHeight() / (_assignmentMap.keySet().size() * 1.5);
 		final int h = (int) Math.max(Math.min(MAX_BLOCK_HEIGHT, height), MIN_BLOCK_HEIGHT);
-		for (final ITask task : _taskMap.keySet()) {
-			final List<ITimeBlockable> list = _taskMap.get(task);
+		for (final String assignmentString : _assignmentMap.keySet()) {
+			final List<ITimeBlockable> list = _assignmentMap.get(assignmentString);
 			for (final ITimeBlockable block : list) {
 				placeAndDrawLine(brush, block, (h));
 			}

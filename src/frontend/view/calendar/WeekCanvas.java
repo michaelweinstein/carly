@@ -553,7 +553,10 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		_cv.clearMovingBlock();
 		_dragCurrPoint = e.getPoint();
 		final TimeRect rect = getRectForPoint(e.getPoint());
-		if (rect == null) {
+		
+		// Doesn't allow editing of blocks before the current time
+		if (rect == null
+			|| convertPointToTime(new Point((int) rect.getMaxX(), (int) rect.getMaxY()), false).before(new Date())) {
 			return;
 		}
 		
