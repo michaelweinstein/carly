@@ -136,7 +136,6 @@ public class TimeModifier {
 			} catch (final StorageServiceException e) {
 				e.printStackTrace();
 			}
-			
 		}
 		
 		return false;
@@ -363,6 +362,10 @@ public class TimeModifier {
 			final double blockLengthInHours = task.getSuggestedBlockLength();
 			final long blockLengthInMillis = (long)(blockLengthInHours * 60 * 60 * 1000);
 			
+			//Get the step number of the current Task in this assignment
+			Assignment asgn = StorageService.getAssignment(task.getAssignmentID());
+			int taskIndex = asgn.getTasks().indexOf(task);
+			
 			// Add as many full-size blocks as possible, then add on extra time to other blocks
 			while (currInd < allBlocks.size() && totalMillisToAdd > 0) {
 				//Ignore this edge case
@@ -376,10 +379,13 @@ public class TimeModifier {
 				if(!b2.getStart().before(due))
 					break;
 				
-				//TODO: Exit the loop early if either b1 or b2 is on a Task that occurs
+				//Exit the loop early if either b1 or b2 is on a Task that occurs
 				//after the current Task chronologically
-				//--PROBLEM: Tasks have no way of knowing what their "TemplateStep" number is
-				//if(b1.getTask().getAssignmentID().equals(task.getAssignmentID()) && task.get(???))
+				Assignment b1asgn = StorageService.getAssignment(b1.getTask().getAssignmentID());
+				if(b1asgn.getID().equals(task.getAssignmentID()) &&
+						b1asgn.getTasks().indexOf(task) > taskIndex) {
+					break;
+				}
 				
 				//Determine if there is space for a block in between b1 and b2
 				if(b2.getStart().getTime() - b1.getEnd().getTime() >= blockLengthInMillis) {
@@ -481,5 +487,6 @@ public class TimeModifier {
 	private static long getMillisBetween(ITimeBlockable b1, ITimeBlockable b2) {
 		return b2.getStart().getTime() - b1.getEnd().getTime();
 	}
+	
 	
 }

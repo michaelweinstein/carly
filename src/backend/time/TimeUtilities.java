@@ -189,7 +189,6 @@ public class TimeUtilities {
 		final long beforeLen = beforeBlock.getLength();
 		final long afterLen = afterBlock.getLength();
 		final IAssignment befAsgn = StorageService.getAssignment(beforeBlock.getTask().getAssignmentID());
-		final IAssignment aftAsgn = StorageService.getAssignment(afterBlock.getTask().getAssignmentID());
 		
 		// Check to see if same length (switch always possible)
 		if (beforeLen == afterLen) {
@@ -216,17 +215,18 @@ public class TimeUtilities {
 			
 			// ONLY return false here if the database updates/merges failed
 			return false;
-		} else if (beforeLen > afterLen) {
-			final int afterInd = allBlocks.indexOf(dest);
+		} 
+		else if (beforeLen > afterLen) {
+			final int afterInd = allBlocks.indexOf(afterBlock);
 			
-			// First try to place before's start at after's start
 			if (afterInd == allBlocks.size() - 1) {
 				// For safety reasons, don't perform a switch -- in order to be the most careful
 				// with this, I would have to request more of the schedule from the database so
 				// that I can be sure I don't overlap something that I currently don't see in
 				// my local segment of the calendar
 				return false;
-			} else {
+			}
+			else {
 				final ITimeBlockable postAfter = allBlocks.get(afterInd + 1);
 				final ITimeBlockable preAfter = allBlocks.get(afterInd - 1);
 				
@@ -283,9 +283,75 @@ public class TimeUtilities {
 					return false;
 				}
 			}
-		} else { // beforeLen < afterLen
-					// TODO: Do the same things as I do in the "else if" case above, except using
-					// boundary-checking conditions on "beforeBlock" instead of "afterBlock"
+		} 
+		else { // beforeLen < afterLen
+			final int beforeInd = allBlocks.indexOf(beforeBlock);
+			
+			if (beforeInd == 0) {
+				// For safety reasons, don't perform a switch -- in order to be the most careful
+				// with this, I would have to request more of the schedule from the database so
+				// that I can be sure I don't overlap something that I currently don't see in
+				// my local segment of the calendar
+				return false;
+			} 
+			else {
+				final ITimeBlockable postBefore = allBlocks.get(beforeInd + 1);
+				final ITimeBlockable preBefore = allBlocks.get(beforeInd - 1);
+				
+				// --Try to push at front
+				// Ensure that the switch can be made without interfering with due dates and without
+				// pushing the "afterDest"-block
+				if (!afterBlock.getEnd().after(befAsgn.getDueDate())
+					&& postBefore.getStart().after(new Date(afterBlock.getStart().getTime() + beforeLen))) {
+					
+					final ITask t1 = beforeBlock.getTask();
+					final ITask t2 = afterBlock.getTask();
+					
+					// Update the timeblocks
+					beforeBlock.setEnd(new Date(beforeBlock.getStart().getTime() + afterLen));
+					beforeBlock.setTask(t2);
+					afterBlock.setEnd(new Date(afterBlock.getStart().getTime() + beforeLen));
+					afterBlock.setTask(t1);
+					
+					// Update the blocks in the database
+					try {
+						StorageService.updateTimeBlock(beforeBlock);
+						StorageService.updateTimeBlock(afterBlock);
+						return true;
+					} 
+					catch (final StorageServiceException sse) {
+						sse.printStackTrace();
+					}
+					
+					// Only return false if the update failed
+					return false;
+				}
+				// --Then try to place before's end at after's end
+				else if (!afterBlock.getEnd().after(befAsgn.getDueDate())
+					&& !preBefore.getEnd().after(new Date(afterBlock.getEnd().getTime() - beforeLen))) {
+					
+					final ITask t1 = beforeBlock.getTask();
+					final ITask t2 = afterBlock.getTask();
+					
+					// Update the time blocks
+					beforeBlock.setEnd(new Date(beforeBlock.getStart().getTime() + afterLen));
+					beforeBlock.setTask(t2);
+					afterBlock.setStart(new Date(afterBlock.getStart().getTime() - beforeLen));
+					afterBlock.setTask(t1);
+					
+					// Update the blocks in the database
+					try {
+						StorageService.updateTimeBlock(beforeBlock);
+						StorageService.updateTimeBlock(afterBlock);
+						return true;
+					} catch (final StorageServiceException sse) {
+						sse.printStackTrace();
+					}
+					
+					// Only return false if the update failed
+					return false;
+				}
+			}	
 		}
 		
 		// If this line is reached, all types of switches failed, so return false
