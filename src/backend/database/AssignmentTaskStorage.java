@@ -76,7 +76,7 @@ public class AssignmentTaskStorage {
 			con.setAutoCommit(false);
 			assignmentStatement = con.prepareStatement(Utilities.INSERT_ASGN);
 			taskStatement = con.prepareStatement(Utilities.INSERT_TASK);
-			final String assignmentId = assignment.getID();
+			String assignmentId = assignment.getID();
 			
 			// insert assignment
 			Utilities.setValues(assignmentStatement, assignmentId, assignment.getName(), assignment.getExpectedHours(),
@@ -84,7 +84,7 @@ public class AssignmentTaskStorage {
 			assignmentStatement.execute();
 			
 			// insert associated tasks
-			for (final ITask task : assignment.getTasks()) {
+			for (ITask task : assignment.getTasks()) {
 				Utilities.setValues(taskStatement, assignmentId, task.getTaskID(), task.getName(),
 						task.getPercentOfTotal(), task.getPercentComplete(), task.getPreferredTimeOfDay().name(),
 						task.getSuggestedBlockLength());
@@ -95,7 +95,7 @@ public class AssignmentTaskStorage {
 			// Check to see that the template associated exists in the db
 			templateStatement = con.prepareStatement(Utilities.SELECT_TEMPLATE_BY_ID);
 			Utilities.setValues(templateStatement, assignment.getTemplate().getID());
-			final ResultSet rs = templateStatement.executeQuery();
+			ResultSet rs = templateStatement.executeQuery();
 			int num = 0;
 			while (rs.next()) {
 				num++;
@@ -442,6 +442,156 @@ public class AssignmentTaskStorage {
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * Retrieves all Assignments
+	 * 
+	 * @param templates Cache of templates for retrieving the associated Templates
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
+	 * @return List of all Assignments stored in the db
+	 */
+	protected static List<IAssignment> getAllAssignments(final Cache<ITemplate> templates, 
+			final JdbcConnectionPool pool) {
+		PreparedStatement assignmentStatement = null;
+		PreparedStatement templateStatement = null;
+		Connection con = null;
+		final HashMap<String, Assignment> idToAssignment = new HashMap<>();
+		final HashMap<String, List<Assignment>> templateIdToAssignmentList = new HashMap<>();
+		final HashMap<String, Template> idToTemplate = new HashMap<>();
+		final List<IAssignment> results = new ArrayList<>();
+		
+		try {
+			Class.forName("org.h2.Driver");
+			con = pool.getConnection();
+			
+			assignmentStatement = con.prepareStatement(Utilities.SELECT_ALL_ASGNS);
+			final ResultSet asgnTaskResults = assignmentStatement.executeQuery();
+			
+			while (asgnTaskResults.next()) {
+				// Getting all of the fields for reconstructing the task object
+				final String taskId = asgnTaskResults.getString("TASK_ID");
+				final String taskName = asgnTaskResults.getString("TASK_NAME");
+				final double taskPercentTotal = asgnTaskResults.getDouble("TASK_PERCENT_TOTAL");
+				final double taskPercentComplete = asgnTaskResults.getDouble("TASK_PERCENT_COMPLETE");
+				final String timeOfDay = asgnTaskResults.getString("TASK_TIME_OF_DAY");
+				final TimeOfDay taskTimeOfDay = TimeOfDay.valueOf(timeOfDay);
+				final double taskSuggestedLength = asgnTaskResults.getDouble("TASK_SUGGESTED_LENGTH");
+				
+				// Get the necessary fields from assignment
+				final String asgnId = asgnTaskResults.getString("ASSIGNMENT.ASGN_ID");
+				final String asgnTemplateId = asgnTaskResults.getString("ASGN_TEMPLATE_ID");
+				
+				Assignment asgn;
+				final Task task = new Task(taskId, taskName, taskPercentTotal, asgnId, taskPercentComplete,
+						taskTimeOfDay, taskSuggestedLength);
+				
+				// if the assignment hasn't been reconstructed yet
+				if (!idToAssignment.containsKey(asgnId)) {
+					final String asgnName = asgnTaskResults.getString("ASGN_NAME");
+					final Date asgnDueDate = new Date(asgnTaskResults.getLong("ASGN_DATE"));
+					final int asgnExpectedHours = asgnTaskResults.getInt("ASGN_EXPECTED_HOURS");
+					final ArrayList<ITask> asgnTaskList = new ArrayList<>();
+					
+					asgnTaskList.add(task);
+					asgn = new Assignment(asgnId, asgnName, asgnDueDate, asgnExpectedHours, asgnTaskList);
+					idToAssignment.put(asgnId, asgn);
+				}
+				// if the assignment has already been reconstructed, just add task to its task list
+				else {
+					asgn = idToAssignment.get(asgnId);
+					asgn.addTask(task);
+				}
+				
+				if (templateIdToAssignmentList.containsKey(asgnTemplateId)) {
+					templateIdToAssignmentList.get(asgnTemplateId).add(asgn);
+				} else {
+					final ArrayList<Assignment> asgnList = new ArrayList<>();
+					asgnList.add(asgn);
+					templateIdToAssignmentList.put(asgnTemplateId, asgnList);
+				}
+			}
+			
+			/*
+			 * Assignments are still missing a reference to their Template. We need to rebuilt Templates and all their
+			 * TemplateSteps first
+			 */
+			
+			templateStatement = con.prepareStatement(Utilities.SELECT_TEMPLATES_AND_STEPS_BY_ID);
+			
+			// Now add the appropriate template reference to each assignment
+			for (final Map.Entry<String, List<Assignment>> entry : templateIdToAssignmentList.entrySet()) {
+				final String listTemplateId = entry.getKey();
+				final List<Assignment> associatedAssignments = entry.getValue();
+				
+				if (templates.contains(listTemplateId)) {
+					for (final Assignment a : associatedAssignments) {
+						a.setTemplate(templates.get(listTemplateId));
+					}
+				} else {
+					Utilities.setValues(templateStatement, listTemplateId);
+					final ResultSet templateStepResults = templateStatement.executeQuery();
+					
+					while (templateStepResults.next()) {
+						// Reconstructing the template step
+						final String stepName = templateStepResults.getString("STEP_NAME");
+						final double stepPercentTotal = templateStepResults.getDouble("STEP_PERCENT_TOTAL");
+						final int stepStepNumber = templateStepResults.getInt("STEP_STEP_NUMBER");
+						final String timeOfDay = templateStepResults.getString("STEP_TIME_OF_DAY");
+						final TimeOfDay stepTimeOfDay = TimeOfDay.valueOf(timeOfDay);
+						
+						final String templateId = templateStepResults.getString("TEMPLATE.TEMPLATE_ID");
+						final TemplateStep step = new TemplateStep(stepName, stepPercentTotal, stepStepNumber,
+								stepTimeOfDay);
+						
+						if (!idToTemplate.containsKey(templateId)) {
+							final String templateName = templateStepResults.getString("TEMPLATE_NAME");
+							final double templateConsecutiveHours = templateStepResults
+									.getDouble("TEMPLATE_CONSECUTIVE_HOURS");
+							final ArrayList<ITemplateStep> templateList = new ArrayList<>();
+							templateList.add(step);
+							
+							final Template template = new Template(templateId, templateName, templateList,
+									templateConsecutiveHours);
+							idToTemplate.put(templateId, template);
+							
+							for (final Assignment a : associatedAssignments) {
+								a.setTemplate(template);
+							}
+						} else {
+							idToTemplate.get(templateId).addStep(step);
+						}
+					}
+					
+					templates.insert(listTemplateId, idToTemplate.get(listTemplateId));
+				}
+			}
+		} catch (final ClassNotFoundException e) {
+			Utilities
+					.printException("AssignmentTaskStorage: getAllAssignmentsWithinRange: db drive class not found", e);
+		} catch (final SQLException e) {
+			Utilities.printSQLException("AssignmentTaskStorage: getAllAssignmentsWithinRange: "
+				+ "could not retrieve assignments", e);
+		}
+		finally {
+			try {
+				if (assignmentStatement != null) {
+					assignmentStatement.close();
+				}
+				if (templateStatement != null) {
+					templateStatement.close();
+				}
+				if (con != null) {
+					con.close();
+				}
+			} catch (final SQLException x) {
+				Utilities.printSQLException("AssignmentTaskStorage: getAllAssignmentsWithinRange: "
+					+ "could not close resource", x);
+			}
+		}
+		
+		results.addAll(idToAssignment.values());
+		return results;
 	}
 	
 	/**
