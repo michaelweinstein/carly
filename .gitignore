@@ -44,3 +44,6 @@ derived/
 derived/*.jar
 
 /build
+
+#Ignore carly
+.carly_db.*
