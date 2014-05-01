@@ -4,6 +4,7 @@ import java.util.Date;
 
 import javax.swing.SwingUtilities;
 
+import backend.Learner;
 import backend.database.StorageService;
 import backend.database.StorageServiceException;
 import backend.time.NotEnoughTimeException;
@@ -99,6 +100,7 @@ public class HubController {
 		
 		if (TimeModifier.updateBlock(oldBlock, newStart, newEnd)) {
 			// TODO: If successful, update learner using oldStart and oldEnd
+			Learner.considerBlockUpdate(oldBlock, newStart, newEnd); 
 		}
 		SwingUtilities.invokeLater(new Runnable() {
 			
