@@ -81,7 +81,7 @@ public class TimeRect extends Rectangle2D.Double {
 		if (!_t.isMovable()) {
 			return Utils.COLOR_BACKGROUND;
 		}
-		return equalsMovingBlock() ? Utils.COLOR_FOREGROUND : Utils.COLOR_LIGHT_BG;
+		return equalsMovingBlock() ? Utils.COLOR_FOREGROUND : Utils.COLOR_FOREGROUND.darker();
 	}
 	
 	/**

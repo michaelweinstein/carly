@@ -1,9 +1,11 @@
 package frontend.view.assignments;
 
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -21,6 +23,9 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 	
 	private static final long	serialVersionUID	= 1L;
 	private IAssignment			_assignment;
+	private Integer				_hoveredRow;
+	private boolean				_moveWithMouse;
+	private Point				_mousePoint;
 	
 	/**
 	 * Just sets up the look
@@ -72,6 +77,10 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 	protected void paintComponent(final Graphics g) {
 		super.paintComponent(g);
 		final Graphics2D canvas = (Graphics2D) g;
+		canvas.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		canvas.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		canvas.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+		
 		if (_assignment != null) {
 			for (int i = 0; i < _assignment.getTasks().size(); i++) {
 				final ITask t = _assignment.getTasks().get(i);
@@ -83,6 +92,57 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 				canvas.draw(rect);
 			}
 		}
+		
+		// If being hovered, paint row cover
+		if (_hoveredRow != null) {
+			drawHoveredRow(canvas);
+		}
+	}
+	
+	/**
+	 * Draws the hover on a given row
+	 * 
+	 * @param canvas the canvas object
+	 */
+	private void drawHoveredRow(final Graphics2D canvas) {
+		final int h = getRowHeight();
+		final int w = getWidth();
+		final int y = _hoveredRow * h;
+		final int endY = y + h - 1;
+		canvas.setColor(getBackground());
+		canvas.fillRect(0, y, w, h);
+		
+		// Completed bar
+		final double perc = ((ITask) getValueAt(_hoveredRow, 0)).getPercentComplete();
+		canvas.setColor(Utils.COLOR_ALTERNATE.brighter());
+		canvas.fillRect(0, y, (int) (perc * w), h);
+		
+		// Calculations for the text
+		int textX = (int) (perc * w) - 30;
+		Color c = Utils.COLOR_FOREGROUND;
+		String content = (int) (perc * 100) + "%";
+		if (perc == 0) {
+			textX = 0;
+			content = "Click to set % complete";
+			c = Utils.COLOR_ACCENT;
+		}
+		
+		// Draw hover
+		if (_moveWithMouse) {
+			final double hover = _mousePoint.getX();
+			canvas.setColor(Utils.COLOR_ACCENT);
+			canvas.fillRect(0, y, (int) hover, h);
+			textX = (int) hover - 30;
+			content = (int) ((hover / w) * 100) + "%";
+			c = Utils.COLOR_BACKGROUND;
+		}
+		canvas.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 11));
+		canvas.setColor(c);
+		canvas.drawString(content, textX, endY - 5);
+		
+		// Line at bottom
+		canvas.setColor(Utils.COLOR_FOREGROUND);
+		canvas.drawLine(0, endY, w, endY);
 	}
 	
 	/**
@@ -92,7 +152,7 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 	 * @return an int representing the row
 	 */
 	private int getRowForPoint(final Point point) {
-		return getHeight() / getRowCount() / (getRowHeight() + getRowMargin());
+		return (int) (point.getY() / getHeight() * getRowCount());
 	}
 	
 	@Override
@@ -100,11 +160,25 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 	
 	@Override
 	public void mouseMoved(final MouseEvent e) {
-		System.out.println("Index: " + getRowForPoint(e.getPoint()));
+		_mousePoint = e.getPoint();
+		final int row = getRowForPoint(_mousePoint);
+		if (_hoveredRow == null || row != _hoveredRow) {
+			_hoveredRow = row;
+			_moveWithMouse = false;
+		}
+		repaint();
 	}
 	
 	@Override
-	public void mouseClicked(final MouseEvent e) {}
+	public void mouseClicked(final MouseEvent e) {
+		if (_moveWithMouse && _mousePoint != null) {
+			final double percent = _mousePoint.getX() / getWidth();
+			System.out.println(percent);
+			((ITask) getValueAt(_hoveredRow, 0)).setPercentComplete(percent);
+		}
+		_moveWithMouse = !_moveWithMouse;
+		repaint();
+	}
 	
 	@Override
 	public void mousePressed(final MouseEvent e) {}
@@ -116,5 +190,8 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 	public void mouseEntered(final MouseEvent e) {}
 	
 	@Override
-	public void mouseExited(final MouseEvent e) {}
+	public void mouseExited(final MouseEvent e) {
+		_hoveredRow = null;
+		repaint();
+	}
 }

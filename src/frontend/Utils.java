@@ -26,11 +26,10 @@ public abstract class Utils {
 	public static final String	USAGE				= "Usage: carly [--repl] [--debug]";
 	
 	// GUI Constants
-	public static final Color	COLOR_BACKGROUND	= Color.DARK_GRAY;
+	public static final Color	COLOR_BACKGROUND	= Color.DARK_GRAY.darker();
 	public static final Color	COLOR_FOREGROUND	= Color.WHITE;
-	public static final Color	COLOR_ALTERNATE		= Color.DARK_GRAY.brighter();
-	public static final Color	COLOR_ERROR			= Color.RED;
-	public static final Color	COLOR_LIGHT_BG		= new Color(140, 140, 140);
+	public static final Color	COLOR_ALTERNATE		= Color.DARK_GRAY;
+	public static final Color	COLOR_LIGHT_BG		= Color.DARK_GRAY.brighter();
 	public static final Color	COLOR_ACCENT		= Color.ORANGE;
 	public static final String	APP_FONT_NAME		= "Arial";
 	
