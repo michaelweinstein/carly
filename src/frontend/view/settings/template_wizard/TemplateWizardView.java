@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -29,6 +28,7 @@ import data.ITemplateStep;
 import data.Template;
 import data.TemplateStep;
 import frontend.Utils;
+import frontend.view.CButton;
 import frontend.view.assignments.StepModel;
 import frontend.view.assignments.StepViewTable;
 
@@ -66,13 +66,13 @@ public class TemplateWizardView extends JPanel {
 	private final JComboBox<ITemplate>			_templatePicker;
 	private StepModel							_tableModel;
 	// Top Buttons ('Hide', 'Show')
-	private final JButton						_editBtn				= new JButton(edit_template);
-	private final JButton						_hideBtn				= new JButton(hide_template);
+	private final CButton						_editBtn				= new CButton(edit_template);
+	private final CButton						_hideBtn				= new CButton(hide_template);
 	// Panels (Show/Hide block)
 	private JPanel								_namePanel				= new JPanel();
 	private JPanel								_hoursPanel				= new JPanel();
 	private JPanel								_stepPanel				= new JPanel();
-	private final JButton						_submitTemplateBtn		= new JButton(submit_updated_template);
+	private final CButton						_submitTemplateBtn		= new CButton(submit_updated_template);
 	
 	// Easy access to TextComponent input fields ('name', 'preferred consecutive hours')
 	private final Map<String, JTextComponent>	_inputMap				= new HashMap<>();

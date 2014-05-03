@@ -1,5 +1,7 @@
 package frontend.view.assignments;
 
+import hub.HubController;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -136,7 +138,7 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 			content = (int) ((hover / w) * 100) + "%";
 			c = Utils.COLOR_BACKGROUND;
 		}
-		canvas.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 11));
+		canvas.setFont(Utils.getFont(Font.BOLD, 11));
 		canvas.setColor(c);
 		canvas.drawString(content, textX, endY - 5);
 		
@@ -175,9 +177,13 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 			final double percent = _mousePoint.getX() / getWidth();
 			System.out.println(percent);
 			((ITask) getValueAt(_hoveredRow, 0)).setPercentComplete(percent);
+			
+			//TODO: EVAN ADDED THIS
+			HubController.changeTask(_assignment.getTasks().get(_hoveredRow), percent);
 		}
 		_moveWithMouse = !_moveWithMouse;
 		repaint();
+		
 	}
 	
 	@Override

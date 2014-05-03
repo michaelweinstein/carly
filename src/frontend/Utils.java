@@ -3,7 +3,13 @@ package frontend;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.GraphicsEnvironment;
+import java.io.File;
+import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -20,18 +26,55 @@ import data.Tuple;
  */
 public abstract class Utils {
 	
-	public static final String	APP_NAME			= "Carly";
-	public static final String	REPL				= "repl";
-	public static final String	DEBUG				= "debug";
-	public static final String	USAGE				= "Usage: carly [--repl] [--debug]";
+	public static final String			APP_NAME			= "Carly";
+	public static final String			REPL				= "repl";
+	public static final String			DEBUG				= "debug";
+	public static final String			USAGE				= "Usage: carly [--repl] [--debug]";
 	
 	// GUI Constants
-	public static final Color	COLOR_BACKGROUND	= Color.DARK_GRAY.darker();
-	public static final Color	COLOR_FOREGROUND	= Color.WHITE;
-	public static final Color	COLOR_ALTERNATE		= Color.DARK_GRAY;
-	public static final Color	COLOR_LIGHT_BG		= Color.DARK_GRAY.brighter();
-	public static final Color	COLOR_ACCENT		= Color.ORANGE;
-	public static final String	APP_FONT_NAME		= "Arial";
+	public static final Color			COLOR_BACKGROUND	= Color.DARK_GRAY.darker();
+	public static final Color			COLOR_FOREGROUND	= Color.WHITE;
+	public static final Color			COLOR_ALTERNATE		= Color.DARK_GRAY;
+	public static final Color			COLOR_LIGHT_BG		= Color.DARK_GRAY.brighter();
+	public static final Color			COLOR_ACCENT		= Color.ORANGE;
+	
+	// Fonts
+	private static Map<String, Font>	fonts;
+	public static final String			FONT_NAME			= "Cabin";
+	public static final String			FONT_NAME_ALT		= "Arial";
+	
+	/**
+	 * Returns font of correct style and size
+	 * 
+	 * @param style the style (Font.BOLD, Font.PLAIN, Font.ITALIC or any combo thereof)
+	 * @param size the size of the new font
+	 * @return a Font object with the given properties
+	 */
+	public static Font getFont(final int style, final int size) {
+		Font font = null;
+		try {
+			if (fonts == null) {
+				fonts = new HashMap<>();
+			}
+			final String fontName = FONT_NAME.replace(" ", "") + style;
+			
+			// Load from a cache map, if exists
+			if ((font = fonts.get(fontName + "|" + size)) != null) {
+				return font;
+			}
+			final File fontFile = new File("fonts/" + fontName + ".ttf");
+			
+			// Make new font of right size
+			font = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(1.0f * size);
+			final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+			ge.registerFont(font);
+			fonts.put(fontName + "|" + size, font);
+		} catch (FontFormatException | IOException e) {
+			font = new Font(FONT_NAME_ALT, style, size);
+		}
+		
+		return font;
+	}
 	
 	/**
 	 * Adds a full border to the panel
@@ -106,16 +149,6 @@ public abstract class Utils {
 	public static void themeComponentLight(final Component panel) {
 		panel.setForeground(COLOR_FOREGROUND);
 		panel.setBackground(COLOR_LIGHT_BG);
-	}
-	
-	/**
-	 * Sets the font of a label to be bold of the given size
-	 * 
-	 * @param label the label
-	 * @param fontSize the new font size to use
-	 */
-	public static void setFont(final JLabel label, final int fontSize) {
-		label.setFont(new Font(APP_FONT_NAME, Font.BOLD, fontSize));
 	}
 	
 	/**
@@ -245,6 +278,16 @@ public abstract class Utils {
 	 */
 	public static void printError(final String msg) {
 		System.err.println("ERROR: " + msg);
+	}
+	
+	/**
+	 * Sets the font of the label to be bold of given size
+	 * 
+	 * @param label the label
+	 * @param size the size
+	 */
+	public static void setFont(final JLabel label, final int size) {
+		label.setFont(getFont(Font.BOLD, size));
 	}
 	
 }

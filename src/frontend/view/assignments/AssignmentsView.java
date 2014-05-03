@@ -26,6 +26,7 @@ import backend.database.StorageService;
 import data.IAssignment;
 import frontend.Utils;
 import frontend.app.GUIApp;
+import frontend.view.CButton;
 
 /**
  * Represents all current tasks and their collective data
@@ -76,7 +77,7 @@ public class AssignmentsView extends JPanel {
 		
 		// Title
 		final JLabel title = new JLabel("All Assignments");
-		title.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 22));
+		Utils.setFont(title, 22);
 		Utils.themeComponent(title);
 		Utils.padComponent(title, 15, 0, 0, 0);
 		Utils.addBorderBottom(title);
@@ -109,7 +110,7 @@ public class AssignmentsView extends JPanel {
 		_deleteText = new JTextArea("Are you sure?");
 		_deleteText.setAlignmentX(LEFT_ALIGNMENT);
 		deleteTitle.setAlignmentX(LEFT_ALIGNMENT);
-		_deleteText.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 14));
+		_deleteText.setFont(Utils.getFont(Font.PLAIN, 14));
 		_deleteText.setEditable(false);
 		_deleteText.setFocusable(false);
 		_deleteText.setWrapStyleWord(true);
@@ -122,8 +123,8 @@ public class AssignmentsView extends JPanel {
 		Utils.themeComponent(_deleteText);
 		
 		// Create buttons
-		_confirm = new JButton("Delete");
-		final JButton cancel = new JButton("Cancel");
+		_confirm = new CButton("Delete");
+		final JButton cancel = new CButton("Cancel");
 		_confirm.setAlignmentX(RIGHT_ALIGNMENT);
 		cancel.setAlignmentX(RIGHT_ALIGNMENT);
 		cancel.addActionListener(new ActionListener() {
@@ -201,8 +202,8 @@ public class AssignmentsView extends JPanel {
 			Utils.padComponent(l, 40, 0, 10, 0);
 			Utils.themeComponent(l);
 			Utils.themeComponent(l2);
-			l.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 15));
-			l2.setFont(new Font(Utils.APP_FONT_NAME, Font.ITALIC, 12));
+			l.setFont(Utils.getFont(Font.PLAIN, 15));
+			l2.setFont(Utils.getFont(Font.ITALIC, 12));
 			l2.setForeground(Utils.COLOR_FOREGROUND.darker());
 			_assignmentItems.add(l);
 			_assignmentItems.add(l2);

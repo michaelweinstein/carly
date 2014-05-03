@@ -22,6 +22,7 @@ import data.UnavailableBlock;
 public class TimeAllocator {
 	
 	private static final double		DEFAULT_HRS_PER_BLOCK	= 3.0;
+	private static final double		MIN_BLOCK_LENGTH_HRS 	= 0.25;
 	
 	private final IAssignment		m_asgn;
 	private List<ITimeBlockable>	m_localChangesToBlocks;
@@ -82,7 +83,8 @@ public class TimeAllocator {
 			//Now, insert the remaining time as a smaller block
 			double numHrsLeftover = numHoursInStep - (numBlocksLeft * numHoursPerBlock);
 			numBlocksLeft = 1;
-			success = tryUniformInsertion(allBlocks, start, end, step, numBlocksLeft, numHrsLeftover);
+			if(numHrsLeftover >= MIN_BLOCK_LENGTH_HRS)
+				success = tryUniformInsertion(allBlocks, start, end, step, numBlocksLeft, numHrsLeftover);
 			
 			//For the purposes of extensibility, we could try another insertion policy here.
 			//Currently, we choose to throw an exception instead to indicate failure.

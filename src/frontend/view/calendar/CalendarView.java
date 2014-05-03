@@ -130,7 +130,7 @@ public class CalendarView extends JPanel {
 		final JPanel tools = new JPanel();
 		tools.setLayout(new BoxLayout(tools, BoxLayout.X_AXIS));
 		_weekYearLabel = new JLabel();
-		_weekYearLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 22));
+		_weekYearLabel.setFont(Utils.getFont(Font.BOLD, 22));
 		updateWeekYearLabel();
 		Utils.themeComponentAlt(tools);
 		Utils.themeComponent(_weekYearLabel);
@@ -204,7 +204,7 @@ public class CalendarView extends JPanel {
 		Utils.themeComponentAlt(par);
 		Utils.padComponent(par, 0, 10);
 		
-		final Font ft = new Font(Utils.APP_FONT_NAME, Font.BOLD, 12);
+		final Font ft = Utils.getFont(Font.BOLD, 12);
 		
 		_dayLabelList.add(new DayLabel("Sun"));
 		_dayLabelList.add(new DayLabel("Mon"));
