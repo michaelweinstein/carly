@@ -102,9 +102,9 @@ public class StorageService {
 	}
 	
 	/*
-	 * ================================================================ 
+	 * ================================================
 	 * CRUD and dynamic queries for Assignments & Tasks
-	 * ================================================================
+	 * ================================================
 	 */
 	
 	/**
@@ -184,9 +184,9 @@ public class StorageService {
 	}
 	
 	/*
-	 * ================================================================ 
+	 * =======================================
 	 * CRUD and dynamic queries for TimeBlocks
-	 * ================================================================
+	 * =======================================
 	 */
 	
 	/**
@@ -274,10 +274,14 @@ public class StorageService {
 		return TimeBlockStorage.removeTimeBlock(block, _pool);
 	}
 	
+	public static void addAllDefaultUnavailableBlocks(List<UnavailableBlock> blockList) {
+		TimeBlockStorage.addAllDefaultUnavailableBlocks(blockList); 
+	}
+	
 	/*
-	 * ================================================================ 
+	 * ================================================
 	 * CRUD and dynamic queries for Templates and Steps
-	 * ================================================================
+	 * ================================================
 	 */
 	
 	/**
@@ -331,10 +335,18 @@ public class StorageService {
 		return TemplateStepStorage.removeTemplate(temp, _pool);
 	}
 	
+	public static void learnTemplateStepTimeOfDay(ITask task, String todKey, double todIncrement) {
+		
+	}
+	
+	public static void learnTemplateConsecutiveHours(ITask task, double consecutiveHours) {
+		
+	}
+	
 	/*
-	 * ================================================================ 
+	 * =====================================
 	 * CRUD and dynamic queries for Settings
-	 * ================================================================
+	 * =====================================
 	 */
 	
 	/**
@@ -377,9 +389,9 @@ public class StorageService {
 	}
 	
 	/*
-	 * ================================================================ 
+	 * ==============
 	 * Helper methods
-	 * ================================================================
+	 * ==============
 	 */
 	
 	protected static String concatColumn(final String columnName, final String dataType) {

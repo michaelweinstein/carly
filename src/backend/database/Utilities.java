@@ -19,13 +19,13 @@ public abstract class Utilities {
 	
 	protected static final String INSERT_TIME_BLOCK = 
 			"INSERT INTO TIME_BLOCK " + 
-			"(BLOCK_ID, TASK_ID, BLOCK_START, BLOCK_END, BLOCK_MOVABLE) " + 
-			"VALUES (?, ?, ?, ?, ?) ";
+			"(BLOCK_ID, TASK_ID, BLOCK_START, BLOCK_END, BLOCK_MOVABLE, BLOCK_DEFAULT) " + 
+			"VALUES (?, ?, ?, ?, ?, ?) ";
 	
 	protected static final String MERGE_TIME_BLOCK = 
 			"MERGE INTO TIME_BLOCK " + 
-			"(BLOCK_ID, TASK_ID, BLOCK_START, BLOCK_END, BLOCK_MOVABLE) " + 
-			"VALUES (?, ?, ?, ?, ?) ";
+			"(BLOCK_ID, TASK_ID, BLOCK_START, BLOCK_END, BLOCK_MOVABLE, BLOCK_DEFAULT) " + 
+			"VALUES (?, ?, ?, ?, ?, ?) ";
 	
 	protected static final String UPDATE_TIME_BLOCK = 
 			"UPDATE TIME_BLOCK " +
