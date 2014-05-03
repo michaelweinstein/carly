@@ -158,13 +158,20 @@ public class TimeCompactor {
 			if(newStart <= block.getStart().getTime()) {
 				underConstruction.set(i, block);
 				
+				//Decrement the free time used, despite the fact that the block was not moved
+				freeTimeBankMillis -= (timeToStartFrom.getTime() - block.getEnd().getTime());
+				
 				//Reset the time for where to start on the next iteration
 				timeToStartFrom = (Date) block.getStart().clone();
+				
 				continue;
 			}
 			//Don't let a block be pushed past its due date
 			if(newEnd > blockAsgn.getDueDate().getTime()) {
 				underConstruction.set(i, block);
+				
+				//Decrement the free time used, despite the fact that the block was not moved
+				freeTimeBankMillis -= (timeToStartFrom.getTime() - block.getEnd().getTime());
 				
 				//Reset the time for where to start on the next iteration
 				timeToStartFrom = (Date) block.getStart().clone();

@@ -22,7 +22,7 @@ import data.UnavailableBlock;
 public class TimeAllocator {
 	
 	private static final double		DEFAULT_HRS_PER_BLOCK	= 3.0;
-	private static final double		MIN_BLOCK_LENGTH_HRS 	= 0.25;
+	public static final double		MIN_BLOCK_LENGTH_HRS 	= 0.25;
 	
 	private final IAssignment		m_asgn;
 	private List<ITimeBlockable>	m_localChangesToBlocks;
