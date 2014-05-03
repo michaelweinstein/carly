@@ -440,4 +440,11 @@ public class TemplateStepStorage {
 		results.addAll(idToTemplate.values());
 		return results;
 	}
+	
+	protected static TemplateStep getTemplateStepFromTaskId(final String taskId) {
+		
+		
+		
+		return null; 		
+	}
 }

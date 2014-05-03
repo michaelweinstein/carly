@@ -54,11 +54,11 @@ public class Main {
 		 */
 		
 		// DEBUG
-		StorageService.initialize(false);
+		boolean runStartUp = StorageService.initialize(false);
 		
 		// Create an App, subtype dependent on the GUI command line flag
 		final boolean debug = parser.existsFlag(Utils.DEBUG);
-		a = (parser.existsFlag(Utils.REPL)) ? new REPLApp(debug) : new GUIApp(debug);
+		a = (parser.existsFlag(Utils.REPL)) ? new REPLApp(debug) : new GUIApp(debug, runStartUp);
 		a.start();
 	}
 }

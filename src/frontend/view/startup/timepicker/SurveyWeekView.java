@@ -8,10 +8,12 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.swing.JPanel;
 
+import data.UnavailableBlock;
 import data.Vec2d;
 import frontend.Utils;
 
@@ -100,6 +102,38 @@ public class SurveyWeekView extends JPanel {
 		return null;
 	}
 	
+	/* Data Access methods */
+	
+	/**
+	 * Returns every block (48 * 7)
+	 * 
+	 * @return List, all <code>SurveyTimeBlock</code> instances; selected && unselected
+	 */
+	public List<SurveyTimeBlock> getAllBlocks() {
+		return _blocks;
+	}
+	
+	/**
+	 * Returns list of all blocks not selected by user. <br>
+	 * Creates <code>UnavailableBlock</code> for each 
+	 * unselected <code>SurveyTimeBlock</code>.
+	 * 
+	 * @return list of <code>UnavailableBlocks</code> 
+	 * 		for any <code>SurveyTimeBlocks</code> not selected
+	 */
+	public List<UnavailableBlock> getUnavailableBlocks() {
+		List<UnavailableBlock> ublockslist = new ArrayList<>();
+		for (SurveyTimeBlock b: _blocks) {
+			// If not selected
+			if (!b.isSelected()) {
+				Date[] times = b.getRange();
+				// Create UnavailableBlock and add to returned list
+				ublockslist.add(new UnavailableBlock(times[0], times[1], null));
+			}
+		}
+		return ublockslist;
+	}
+	
 	/* Paint methods */
 	
 	/**
@@ -110,7 +144,7 @@ public class SurveyWeekView extends JPanel {
 	@Override
 	public void paintComponent(Graphics g) {
 		Graphics2D g2 = (Graphics2D) g;
-		// draw all blocks
+		// Draw all blocks
 		for (SurveyTimeBlock b: _blocks) {
 			b.draw(g2);
 		}
@@ -132,7 +166,7 @@ public class SurveyWeekView extends JPanel {
 	 * All subsequent blocks in this drag are then set to the same 
 	 * <code>selected</code> value as the initial block.
 	 * 
-	 * @param loc of mouse click, Vec2d 
+	 * @param loc of mouse click Vec2d 
 	 */
 	private void handleMouse(Vec2d loc) {
 		SurveyTimeBlock block = findBlockAt(loc);

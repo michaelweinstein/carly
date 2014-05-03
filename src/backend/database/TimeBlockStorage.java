@@ -32,6 +32,7 @@ public class TimeBlockStorage {
         blockCols.add(StorageService.concatColumn("BLOCK_START", "BIGINT"));
         blockCols.add(StorageService.concatColumn("BLOCK_END", "BIGINT"));
         blockCols.add(StorageService.concatColumn("BLOCK_MOVABLE", "BOOLEAN"));
+        blockCols.add(StorageService.concatColumn("BLOCK_DEFAULT", "BOOLEAN"));
         queries.add(Utilities.buildCreateString("TIME_BLOCK", blockCols)); 
 	}
 	
@@ -316,7 +317,7 @@ public class TimeBlockStorage {
 	        con.setAutoCommit(false);
 	        blockStatement = con.prepareStatement(Utilities.INSERT_TIME_BLOCK); 
             Utilities.setValues(blockStatement, block.getId(), block.getTaskId(), block.getStart().getTime(),
-            		block.getEnd().getTime(), block.isMovable());
+            		block.getEnd().getTime(), block.isMovable(), false);
             blockStatement.execute();
             
             //Only perform this check for assignment blocks
@@ -432,7 +433,7 @@ public class TimeBlockStorage {
 	        for (ITimeBlockable block: blocksToAdd) {
 	        	blockStatement = con.prepareStatement(Utilities.MERGE_TIME_BLOCK); 
 	            Utilities.setValues(blockStatement, block.getId(), block.getTaskId(), block.getStart().getTime(),
-	            		block.getEnd().getTime(), block.isMovable());
+	            		block.getEnd().getTime(), block.isMovable(), false);
 	            blockStatement.execute();
 	        }
 	        
@@ -620,5 +621,9 @@ public class TimeBlockStorage {
             }
 	    } 
 		return block; 
+	}
+	
+	protected static void addAllDefaultUnavailableBlocks(List<UnavailableBlock> blockList) {
+		
 	}
 }
