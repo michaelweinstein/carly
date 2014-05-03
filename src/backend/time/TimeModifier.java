@@ -3,6 +3,7 @@ package backend.time;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import backend.database.StorageService;
 import backend.database.StorageServiceException;
@@ -315,6 +316,7 @@ public class TimeModifier {
 		final List<UnavailableBlock> unavBlocks = StorageService.getAllUnavailableBlocksWithinRange(tempStart, tempEnd);
 		final List<ITimeBlockable> allBlocks = TimeUtilities.zipTimeBlockLists(unavBlocks, asgnBlocks);
 		
+		final long minLengthInMillis = (long) (TimeAllocator.MIN_BLOCK_LENGTH_HRS * 60 * 60 * 1000);
 		
 		final Date now = new Date(); // this Date captures where the user is and how much work they've done
 		final Date due = StorageService.getAssignment(task.getAssignmentID()).getDueDate();
@@ -367,7 +369,7 @@ public class TimeModifier {
 			int taskIndex = asgn.getTasks().indexOf(task);
 			
 			// Add as many full-size blocks as possible, then add on extra time to other blocks
-			while (currInd < allBlocks.size() && totalMillisToAdd > 0) {
+			while (currInd < allBlocks.size() && totalMillisToAdd > minLengthInMillis) {
 				//Ignore this edge case
 				if(currInd == 0)
 					continue;
@@ -419,7 +421,7 @@ public class TimeModifier {
 			}
 			
 			//Add whatever leftover time there is to-add to the currently existing blocks
-			for(int i = 1; i < allBlocks.size() - 1 && totalMillisToAdd > 0; ++i) {
+			for(int i = 1; i < allBlocks.size() - 1 && totalMillisToAdd > minLengthInMillis; ++i) {
 				
 				ITimeBlockable b1 = allBlocks.get(i);
 				ITimeBlockable b2 = allBlocks.get(i + 1);
@@ -445,7 +447,7 @@ public class TimeModifier {
 			//TODO: At this point, return to the user (regardless of how many millis
 			//		were successfully added).  This is a pretty extreme edge case that
 			//		the schedule would be so tight that no blocks could be added anyway...
-			if(totalMillisToAdd > 0) {
+			if(totalMillisToAdd > minLengthInMillis) {
 				System.err.println("Total Millis To Add > 0 - sleeping for 5 seconds as punishment :(");
 				try{
 					Thread.sleep(5000);
@@ -454,25 +456,26 @@ public class TimeModifier {
 			}
 			
 			//Blocks were just inserted, so decompact them
-			TimeCompactor.decompact(allBlocks, tempStart, tempEnd);
+			TimeCompactor.decompact(allBlocks, now, tempEnd);
 			
 		}
 		// 5b. The user is ahead, so remove a bit of time from each block
 		else if (pctToAdjust > 0) {
 			long totalMillisToRemove = (long) (pctToAdjust * taskLengthInMillis);
 			
-			final int startInd = TimeUtilities.indexOfFitLocn(allBlocks, now);
+			final int startInd = TimeUtilities.indexOfFitLocn(taskBlocks, now);
 			int numFutureBlocks = taskBlocks.size() - startInd;
 			int currInd = taskBlocks.size() - 1;
 			
 			// Remove as many blocks as possible, then remove a fixed amount from one block
 			while (currInd >= startInd && totalMillisToRemove > 0) {
+				
 				final ITimeBlockable itb = taskBlocks.get(currInd);
 				final long blockLen = itb.getLength();
 				if (blockLen <= totalMillisToRemove) {
 					// Remove the block from both the local list and the StorageService
-					allBlocks.remove(currInd);
-					taskBlocks.remove(currInd);
+					allBlocks.remove(itb);
+					taskBlocks.remove(itb);
 					StorageService.removeTimeBlock(itb);
 					
 					// Subtract the number of millis removed and the number of future blocks
@@ -486,24 +489,39 @@ public class TimeModifier {
 					--currInd;
 			}
 			
-			final long avgTimeToRemove = totalMillisToRemove / numFutureBlocks;
+			//Removed as much as possible, regardless of what the user has input
+			if(numFutureBlocks == 0)
+				return;
+			long avgTimeToRemove = totalMillisToRemove / numFutureBlocks;
+			
 			// If there is still some time left to remove, remove a bit of time from each block
 			if (totalMillisToRemove > 0) {
-				for (int i = taskBlocks.size() - 1; i >= startInd; --i) {
+				for (int i = taskBlocks.size() - 1; i >= taskBlocks.size() - numFutureBlocks; --i) {
 					final ITimeBlockable block = taskBlocks.get(i);
-					block.setEnd(new Date(block.getEnd().getTime() - avgTimeToRemove));
 					
-					//TODO: If avgTimeToRemove > block.getLength(), we need to remove from elsewhere.
-					
-					try {
-						StorageService.updateTimeBlock(block);
-					} catch (final StorageServiceException sse) {
-						sse.printStackTrace();
+					//If removing time from a block makes it shorter than the minimum block length,
+					//don't remove any time, then reset the average time to remove from each block
+					if(block.getLength() - avgTimeToRemove < TimeAllocator.MIN_BLOCK_LENGTH_HRS * 60 * 60 * 1000) {
+						--numFutureBlocks;
+						if(numFutureBlocks == 0)
+							break;
+						else
+							avgTimeToRemove = totalMillisToRemove / numFutureBlocks;
+					}
+					else {
+						block.setEnd(new Date(block.getEnd().getTime() - avgTimeToRemove));
+						
+						//Update any block that is changed
+						try {
+							StorageService.updateTimeBlock(block);
+						} catch (final StorageServiceException sse) {
+							sse.printStackTrace();
+						}
 					}
 				}
 			}
 		}
-		
+				
 		// If the percent to-adjust-to is the same as the current amount done, there's 
 		// nothing left to do
 	}

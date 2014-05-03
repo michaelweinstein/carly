@@ -3,12 +3,15 @@ package frontend.view;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.AbstractAction;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 import frontend.Utils;
 import frontend.app.GUIApp;
@@ -31,35 +34,70 @@ public class ToolbarView extends JPanel {
 		
 		// Today
 		final JButton today = new CButton("Today");
-		today.addActionListener(new ActionListener() {
+		final AbstractAction todayAction = new AbstractAction() {
+			
+			private static final long	serialVersionUID	= 1L;
 			
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				app.getCalendarView().shiftWeekToToday();
+			}
+		};
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl T"), "today");
+		getActionMap().put("today", todayAction);
+		today.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				todayAction.actionPerformed(e);
 			}
 		});
 		
 		// Assignment adding
 		final JDialog dialog = new AddAssignmentDialog(app);
 		final JButton addAssignmentButton = new CButton("New Assignment");
-		addAssignmentButton.addActionListener(new ActionListener() {
+		final AbstractAction addAction = new AbstractAction() {
+			
+			private static final long	serialVersionUID	= 1L;
 			
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				dialog.pack();
+				dialog.setLocationRelativeTo(ToolbarView.this.getParent());
 				dialog.setVisible(true);
+			}
+		};
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl N"), "add");
+		getActionMap().put("add", addAction);
+		addAssignmentButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				addAction.actionPerformed(e);
 			}
 		});
 		
 		// Settings showing
 		final JDialog settings = new SettingsView();
 		final JButton settingsButton = new CButton("Settings");
-		settingsButton.addActionListener(new ActionListener() {
+		final AbstractAction settingsAction = new AbstractAction() {
+			
+			private static final long	serialVersionUID	= 1L;
 			
 			@Override
 			public void actionPerformed(final ActionEvent e) {
 				settings.pack();
+				settings.setLocationRelativeTo(ToolbarView.this.getParent());
 				settings.setVisible(true);
+			}
+		};
+		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl S"), "settings");
+		getActionMap().put("settings", settingsAction);
+		settingsButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				settingsAction.actionPerformed(e);
 			}
 		});
 		
