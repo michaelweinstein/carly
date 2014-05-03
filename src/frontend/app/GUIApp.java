@@ -21,8 +21,10 @@ public class GUIApp extends App {
 	 * 
 	 * @param debug if we should be in debug mode
 	 */
-	public GUIApp(final boolean debug) {
+	public GUIApp(final boolean debug, final boolean runStartUp) {
 		super(debug);
+		// TODO: Run startup survey according to boolean param
+		
 		_window = new MainFrame(this);
 	}
 	
