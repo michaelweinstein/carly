@@ -387,15 +387,31 @@ public class TimeModifier {
 					break;
 				}
 				
+				long insLen = Math.min(blockLengthInMillis, totalMillisToAdd);
+				
 				//Determine if there is space for a block in between b1 and b2
-				if(b2.getStart().getTime() - b1.getEnd().getTime() >= blockLengthInMillis) {
+				if(b2.getStart().getTime() - b1.getEnd().getTime() >= insLen) {
 					//Insert a block, starting at b1's end
-					AssignmentBlock x = new AssignmentBlock((Date) b1.getEnd().clone(),
-							(Date) b2.getStart().clone(), task);
+					
+					//Get the start/end time of the new block
+					Date insEnd = new Date(b2.getStart().getTime());
+					Date insStart = new Date(insEnd.getTime() - insLen);
+					
+					//Insert the block into the local copies of the lists
+					AssignmentBlock x = new AssignmentBlock(insStart, insEnd, task);
 					TimeUtilities.insertIntoSortedList(allBlocks, x);
 					TimeUtilities.insertIntoSortedList(taskBlocks, x);
 					
-					totalMillisToAdd -= blockLengthInMillis;
+					//Insert the block into the database
+					try {
+						StorageService.addTimeBlock(x);
+					}
+					catch(StorageServiceException sse) {
+						sse.printStackTrace();
+					}
+					
+					//Decrement the number of millis to add and restart the loop
+					totalMillisToAdd -= insLen;
 					currInd = startInd;
 				}
 				else
@@ -436,6 +452,10 @@ public class TimeModifier {
 				}
 				catch(InterruptedException ie) {}
 			}
+			
+			//Blocks were just inserted, so decompact them
+			TimeCompactor.decompact(allBlocks, tempStart, tempEnd);
+			
 		}
 		// 5b. The user is ahead, so remove a bit of time from each block
 		else if (pctToAdjust > 0) {
@@ -447,11 +467,12 @@ public class TimeModifier {
 			
 			// Remove as many blocks as possible, then remove a fixed amount from one block
 			while (currInd >= startInd && totalMillisToRemove > 0) {
-				final ITimeBlockable itb = allBlocks.get(currInd);
+				final ITimeBlockable itb = taskBlocks.get(currInd);
 				final long blockLen = itb.getLength();
 				if (blockLen <= totalMillisToRemove) {
 					// Remove the block from both the local list and the StorageService
 					allBlocks.remove(currInd);
+					taskBlocks.remove(currInd);
 					StorageService.removeTimeBlock(itb);
 					
 					// Subtract the number of millis removed and the number of future blocks
@@ -459,16 +480,20 @@ public class TimeModifier {
 					totalMillisToRemove -= blockLen;
 					
 					// Restart the loop from the end of the list
-					currInd = allBlocks.size() - 1;
+					currInd = taskBlocks.size() - 1;
 				}
+				else
+					--currInd;
 			}
 			
 			final long avgTimeToRemove = totalMillisToRemove / numFutureBlocks;
 			// If there is still some time left to remove, remove a bit of time from each block
 			if (totalMillisToRemove > 0) {
-				for (int i = allBlocks.size() - 1; i >= startInd; ++i) {
-					final ITimeBlockable block = allBlocks.get(i);
+				for (int i = taskBlocks.size() - 1; i >= startInd; --i) {
+					final ITimeBlockable block = taskBlocks.get(i);
 					block.setEnd(new Date(block.getEnd().getTime() - avgTimeToRemove));
+					
+					//TODO: If avgTimeToRemove > block.getLength(), we need to remove from elsewhere.
 					
 					try {
 						StorageService.updateTimeBlock(block);

@@ -1,5 +1,7 @@
 package frontend.view.assignments;
 
+import hub.HubController;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -175,9 +177,13 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 			final double percent = _mousePoint.getX() / getWidth();
 			System.out.println(percent);
 			((ITask) getValueAt(_hoveredRow, 0)).setPercentComplete(percent);
+			
+			//TODO: EVAN ADDED THIS
+			HubController.changeTask(_assignment.getTasks().get(_hoveredRow), percent);
 		}
 		_moveWithMouse = !_moveWithMouse;
 		repaint();
+		
 	}
 	
 	@Override
