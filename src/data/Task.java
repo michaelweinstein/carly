@@ -147,7 +147,7 @@ public class Task implements ITask {
 	
 	@Override
 	public String toString() {
-		return "Task[" + getName() + " : " + getPercentOfTotal() + "]";
+		return getName();
 	}
 	
 	@Override

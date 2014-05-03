@@ -125,14 +125,14 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		final List<ITask> tasks = _assignment.getTasks();
 		final Object dataValues[][] = new Object[tasks.size()][2];
 		for (int i = 0; i < tasks.size(); i++) {
-			dataValues[i][0] = tasks.get(i).getName();
+			dataValues[i][0] = tasks.get(i);
 			dataValues[i][1] = Math.round(tasks.get(i).getPercentOfTotal() * 100) + "%";
 			// TODO: More with percent of total, better stuff in general
 		}
 		final String colNames[] = { "Step Name", "% of Total" };
 		final StepModel mod = new StepModel(dataValues, colNames);
 		mod.setEditable(false);
-		_taskTable = new StepViewTable(mod, _assignment);
+		_taskTable = new StepViewTable(mod, _assignment, true);
 		_taskTable.setFocusable(false);
 		_taskPanel = new JPanel();
 		_taskPanel.add(_taskTable);
@@ -174,10 +174,20 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 	
 	@Override
 	public void mouseClicked(final MouseEvent e) {
+		
+		// Not meant for this panel
+		if (e.getSource() == _taskTable) {
+			repaint();
+			return;
+		}
+		
+		// Set the currently selected to be null
 		if (_parent.getSelected() != null && _parent.getSelected()._delete != null) {
 			_parent.getSelected()._delete.setVisible(false);
 			_parent.getSelected()._edit.setVisible(false);
 		}
+		
+		// Either set this selected or nothing if already selected (toggle)
 		if (_parent.getSelected() != this) {
 			_delete.setVisible(true);
 			_edit.setVisible(true);
@@ -187,6 +197,8 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 			_edit.setVisible(false);
 			_parent.setSelected(null);
 		}
+		
+		repaint();
 	}
 	
 	@Override

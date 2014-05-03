@@ -154,7 +154,6 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	 */
 	public boolean checkBlockForOverlap(final Date newStart, final Date newEnd, final ITimeBlockable oldBlock) {
 		for (final ITimeBlockable t : getAllBlocks().keySet()) {
-			// System.out.println(t."\n\t" +newStart + "\n\t" + newEnd + "\n\t" + t.getStart() + "\n\t" + t.getEnd());
 			if (!t.equals(oldBlock)
 				&& Utils.dateRangesOverlap(new Tuple<>(newStart, newEnd), new Tuple<>(t.getStart(), t.getEnd()))) {
 				return true;
@@ -171,7 +170,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	 * @return the date represented by (x,y) on the canvas, snapped to the nearest 15 minutes
 	 */
 	public Date convertPointToTime(final Point p, final boolean snap) {
-		int day = (int) Math.floor(((p.getX() - X_OFFSET) / (getWidth() - X_OFFSET)) * DAYS) + 1;
+		int day = (int) Math.floor(((p.getX() + 1 - X_OFFSET) / (getWidth() - X_OFFSET)) * DAYS) + 1;
 		day = (day < 1) ? 1 : (day > 7) ? 7 : day;
 		final double hrsAndMin = HRS * ((p.getY() - Y_PAD) / (getHeight() - Y_PAD));
 		final int hours = (int) Math.floor(hrsAndMin);
@@ -184,6 +183,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		c.set(Calendar.HOUR_OF_DAY, hours);
 		c.set(Calendar.DAY_OF_WEEK, day);
 		
+		System.out.println(c.getTime());
 		return c.getTime();
 	}
 	
@@ -220,7 +220,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		brush.setColor(Utils.COLOR_ALTERNATE);
 		brush.fillRect(X_OFFSET, 0, getWidth() - X_OFFSET, (int) Y_PAD);
 		brush.fillRect(X_OFFSET, (int) (getHeight() - Y_PAD), getWidth() - X_OFFSET, (int) Y_PAD);
-		brush.setColor(Utils.COLOR_LIGHT_BG);
+		brush.setColor(Utils.COLOR_ALTERNATE);
 		brush.fillRect(0, 0, X_OFFSET, getHeight());
 		
 		// Do the vertical lines
@@ -324,6 +324,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 				startDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
 				startX = getXPos(startDay);
 				startY = set;
+				startDate = convertPointToTime(new Point(startX, startY), false);
 				break;
 			default:
 				break;
@@ -358,6 +359,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 				endDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
 				endX = getXPos(endDay);
 				endY = set;
+				endDate = convertPointToTime(new Point(endX, endY), false);
 				break;
 			default:
 				break;
@@ -369,20 +371,9 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 			endX = getXPos(endDay);
 		}
 		
-		if (startDate.after(endDate) && moving != null) {
-			switch (moving.second) {
-			case BOTTOM:
-				_cv.setMovingBlock(t, DragType.TOP);
-				placeBlock(brush, t);
-				return;
-			case TOP:
-				_cv.setMovingBlock(t, DragType.BOTTOM);
-				placeBlock(brush, t);
-				return;
-			default:
-				break;
-			
-			}
+		// Dragging in the wrong direction, won't draw
+		if (moving != null && endDate.before(startDate)) {
+			return;
 		}
 		
 		// Start and end on same day
@@ -563,7 +554,13 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		_cv.clearMovingBlock();
 		_dragCurrPoint = e.getPoint();
 		final TimeRect rect = getRectForPoint(e.getPoint());
+		
+		// Doesn't allow editing of blocks before the current time
 		if (rect == null) {
+			return;
+		}
+		if (convertPointToTime(new Point((int) rect.getMinX(), (int) rect.getMaxY()), false).before(new Date())) {
+			_cv.repaint();
 			return;
 		}
 		
@@ -647,7 +644,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 				break;
 			}
 			
-			// Switch if wrong order
+			// Toss it in the database if in the right order and no overlap
 			if (!end.before(start) && !checkBlockForOverlap(start, end, oldTask)) {
 				HubController.changeTimeBlock(oldTask, start, end);
 			}

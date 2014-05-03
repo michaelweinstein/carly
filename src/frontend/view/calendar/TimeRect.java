@@ -63,7 +63,7 @@ public class TimeRect extends Rectangle2D.Double {
 			return new Color(120, 120, 120);
 		} else if (equalsMovingBlock()) {
 			return new Color(_c.getRed(), _c.getGreen(), _c.getBlue(), 100);
-		} else if (_t.getStart().before(new Date())) {
+		} else if (_t.getEnd().before(new Date())) {
 			final int r = Math.max(_c.getRed() - 30, 20);
 			final int g = Math.max(_c.getGreen() - 30, 20);
 			final int b = Math.max(_c.getBlue() - 30, 20);
@@ -81,7 +81,7 @@ public class TimeRect extends Rectangle2D.Double {
 		if (!_t.isMovable()) {
 			return Utils.COLOR_BACKGROUND;
 		}
-		return equalsMovingBlock() ? Utils.COLOR_FOREGROUND : Utils.COLOR_LIGHT_BG;
+		return equalsMovingBlock() ? Utils.COLOR_FOREGROUND : Utils.COLOR_FOREGROUND.darker();
 	}
 	
 	/**
