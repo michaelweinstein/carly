@@ -40,6 +40,8 @@ import frontend.view.assignments.StepViewTable;
 
 public class TemplateWizardView extends JPanel {
 	
+	// TODO Bug: When expanding window horizontally, elements/layout stretch out all weird
+	
 	private static final long					serialVersionUID		= 4215933185975151935L;
 	
 	/* Styling Vars */
@@ -318,7 +320,7 @@ public class TemplateWizardView extends JPanel {
 		c.gridwidth = 1;
 		innerPanel.add(stepLabel, c);
 		
-		// TODO: Table needs to have max height and start scrolling
+		// TODO: Use Scroll Pane, and set bar to CScrollBarUI; Table needs to have max height and start scrolling
 		
 		// Instantiate StepViewTable
 		final StepViewTable stepTable = new StepViewTable(model, false);

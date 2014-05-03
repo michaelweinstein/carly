@@ -4,6 +4,7 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.Rectangle2D;
+import java.util.Calendar;
 import java.util.Date;
 
 import data.Vec2d;
@@ -11,11 +12,7 @@ import data.Vec2d;
 public class SurveyTimeBlock extends Rectangle2D.Double {
 	
 	private static final long serialVersionUID = -4648292002477697311L;
-	
-	/* Constants */
-	public static final int MS_IN_DAY = 86400000;
-	public static final int MS_IN_HOUR = 3600000;
-	
+
 	/* Styling vals */
 	private static final Color unselectedColor = Color.DARK_GRAY;
 	private static final Color selectedColor = Color.ORANGE;
@@ -27,21 +24,23 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 //	private static BasicStroke border_stroke_dashed;
 	
 	/* Boolean vars */
-	private boolean _selected;
-	private boolean _onHalfHour;
+	private boolean _isSelected;
+	private boolean _isOnHalfHour;
+	private boolean _isFirstBlock;
 	
 	/* Data vars */
 	private Vec2d _loc;
 	private Vec2d _dim;
 
-	public SurveyTimeBlock(double x, double y, boolean startsOnHalfHour) {
+	public SurveyTimeBlock(double x, double y, boolean startsOnHalfHour, boolean isFirstBlock) {
 		super(x, y, SurveyWeekView.COL_WIDTH, SurveyWeekView.ROW_HEIGHT);
 		_loc = new Vec2d(x, y);
 		_dim = new Vec2d(SurveyWeekView.COL_WIDTH, SurveyWeekView.ROW_HEIGHT);
 		
-		_selected = false;
-		_onHalfHour = startsOnHalfHour;
-		
+		_isSelected = false;
+		_isOnHalfHour = startsOnHalfHour;
+		_isFirstBlock = isFirstBlock;
+				
 		// Create borders
 		border_stroke = new BasicStroke(border_width);
 //		border_dash_length = (float) SurveyWeekView.ROW_HEIGHT;	
@@ -65,17 +64,28 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	 * @return Date[] where [0] = start time [1] = end time
 	 */
 	public Date[] getRange() {
+		
+		Calendar c = Calendar.getInstance();
+		c.setTime(new Date(0));
+		c.add(Calendar.DAY_OF_YEAR, 3);	// move to January 4, 1970
+		
+		// TODO Print out date to check
+		
+		// Start time in minutes
 		Date[] startAndEnd = new Date[2];
 		int day = (int) (_loc.x / _dim.x);
+		int timeStart = (int) (_loc.y / _dim.y) * 30;	// half hour number --> minutes
 		
-		// Start time 
-		int timeStart = (int) (_loc.y / _dim.y);
-		long msStart = MS_IN_DAY*day + (MS_IN_HOUR/2)*timeStart;
-		startAndEnd[0] = new Date(msStart);
+		// Start time
+		c.add(Calendar.DAY_OF_YEAR, day);
+		c.add(Calendar.MINUTE, timeStart);
+		startAndEnd[0] = c.getTime();
+		
 		// End time (start time + 30 minutes)
-		startAndEnd[1] = new Date(msStart + MS_IN_HOUR/2);
+		c.add(Calendar.MINUTE, 30);
+		startAndEnd[1] = c.getTime();
 		
-		// TODO: Test and tweak to get the right date
+		// TODO Test the conversions are right
 		
 		return startAndEnd;
 	}
@@ -86,23 +96,23 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	 * @return whether or not this block is currently selected by user
 	 */
 	public boolean isSelected() {
-		return _selected;
+		return _isSelected;
 	}
 	
 	/** 
-	 * Mutator sets whether this block is _selected by user
+	 * Mutator sets whether this block is _isSelected by user
 	 * or not. Determines color of block in draw().
 	 */
 	public void setSelected(boolean sel) {
-		_selected = sel;
+		_isSelected = sel;
 	}
 	
 	/**
-	 * Toggles _selected boolean. <br>
+	 * Toggles _isSelected boolean. <br>
 	 * Called when user clicks or drags on this block.
 	 */
 	public void toggleSelected() {
-		_selected = _selected? false: true;
+		_isSelected = _isSelected? false: true;
 	}
 	
 	/* Drawing methods */
@@ -111,29 +121,30 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	public void draw(Graphics2D g) {	
 		// Paint border
 /// 	TODO: On half hour, draw dashed lines or no border?
-//		g.setColor(_onHalfHour? dashedBorderColor : borderColor);
-//		g.setStroke(_onHalfHour? border_stroke_dashed : border_stroke);
+//		g.setColor(_isOnHalfHour? dashedBorderColor : borderColor);
+//		g.setStroke(_isOnHalfHour? border_stroke_dashed : border_stroke);
 		
 		g.setColor(borderColor);
 		g.setStroke(border_stroke);
 		
-/////	// TODO Try to clip rect to get rid of top, bottom borders
-		if (_onHalfHour) {
+		if (_isOnHalfHour) 
 			g.clipRect((int)(getX()-border_width), (int)(getY()), (int)(getWidth()+border_width), (int)(getHeight()));
-		}
+		
+		
+		// TODO: If _isFirstBlock, need to draw left and upper border
 		
 		g.draw(this);
 		
-///		// TODO Delete if clip never set
-		if (_onHalfHour) g.setClip(null);
+		if (_isOnHalfHour) 
+			g.setClip(null);
 		
 		// Fill with color
-		g.setColor(_selected? selectedColor : unselectedColor);
+		g.setColor(_isSelected? selectedColor : unselectedColor);
 		g.fill(this);
 		
 ///////
 		// TODO: Try to paint lines over left, right borders
-/*		if (_onHalfHour) {
+/*		if (_isOnHalfHour) {
 			g.setColor(borderColor);
 			g.setStroke(border_stroke);
 			g.drawLine	((int)(getX()+getWidth()), (int)(getY()), 
