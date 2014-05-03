@@ -159,9 +159,8 @@ public class Task implements ITask {
 			return false;
 		}
 		final Task x = (Task) obj;
-		return _assignmentId.equals(x._assignmentId) && _name.equals(x._name) && _percentComplete == x._percentComplete
-			&& _percentOfTotal == x._percentOfTotal && _suggestedBlockLength == x._suggestedBlockLength
-			&& _timeOfDay.equals(x._timeOfDay) && _uniqueId.equals(x._uniqueId);
+		return _assignmentId.equals(x._assignmentId) && 
+				_name.equals(x._name) && _uniqueId.equals(x._uniqueId);
 	}
 	
 	@Override
