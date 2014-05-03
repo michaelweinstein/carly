@@ -27,8 +27,7 @@ public class TemplateWizardDialogueView extends JPanel {
 	private static final Dimension	dim					= new Dimension(275, 200);
 	
 	/**
-	 * CAN WE DELETE THIS CLASS? If anyone is using it, 
-	 * you can remove the Deprecated tag.
+	 * CAN WE DELETE THIS CLASS? If anyone is using it, you can remove the Deprecated tag.
 	 */
 	@Deprecated
 	public TemplateWizardDialogueView() {
@@ -42,7 +41,7 @@ public class TemplateWizardDialogueView extends JPanel {
 		
 		// Template Wizard label
 		final JLabel title = new JLabel("Template Wizard");
-		title.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 15));
+		title.setFont(Utils.getFont(Font.BOLD, 15));
 		Utils.themeComponent(title);
 		
 		// Add label and spacing

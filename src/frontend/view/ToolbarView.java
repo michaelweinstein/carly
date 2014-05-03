@@ -1,6 +1,5 @@
 package frontend.view;
 
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -31,7 +30,7 @@ public class ToolbarView extends JPanel {
 		Utils.padComponentWithBorder(this, 0, 20);
 		
 		// Today
-		final JButton today = new JButton("Today");
+		final JButton today = new CButton("Today");
 		today.addActionListener(new ActionListener() {
 			
 			@Override
@@ -42,7 +41,7 @@ public class ToolbarView extends JPanel {
 		
 		// Assignment adding
 		final JDialog dialog = new AddAssignmentDialog(app);
-		final JButton addAssignmentButton = new JButton("New Assignment");
+		final JButton addAssignmentButton = new CButton("New Assignment");
 		addAssignmentButton.addActionListener(new ActionListener() {
 			
 			@Override
@@ -54,7 +53,7 @@ public class ToolbarView extends JPanel {
 		
 		// Settings showing
 		final JDialog settings = new SettingsView();
-		final JButton settingsButton = new JButton("Settings");
+		final JButton settingsButton = new CButton("Settings");
 		settingsButton.addActionListener(new ActionListener() {
 			
 			@Override
@@ -66,7 +65,7 @@ public class ToolbarView extends JPanel {
 		
 		// Title
 		final JLabel title = new JLabel(Utils.APP_NAME);
-		title.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 24));
+		Utils.setFont(title, 26);
 		Utils.themeComponent(title);
 		
 		// Addition of all things
