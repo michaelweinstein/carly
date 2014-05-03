@@ -76,7 +76,7 @@ public class AssignmentTaskStorage {
 			con.setAutoCommit(false);
 			assignmentStatement = con.prepareStatement(Utilities.INSERT_ASGN);
 			taskStatement = con.prepareStatement(Utilities.INSERT_TASK);
-			String assignmentId = assignment.getID();
+			final String assignmentId = assignment.getID();
 			
 			// insert assignment
 			Utilities.setValues(assignmentStatement, assignmentId, assignment.getName(), assignment.getExpectedHours(),
@@ -84,7 +84,7 @@ public class AssignmentTaskStorage {
 			assignmentStatement.execute();
 			
 			// insert associated tasks
-			for (ITask task : assignment.getTasks()) {
+			for (final ITask task : assignment.getTasks()) {
 				Utilities.setValues(taskStatement, assignmentId, task.getTaskID(), task.getName(),
 						task.getPercentOfTotal(), task.getPercentComplete(), task.getPreferredTimeOfDay().name(),
 						task.getSuggestedBlockLength());
@@ -95,7 +95,7 @@ public class AssignmentTaskStorage {
 			// Check to see that the template associated exists in the db
 			templateStatement = con.prepareStatement(Utilities.SELECT_TEMPLATE_BY_ID);
 			Utilities.setValues(templateStatement, assignment.getTemplate().getID());
-			ResultSet rs = templateStatement.executeQuery();
+			final ResultSet rs = templateStatement.executeQuery();
 			int num = 0;
 			while (rs.next()) {
 				num++;
