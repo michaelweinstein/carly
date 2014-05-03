@@ -23,6 +23,7 @@ import javax.swing.SwingUtilities;
 import data.IAssignment;
 import data.ITask;
 import frontend.Utils;
+import frontend.view.CButton;
 
 /**
  * Represents an assignment item in the sidebar assignment view
@@ -66,7 +67,7 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		final String title = _assignment.getName();
 		final JLabel titleLabel = new JLabel(title);
 		titleLabel.setToolTipText(title);
-		titleLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 16));
+		Utils.setFont(titleLabel, 16);
 		Utils.themeComponent(titleLabel);
 		add(titleLabel);
 		add(Box.createVerticalStrut(5));
@@ -76,12 +77,12 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		final DateFormat formatter = DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT);
 		final JLabel dueLabel = new JLabel("Due: " + formatter.format(due));
 		dueLabel.setForeground(Utils.COLOR_FOREGROUND.darker());
-		dueLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.ITALIC, 12));
+		dueLabel.setFont(Utils.getFont(Font.ITALIC, 12));
 		add(dueLabel);
 		add(Box.createVerticalStrut(10));
 		
 		// Edit button
-		_edit = new JButton("Edit Assignment");
+		_edit = new CButton("Edit Assignment");
 		_edit.setVisible(false);
 		_edit.setAlignmentX(LEFT_ALIGNMENT);
 		_edit.addActionListener(new ActionListener() {
@@ -102,7 +103,7 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		add(_edit);
 		
 		// Delete button
-		_delete = new JButton("Delete Assignment");
+		_delete = new CButton("Delete Assignment");
 		_delete.setVisible(false);
 		_delete.setAlignmentX(LEFT_ALIGNMENT);
 		_delete.addActionListener(new ActionListener() {

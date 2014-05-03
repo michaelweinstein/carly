@@ -138,7 +138,7 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 			content = (int) ((hover / w) * 100) + "%";
 			c = Utils.COLOR_BACKGROUND;
 		}
-		canvas.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 11));
+		canvas.setFont(Utils.getFont(Font.BOLD, 11));
 		canvas.setColor(c);
 		canvas.drawString(content, textX, endY - 5);
 		

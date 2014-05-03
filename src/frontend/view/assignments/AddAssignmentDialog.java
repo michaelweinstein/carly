@@ -46,6 +46,7 @@ import data.Template;
 import data.TemplateStep;
 import frontend.Utils;
 import frontend.app.GUIApp;
+import frontend.view.CButton;
 
 /**
  * Class for the dialog box that pops up when adding a new assignment
@@ -108,10 +109,10 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	 */
 	private JPanel createButtonsAndStatusPane() {
 		_statusLabel = new JLabel(DEFAULT_LABEL);
-		_statusLabel.setFont(new Font(Utils.APP_FONT_NAME, Font.PLAIN, 12));
+		_statusLabel.setFont(Utils.getFont(Font.PLAIN, 12));
 		
 		// Simply deletes contents and closes
-		_cancelButton = new JButton("Cancel");
+		_cancelButton = new CButton("Cancel");
 		_cancelButton.addActionListener(new ActionListener() {
 			
 			@Override
@@ -124,7 +125,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		});
 		
 		// Adds a new assignment through the hub
-		_addButton = new JButton("Add");
+		_addButton = new CButton("Add");
 		_addButton.addActionListener(new ActionListener() {
 			
 			@Override

@@ -2,6 +2,7 @@ package frontend.view.settings;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -18,72 +19,70 @@ import frontend.view.settings.template_wizard.TemplateWizardView;
 
 public class SettingsView extends JDialog {
 	
-	private static final long	serialVersionUID	= 836555231204678487L;
+	private static final long		serialVersionUID	= 836555231204678487L;
 	
 	/* Styling Vars */
-	private static final Dimension minimum_size = new Dimension(400, 500);
-	private static final int title_padding = 10;
-	private static final int padding = 15;
-	private static final int title_font_size = 30;
+	private static final Dimension	minimum_size		= new Dimension(400, 500);
+	private static final int		title_padding		= 10;
+	private static final int		padding				= 15;
+	private static final int		title_font_size		= 30;
 	
 	/* Strings */
-	private static final String page_title = "Settings";
-	private static final String toggle_learning = "Toggle Learning Algorithm";
-	private static final String preferred_timeofday = "When do you prefer to work?";
-//	private static final String template_wizard = "Template Wizard";
+	private static final String		page_title			= "Settings";
+	private static final String		toggle_learning		= "Toggle Learning Algorithm";
+	private static final String		preferred_timeofday	= "When do you prefer to work?";
+	
+	// private static final String template_wizard = "Template Wizard";
 	
 	public SettingsView() {
 		super();
-		this.setPreferredSize(minimum_size);
-		this.setMinimumSize(minimum_size);
+		setPreferredSize(minimum_size);
+		setMinimumSize(minimum_size);
 		// Pad root pane
 		Utils.themeComponent(getRootPane());
 		Utils.padComponent(getRootPane(), 15, 15);
-//		setMinimumSize(getMinimumSize()); 
+		// setMinimumSize(getMinimumSize());
 		
 		// TODO: Switch back to BorderLayout
-		this.setLayout(new BorderLayout());
-
-
+		setLayout(new BorderLayout());
+		
 		final JLabel titlePanel = createSettingsTitle();
 		final JPanel inputPanel = createInputPanel();
 		final JPanel templateWizardPanel = new TemplateWizardView();
-//		final JPanel bottomPanel = createBottomPanel();
-
+		// final JPanel bottomPanel = createBottomPanel();
 		
-		
-		/* Adding Elements to MainPanel*/
+		/* Adding Elements to MainPanel */
 		
 		this.add(titlePanel, BorderLayout.NORTH);
 		this.add(templateWizardPanel, BorderLayout.CENTER);
 		this.add(inputPanel, BorderLayout.SOUTH);
-//		this.add(buttonPanel, BorderLayout.SOUTH);
+		// this.add(buttonPanel, BorderLayout.SOUTH);
 		
 		// TODO: Add scroll pane?
 	}
 	
 	// TODO: Comment and finish
 	private JPanel createInputPanel() {
-		JPanel inputPanel = new JPanel();
+		final JPanel inputPanel = new JPanel();
 		
 		/* Styling */
 		Utils.themeComponent(inputPanel);
-//		Utils.addBorderTop(inputPanel);
+		// Utils.addBorderTop(inputPanel);
 		Utils.addBorderBottom(inputPanel);
 		Utils.padComponentWithBorder(inputPanel, padding, padding);
 		
 		/* Grid Bag Layout */
 		inputPanel.setLayout(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();
+		final GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.VERTICAL;
 		c.weightx = 1;
 		c.weighty = 0;
-		c.insets = new Insets(5, 0, 5, 0);	// top left bottom right
-				
+		c.insets = new Insets(5, 0, 5, 0); // top left bottom right
+		
 		/* User Input Elements */
 		// TODO: Wire the user input to SettingsDelegate; Create ActionListeners
 		
-		// TODO: Set initial values: TimeOfDay value stored in database 
+		// TODO: Set initial values: TimeOfDay value stored in database
 		// TODO: (does Toggle Learning have an initial value, from start-up survey?)
 		
 		// TimeOfDay: Label, JComboBox
@@ -106,16 +105,15 @@ public class SettingsView extends JDialog {
 		c.gridx = 0;
 		c.gridy = 3;
 		c.gridwidth = 2;
-//		c.gridwidth = GridBagConstraints.REMAINDER;
+		// c.gridwidth = GridBagConstraints.REMAINDER;
 		inputPanel.add(learningCheckBox, c);
 		
-		//TODO: Do I have to add TemplateWizardView to the JDialogue directly!
+		// TODO: Do I have to add TemplateWizardView to the JDialogue directly!
 		// Make TemplateWizard
-/*		TemplateWizardView templateWizard = new TemplateWizardView();
-		c.gridx = 1;
-		c.gridy = 2;
-		c.gridheight = 8;
-		inputPanel.add(templateWizard, c);*/
+		/*
+		 * TemplateWizardView templateWizard = new TemplateWizardView(); c.gridx = 1; c.gridy = 2; c.gridheight = 8;
+		 * inputPanel.add(templateWizard, c);
+		 */
 		
 		return inputPanel;
 	}
@@ -124,7 +122,7 @@ public class SettingsView extends JDialog {
 	private static JLabel createSettingsTitle() {
 		final JLabel title = new JLabel(page_title);
 		title.setOpaque(true);
-		Utils.setFont(title, title_font_size);
+		title.setFont(Utils.getFont(Font.BOLD, title_font_size));
 		Utils.themeComponent(title);
 		Utils.addBorderBottom(title);
 		Utils.padComponentWithBorder(title, 0, title_padding);

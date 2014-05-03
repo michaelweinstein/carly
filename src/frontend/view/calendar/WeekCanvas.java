@@ -241,7 +241,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 			
 			// Text
 			brush.setColor(Utils.COLOR_FOREGROUND);
-			brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 11));
+			brush.setFont(Utils.getFont(Font.BOLD, 11));
 			if (i == HRS) {
 				// Why necessary to special case? I don't know but it doesn't draw right otherwise
 				brush.drawString(getHourString(i), 5, (int) (getHeight() - Y_PAD));
@@ -251,7 +251,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		}
 		
 		// Takes blockables and makes them into rects - Draws all non-moving blocks first, along with unavailable blocks
-		brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 12));
+		brush.setFont(Utils.getFont(Font.BOLD, 12));
 		for (final ITimeBlockable t : _cv.getUnavailableTimeBlocks()) {
 			placeBlock(brush, t);
 		}
@@ -269,7 +269,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 			
 			brush.setStroke(new BasicStroke(3));
 			brush.setColor(Utils.COLOR_ACCENT);
-			brush.setFont(new Font(Utils.APP_FONT_NAME, Font.BOLD, 12));
+			brush.setFont(Utils.getFont(Font.BOLD, 12));
 			brush.drawString("Now", X_OFFSET + 15, y + 4);
 			brush.drawLine(X_OFFSET + 48, y, getWidth(), y);
 			brush.drawLine(X_OFFSET, y, X_OFFSET + 8, y);
@@ -407,12 +407,12 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		g.draw(rect);
 		
 		// Wrap titles and draw them
-		final Font aFont = new Font(Utils.APP_FONT_NAME, Font.BOLD, 12);
-		final Font taskFont = new Font(Utils.APP_FONT_NAME, Font.PLAIN | Font.ITALIC, 11);
+		final Font aFont = Utils.getFont(Font.BOLD, 12);
+		final Font taskFont = Utils.getFont(Font.PLAIN | Font.ITALIC, 11);
 		final List<String> taskT = new ArrayList<>(4);
 		final List<String> assT = new ArrayList<>(2);
 		taskT.add(t.getTask().getName());
-		assT.add(StorageService.getAssignment(t.getTask().getAssignmentID()).getName()); // TODO: FIX SO NOT JANKY
+		assT.add(StorageService.getAssignment(t.getTask().getAssignmentID()).getName());
 		int i = 0;
 		
 		// Wrap the assignment title
