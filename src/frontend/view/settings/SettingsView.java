@@ -74,7 +74,7 @@ public class SettingsView extends JDialog {
 		this.add(inputPanel, BorderLayout.SOUTH);
 		// this.add(buttonPanel, BorderLayout.SOUTH);
 		
-		// TODO: Add scroll pane?
+		// TODO: Add scroll pane (using CScrollPane)
 	}
 	
 	// TODO: Comment and finish

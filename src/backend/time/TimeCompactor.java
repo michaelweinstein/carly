@@ -111,11 +111,7 @@ public class TimeCompactor {
 		int startInd = TimeUtilities.indexOfFitLocn(allBlocks, start);
 		int endInd = TimeUtilities.indexOfFitLocn(allBlocks, end);
 		
-		//This ArrayList will contain the items in sorted order as they are de-compacted.
-		List<ITimeBlockable> underConstruction = new ArrayList<ITimeBlockable>(endInd - startInd);
-		for(int i = 0; i < endInd - startInd; ++i)
-			underConstruction.add(null);
-		
+
 		//1. Iterate over the allBlocks set and count the number of hours unavailable in
 		//	 the [start, end] range.
 		for(int i = startInd; i < endInd; ++i) {
@@ -137,6 +133,11 @@ public class TimeCompactor {
 			}
 		}
 
+		//This ArrayList will contain the items in sorted order as they are de-compacted.
+		List<ITimeBlockable> underConstruction = new ArrayList<ITimeBlockable>(asgnBlocks.size());
+		for(int i = 0; i < asgnBlocks.size(); ++i)
+			underConstruction.add(null);
+		
 		
 		//2. Calculate the amount of available free time in the [start, end] range, and
 		//	 the average amount of space that can be placed between blocks.
@@ -234,8 +235,17 @@ public class TimeCompactor {
 
 		
 		//Insert the underConstruction blocks in sorted order into the "allBlocks" list
-		for(int i = startInd, constrInd = 0; i < endInd; ++i, ++constrInd) {
-			allBlocks.set(i, underConstruction.get(constrInd));
+		for(int i = 0; i < underConstruction.size(); ++i) {
+			//MAJOR TODO!!! 
+			//Improve efficiency -- have to do an absurd number of linear traversals here.
+			ITimeBlockable itb = underConstruction.get(i);
+			allBlocks.remove(itb);
+		}
+		
+		//TODO: currently have to do this in a separate for loop
+		for(int i = 0; i < underConstruction.size(); ++i) {
+			ITimeBlockable itb = underConstruction.get(i);
+			TimeUtilities.insertIntoSortedList(allBlocks, itb);
 		}
 		
 		//Try to switch the order of consecutive blocks that are of the same type
