@@ -21,16 +21,14 @@ public class SurveyWeekView extends JPanel {
 	
 	// TODO: BUG: Sometimes drags selected over selected, and unselected over unselected
 	// Trigger by dragging some blocks and trying to deselect them by dragging a subgroup of those blocks
-	// TODO: Upper left corner border of first box!
 	// TODO: When you drag, the first box does not get selected
 	
 	private static final long			serialVersionUID	= 888327935955233878L;
 	
 	/* Dimensional vals */
-	private static final Dimension		size				= new Dimension(450, 400);
-	private static final double			numCols				= 7;
-	private static final double			numRows				= 48;						// every half hour
-	// public vals (accessed by SurveyTimeBlock)
+	private static final Dimension		size				= new Dimension(480, 410);
+	private static final double			numCols				= 7.0;
+	private static final double			numRows				= 48.0;					// every half hour
 	public static final double			COL_WIDTH			= size.width / numCols;
 	public static final double			ROW_HEIGHT			= size.height / numRows;
 	
@@ -44,12 +42,10 @@ public class SurveyWeekView extends JPanel {
 		super();
 		Utils.themeComponentLight(this);
 		setPreferredSize(size);
-		// Initialize vars
 		_blocks = createBlocks();
 		_currBlock = _blocks.get(0);
 		_currSelectedVal = true;
 		_initialMouseDown = true;
-		// Add listeners for user input
 		addMouseListener(new BlockMouseListener());
 		addMouseMotionListener(new BlockDragListener());
 		repaint();
@@ -71,8 +67,8 @@ public class SurveyWeekView extends JPanel {
 		for (int i = 0; i < numCols; i++) {
 			// for each half hour
 			for (int j = 0; j < numRows; j++) {
-				// params: whether block starts on the half hour, whether upper-left first block
-				blocks.add(new SurveyTimeBlock(i * COL_WIDTH, j * ROW_HEIGHT, !isEven(j), i == 0 && j == 0));
+				// params: whether block starts on the half hour
+				blocks.add(new SurveyTimeBlock(i * COL_WIDTH, j * ROW_HEIGHT, !isEven(j)));
 			}
 		}
 		return blocks;
@@ -84,7 +80,7 @@ public class SurveyWeekView extends JPanel {
 	 * @param num to check parity of
 	 * @return whether or not num is even
 	 */
-	private static boolean isEven(final int num) {
+	private static boolean isEven(final double num) {
 		return num % 2 == 0;
 	}
 	
@@ -144,6 +140,11 @@ public class SurveyWeekView extends JPanel {
 	@Override
 	public void paintComponent(final Graphics g) {
 		final Graphics2D g2 = (Graphics2D) g;
+		g2.setBackground(Utils.COLOR_BACKGROUND);
+		g2.clearRect(0, 0, getWidth(), getHeight());
+		g2.setColor(SurveyTimeBlock.BORDER_COLOR);
+		g2.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
+		
 		// Draw all blocks
 		for (final SurveyTimeBlock b : _blocks) {
 			b.draw(g2);
@@ -182,14 +183,13 @@ public class SurveyWeekView extends JPanel {
 		for (final SurveyTimeBlock block : _blocks) {
 			if (block.contains(p)) {
 				if (block != _currBlock) {
-					if (block != null) {
-						block.hover(true);
-						repaint();
-					}
+					block.hover(true);
+					repaint();
 					_currBlock = block;
 				}
 			} else {
 				block.hover(false);
+				repaint();
 			}
 		}
 		

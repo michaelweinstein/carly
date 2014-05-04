@@ -3,39 +3,34 @@ package frontend.view.startup.timepicker;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Calendar;
 import java.util.Date;
 
 import data.Vec2d;
+import frontend.Utils;
 
 public class SurveyTimeBlock extends Rectangle2D.Double {
 	
-	private static final long	serialVersionUID	= -4648292002477697311L;
+	private static final long		serialVersionUID	= -4648292002477697311L;
 	
 	/* Styling vals */
-	private static final Color	unselectedColor		= Color.DARK_GRAY;
-	private static final Color	selectedColor		= Color.ORANGE;
-	private static final Color	borderColor			= Color.LIGHT_GRAY;
-	// private static final Color dashedBorderColor = new Color(179, 179, 179);
-	private static final float	border_width		= 1.55f;
-	// private static float border_dash_length;
-	private static BasicStroke	border_stroke;
-	// private static BasicStroke border_stroke_dashed;
-	
-	private static final Color	hoverColor			= Color.LIGHT_GRAY.darker();
+	public static final Color		SELECTED_COLOR		= Utils.COLOR_ACCENT;
+	public static final Color		BORDER_COLOR		= Color.LIGHT_GRAY;
+	public static final BasicStroke	BORDER_STROKE		= new BasicStroke(1f);
+	public static final Color		HOVER_COLOR			= Color.LIGHT_GRAY.darker();
 	
 	/* Boolean vars */
-	private boolean				_isSelected;
-	private final boolean		_isOnHalfHour;
-	private boolean				_isHovering;
-	private boolean				_isFirstBlock		= false;
+	private boolean					_isSelected;
+	private final boolean			_isOnHalfHour;
+	private boolean					_isHovering;
 	
 	/* Data vars */
-	private final Vec2d			_loc;
-	private final Vec2d			_dim;
+	private final Vec2d				_loc;
+	private final Vec2d				_dim;
 	
-	public SurveyTimeBlock(final double x, final double y, final boolean startsOnHalfHour, final boolean isFirstBlock) {
+	public SurveyTimeBlock(final double x, final double y, final boolean startsOnHalfHour) {
 		super(x, y, SurveyWeekView.COL_WIDTH, SurveyWeekView.ROW_HEIGHT);
 		_loc = new Vec2d(x, y);
 		_dim = new Vec2d(SurveyWeekView.COL_WIDTH, SurveyWeekView.ROW_HEIGHT);
@@ -43,10 +38,6 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 		_isSelected = false;
 		_isOnHalfHour = startsOnHalfHour;
 		_isHovering = false;
-		_isFirstBlock = isFirstBlock;
-		
-		// Create borders
-		border_stroke = new BasicStroke(border_width);
 	}
 	
 	/* Data access methods */
@@ -98,6 +89,8 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	
 	/**
 	 * Mutator sets whether this block is _isSelected by user or not. Determines color of block in draw().
+	 * 
+	 * @param sel
 	 */
 	public void setSelected(final boolean sel) {
 		_isSelected = sel;
@@ -116,41 +109,18 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	// TODO: Comment
 	public void draw(final Graphics2D g) {
 		
-		/* Paint border */
-		
-		g.setColor(borderColor);
-		g.setStroke(border_stroke);
-		// Clip borders for half-hour boxes
-		if (_isOnHalfHour) {
-			g.clipRect((int) (getX() - border_width), (int) (getY()), (int) (getWidth() + 2 * border_width),
-					(int) (getHeight()));
+		// Draws fill for selected or hovering block
+		if (_isSelected || _isHovering) {
+			g.setColor(_isHovering ? HOVER_COLOR : SELECTED_COLOR);
+			g.fill(this);
 		}
 		
-		// TODO: If _isFirstBlock, need to draw left and upper border
-		
-		g.draw(this);
-		// Reset clip after borders were trimmed
-		if (_isOnHalfHour) {
-			g.setClip(null);
+		// Draws line for left, only drawing top if not on half hour
+		g.setColor(BORDER_COLOR);
+		g.setStroke(BORDER_STROKE);
+		g.draw(new Line2D.Double(getX(), getMinY(), getX(), getMaxY()));
+		if (!_isOnHalfHour) {
+			g.draw(new Line2D.Double(getMinX(), getMinY(), getMaxX(), getMinY()));
 		}
-		
-		/* Paint fill */
-		
-		// Fill with color
-		g.setColor(_isSelected ? selectedColor : _isHovering ? hoverColor : unselectedColor);
-		
-		// Hover over unselected block
-		if (_isHovering && !_isSelected) {
-			g.setColor(hoverColor);
-		}
-		
-		g.fill(this);
-		
-		// /////
-		// TODO: Try to paint lines over left, right borders
-		/*
-		 * if (_isOnHalfHour) { g.setColor(borderColor); g.setStroke(border_stroke); g.drawLine
-		 * ((int)(getX()+getWidth()), (int)(getY()), (int)(getX()+getWidth()), (int)(getY()+getHeight())); }
-		 */
 	}
 }
