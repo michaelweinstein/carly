@@ -71,6 +71,7 @@ public class EditAssignmentDialog extends AddAssignmentDialog {
 	
 	@Override
 	public void setVisible(final boolean b) {
+		setLocationRelativeTo(getParent());
 		pack();
 		super.setVisible(b);
 		

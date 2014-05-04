@@ -33,6 +33,7 @@ import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+import javax.swing.Scrollable;
 import javax.swing.SwingUtilities;
 
 import backend.database.StorageService;
@@ -47,7 +48,7 @@ import frontend.view.calendar.CalendarView.DragType;
  * 
  * @author dgattey
  */
-public class WeekCanvas extends JPanel implements MouseListener, MouseMotionListener {
+public class WeekCanvas extends JPanel implements MouseListener, MouseMotionListener, Scrollable {
 	
 	private static final long							serialVersionUID	= 1L;
 	private static final int							CURSOR_CUST			= Cursor.N_RESIZE_CURSOR;
@@ -188,12 +189,24 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	}
 	
 	/**
-	 * Draws lines for view to use
+	 * Draws all things for the view!
 	 */
 	@Override
 	protected void paintComponent(final Graphics g) {
 		super.paintComponent(g);
 		
+		// Paints the given view
+		paintView(g);
+		
+	}
+	
+	/**
+	 * Paints the current view
+	 * 
+	 * @param g the graphics object to start
+	 * @return the graphics object created as a result
+	 */
+	private Graphics paintView(final Graphics g) {
 		final Graphics2D brush = (Graphics2D) g;
 		brush.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		brush.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -279,7 +292,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		if (currentlyMoving != null) {
 			placeBlock(brush, currentlyMoving.first);
 		}
-		
+		return brush;
 	}
 	
 	/**
@@ -688,5 +701,32 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	@Override
 	public Dimension getPreferredSize() {
 		return new Dimension(100, 2000);
+	}
+	
+	// All dimension code below sets information to be better scrollable
+	
+	@Override
+	public Dimension getPreferredScrollableViewportSize() {
+		return getPreferredSize();
+	}
+	
+	@Override
+	public int getScrollableUnitIncrement(final Rectangle visibleRect, final int orientation, final int direction) {
+		return 10;
+	}
+	
+	@Override
+	public int getScrollableBlockIncrement(final Rectangle visibleRect, final int orientation, final int direction) {
+		return 10;
+	}
+	
+	@Override
+	public boolean getScrollableTracksViewportWidth() {
+		return true;
+	}
+	
+	@Override
+	public boolean getScrollableTracksViewportHeight() {
+		return false;
 	}
 }

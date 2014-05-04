@@ -121,7 +121,8 @@ public class HubController {
 		final double oldCompletion = oldTask.getPercentComplete();
 		TimeModifier.updateBlocksInTask(oldTask, newCompletion);
 		// TODO: Update learner using old percent and new percent
-		
+		oldTask.setPercentComplete(newCompletion);
+		StorageService.updateTask(oldTask);
 		SwingUtilities.invokeLater(new Runnable() {
 			
 			@Override
@@ -131,8 +132,8 @@ public class HubController {
 		});
 	}
 	
-	public static void updateUnavailableBlocks(final Date startDate, final Date endDate, 
-			List<UnavailableBlock> blockList) {
+	public static void updateUnavailableBlocks(final Date startDate, final Date endDate,
+			final List<UnavailableBlock> blockList) {
 		
 	}
 }
