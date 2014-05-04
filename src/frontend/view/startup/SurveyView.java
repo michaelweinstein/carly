@@ -25,6 +25,8 @@ import frontend.view.startup.timepicker.SurveyWeekView;
 public class SurveyView extends JDialog {
 	
 	// TODO Don't let user close until data has been submitted.
+	// TODO On close, quit program and delete database
+			// --- Eric will create method to delete database
 	
 	private static final long			serialVersionUID	= -3311099840458252581L;
 	
