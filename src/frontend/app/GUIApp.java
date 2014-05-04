@@ -1,9 +1,9 @@
 package frontend.app;
 
+import hub.HubController;
+
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
-
-import hub.HubController;
 
 import javax.swing.SwingUtilities;
 
@@ -19,14 +19,7 @@ import frontend.view.startup.SurveyView;
 public class GUIApp extends App {
 	
 	private final MainFrame	_window;
-	
-	/**
-	 * Instance variable set in SurveyView's WindowListener's
-	 * onClose method, to indicate to the <code>while</code> loop
-	 * that the user has submitted the survey, and execution can continue.
-	 */
-	private boolean _isFillingOutSurvey;
-//	private boolean _runSurvey;
+	private final boolean	_runStartUp;
 	
 	/**
 	 * Uses the App constructor plus gui specific stuff
@@ -36,14 +29,8 @@ public class GUIApp extends App {
 	 */
 	public GUIApp(final boolean debug, final boolean runStartUp) {
 		super(debug);
+		_runStartUp = runStartUp;
 		_window = new MainFrame(this);
-		
-//		_runSurvey = runStartUp;
-		
-		// TODO: Re-comment runSurvey block if we want to lock execution until survey is submitted
-		if (runStartUp) {
-			runSurvey();
-		}
 	}
 	
 	/**
@@ -51,6 +38,17 @@ public class GUIApp extends App {
 	 */
 	@Override
 	public void start() {
+		if (_runStartUp) {
+			runSurvey();
+		} else {
+			showMain();
+		}
+	}
+	
+	/**
+	 * Once the statup survey has been completed, actually shows the main
+	 */
+	private void showMain() {
 		SwingUtilities.invokeLater(new Runnable() {
 			
 			@Override
@@ -58,13 +56,6 @@ public class GUIApp extends App {
 				HubController.initialize(GUIApp.this);
 				_window.pack();
 				_window.setVisible(true);
-				
-				// TODO: Either run this block or runSurvey in constructor
-				// Called after MainFrame so it appears on top
-/*				if (_runSurvey) {
-					SurveyView survey = new SurveyView();
-					survey.setVisible(true);
-				}*/
 			}
 		});
 	}
@@ -89,41 +80,41 @@ public class GUIApp extends App {
 		return _window.getCalendarView();
 	}
 	
-	
 	/**
 	 * Called to run start-up survey <code>SurveyView</code>. <br>
-	 * Contains a <code>while</code> loop to halt execution until
-	 * user finishes start-up survey. Creates new <code>SurveyView</code>
-	 * and sets it to visible immediately, then adds a <code>WindowListener</code>
-	 * to trigger the <code>_isFillingOutSurvey</code> boolean when
-	 * the user closes the window, which occurs on submit.
+	 * Contains a <code>while</code> loop to halt execution until user finishes start-up survey. Creates new
+	 * <code>SurveyView</code> and sets it to visible immediately, then adds a <code>WindowListener</code> to trigger
+	 * the <code>_isFillingOutSurvey</code> boolean when the user closes the window, which occurs on submit.
 	 */
 	private void runSurvey() {
-		// Open Start-up Survey
-		SurveyView survey = new SurveyView();
-		survey.setVisible(true);
-		// Trigger when user submits or closes window
-		_isFillingOutSurvey = true;
-		survey.addWindowListener(new WindowListener() {				
-			public void windowClosed(WindowEvent e) { 
-				_isFillingOutSurvey = false;
+		
+		// Open survey
+		final SurveyView survey = new SurveyView();
+		survey.addWindowListener(new WindowListener() {
+			
+			@Override
+			public void windowClosed(final WindowEvent e) {
+				showMain();
 			}
-			public void windowOpened(WindowEvent e) { }				
-			public void windowClosing(WindowEvent e) { }				
-			public void windowIconified(WindowEvent e) { }				
-			public void windowDeiconified(WindowEvent e) { }				
-			public void windowActivated(WindowEvent e) { }
-			public void windowDeactivated(WindowEvent e) { }
+			
+			@Override
+			public void windowOpened(final WindowEvent e) {}
+			
+			@Override
+			public void windowClosing(final WindowEvent e) {}
+			
+			@Override
+			public void windowIconified(final WindowEvent e) {}
+			
+			@Override
+			public void windowDeiconified(final WindowEvent e) {}
+			
+			@Override
+			public void windowActivated(final WindowEvent e) {}
+			
+			@Override
+			public void windowDeactivated(final WindowEvent e) {}
 		});
-		// TODO: Pauses execution until user submits; Should we do this?
-		// WAITS until user submits or closes window.
-		boolean print = true;
-		while (_isFillingOutSurvey) {
-			if (print) {
-				System.out.println("User is filling out survey. " + 
-					"Must submit or close to run MainFrame.");
-				print = false;
-			}
-		}
+		survey.setVisible(true);
 	}
 }
