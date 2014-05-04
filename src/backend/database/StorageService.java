@@ -101,6 +101,22 @@ public class StorageService {
 		_pool.dispose();
 	}
 	
+	/**
+	 * Drops all tables from the db
+	 */
+	public static void dropTables() {
+		try (Connection con = _pool.getConnection()) {
+			Class.forName("org.h2.Driver");
+			try (Statement stmt = con.createStatement()) {
+				stmt.execute(Utilities.DROP_ALL_TABLES);
+			}
+		} catch (final ClassNotFoundException e) {
+			Utilities.printException("StorageService: dropTables: db drive class not found", e);
+		} catch (final SQLException e) {
+			Utilities.printSQLException("StorageService: dropTables: could not create all tables", e);
+		}
+	}
+	
 	/*
 	 * ================================================
 	 * CRUD and dynamic queries for Assignments & Tasks
