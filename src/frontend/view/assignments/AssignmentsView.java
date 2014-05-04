@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -185,6 +184,7 @@ public class AssignmentsView extends JPanel {
 				}
 			};
 			_confirm.addActionListener(_deleter);
+			_deletionDialog.setLocationRelativeTo(getParent());
 			_deletionDialog.setVisible(true);
 		}
 	}
@@ -223,8 +223,7 @@ public class AssignmentsView extends JPanel {
 	 * @return a list of IAssignment to use in actually populating the view
 	 */
 	private static List<IAssignment> reloadAllAssignments() {
-		final List<IAssignment> aments = StorageService.getAllAssignmentsWithinRange(new Date(0), new Date(
-				Long.MAX_VALUE - 1));
+		final List<IAssignment> aments = StorageService.getAllAssignments();
 		Collections.sort(aments, new Comparator<IAssignment>() {
 			
 			@Override

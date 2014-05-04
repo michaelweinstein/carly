@@ -34,15 +34,13 @@ public class SettingStorage {
 	 * @param val String value of the setting to be merged
 	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 */
-	protected static void mergeSetting(String name, String val, JdbcConnectionPool pool) {
+	protected static void mergeSetting(String name, String val, JdbcConnectionPool pool) {		
 		PreparedStatement settingStatement = null;
 	    Connection con = null; 
-	    
 	    try {
 	    	Class.forName("org.h2.Driver");
 	    	con = pool.getConnection();
 	        con.setAutoCommit(false);
-	        
 	        settingStatement = con.prepareStatement(Utilities.MERGE_SETTING); 
             Utilities.setValues(settingStatement, name, val);
             settingStatement.execute();

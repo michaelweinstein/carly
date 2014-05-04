@@ -172,6 +172,16 @@ public class StorageService {
 	}
 	
 	/**
+	 * Update a task that already exists in the db.
+	 * 
+	 * @param task Task to be updated
+	 * @return Task that was updated, for chaining calls 
+	 */
+	public static ITask updateTask(ITask task) {
+		return AssignmentTaskStorage.updateTask(task, _pool); 
+	}
+	
+	/**
 	 * Retrieves all the Tasks whose associated Assignment's dueDate falls within the range specified, inclusive of
 	 * bounds.
 	 * 
@@ -274,6 +284,11 @@ public class StorageService {
 		return TimeBlockStorage.removeTimeBlock(block, _pool);
 	}
 	
+	/**
+	 * Add all default unavailable blocks from the startup survey
+	 * 
+	 * @param blockList List of default unavailable blocks to add
+	 */
 	public static void addAllDefaultUnavailableBlocks(List<UnavailableBlock> blockList) {
 		TimeBlockStorage.addAllDefaultUnavailableBlocks(blockList, _pool); 
 	}
@@ -294,6 +309,12 @@ public class StorageService {
 		return TemplateStepStorage.getTemplate(id, _templates, _pool);
 	}
 	
+	/**
+	 * Get Template corresponding to the provided name
+	 * 
+	 * @param name Name of the Template to be found 
+	 * @return Found template
+	 */
 	public static ITemplate getTemplateByName(final String name) {
 		return TemplateStepStorage.getTemplateByName(name, _pool); 
 	}
@@ -339,12 +360,14 @@ public class StorageService {
 		return TemplateStepStorage.removeTemplate(temp, _pool);
 	}
 	
+	//TODO: finish and comment!
 	public static void learnTemplateStepTimeOfDay(ITask task, String todKey, double todIncrement) {
-		
+		TemplateStepStorage.learnTemplateStepTimeOfDay(task, todKey, todIncrement);
 	}
 	
+	//TODO: finish and comment!
 	public static void learnTemplateConsecutiveHours(ITask task, double consecutiveHours) {
-		
+		TemplateStepStorage.learnTemplateConsecutiveHours(task, consecutiveHours);
 	}
 	
 	/*

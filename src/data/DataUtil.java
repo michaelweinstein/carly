@@ -30,7 +30,7 @@ public class DataUtil {
 	public static final double 		DEFAULT_HOURS_PER_DAY = 3;
 	
 	
-	/* util methods */
+	/* util methods */ 
 	
 	/**
 	 * Checks representation of percentOfTotal

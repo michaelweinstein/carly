@@ -1,6 +1,7 @@
 package hub;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.swing.SwingUtilities;
 
@@ -13,6 +14,7 @@ import backend.time.TimeModifier;
 import data.Assignment;
 import data.ITask;
 import data.ITimeBlockable;
+import data.UnavailableBlock;
 import frontend.Utils;
 import frontend.app.GUIApp;
 
@@ -71,11 +73,10 @@ public class HubController {
 				try {
 					talloc.insertAsgn(start, a.getDueDate());
 				} catch (final NotEnoughTimeException net) {
-					System.err.println("ERROR: " + net.getMessage());
+					Utils.printError(net.getMessage());
 				}
 				
 				StorageService.mergeAllTimeBlocks(talloc.getEntireBlockSet());
-				
 				SwingUtilities.invokeLater(new Runnable() {
 					
 					@Override
@@ -99,8 +100,7 @@ public class HubController {
 		final Date oldEnd = new Date(oldBlock.getEnd().getTime());
 		
 		if (TimeModifier.updateBlock(oldBlock, newStart, newEnd)) {
-			// TODO: If successful, update learner using oldStart and oldEnd
-			Learner.considerBlockUpdate(oldBlock, newStart, newEnd); 
+			Learner.considerBlockUpdate(oldBlock, newStart, newEnd);
 		}
 		SwingUtilities.invokeLater(new Runnable() {
 			
@@ -121,7 +121,8 @@ public class HubController {
 		final double oldCompletion = oldTask.getPercentComplete();
 		TimeModifier.updateBlocksInTask(oldTask, newCompletion);
 		// TODO: Update learner using old percent and new percent
-		
+		oldTask.setPercentComplete(newCompletion);
+		StorageService.updateTask(oldTask);
 		SwingUtilities.invokeLater(new Runnable() {
 			
 			@Override
@@ -129,5 +130,10 @@ public class HubController {
 				_app.reload();
 			};
 		});
+	}
+	
+	public static void updateUnavailableBlocks(final Date startDate, final Date endDate,
+			final List<UnavailableBlock> blockList) {
+		
 	}
 }

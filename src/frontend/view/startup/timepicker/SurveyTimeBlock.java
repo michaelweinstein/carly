@@ -23,32 +23,31 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	private static BasicStroke border_stroke;
 //	private static BasicStroke border_stroke_dashed;
 	
+	private static final Color hoverColor = Color.LIGHT_GRAY.darker();
+	
 	/* Boolean vars */
 	private boolean _isSelected;
 	private boolean _isOnHalfHour;
-	private boolean _isFirstBlock;
+	private boolean _isHovering;
+	private boolean _isFirstBlock = false;
 	
 	/* Data vars */
 	private Vec2d _loc;
 	private Vec2d _dim;
 
-	public SurveyTimeBlock(double x, double y, boolean startsOnHalfHour, boolean isFirstBlock) {
+	public SurveyTimeBlock(double x, double y, boolean startsOnHalfHour, 
+				boolean isFirstBlock) {
 		super(x, y, SurveyWeekView.COL_WIDTH, SurveyWeekView.ROW_HEIGHT);
 		_loc = new Vec2d(x, y);
 		_dim = new Vec2d(SurveyWeekView.COL_WIDTH, SurveyWeekView.ROW_HEIGHT);
 		
 		_isSelected = false;
 		_isOnHalfHour = startsOnHalfHour;
+		_isHovering = false;
 		_isFirstBlock = isFirstBlock;
-				
+
 		// Create borders
 		border_stroke = new BasicStroke(border_width);
-//		border_dash_length = (float) SurveyWeekView.ROW_HEIGHT;	
-/*		final float dashes[] = {border_dash_length, 4.0f};
-		border_stroke_dashed = new BasicStroke(	border_width, 	
-												BasicStroke.CAP_BUTT, 
-												BasicStroke.JOIN_MITER, border_dash_length, 
-												dashes, 0.0f);*/
 	}
 	
 	/* Data access methods */
@@ -64,14 +63,12 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	 * @return Date[] where [0] = start time [1] = end time
 	 */
 	public Date[] getRange() {
-		
+		// Create Calendar starting at first Sunday after epoch (1/1/1970)
 		Calendar c = Calendar.getInstance();
 		c.setTime(new Date(0));
 		c.add(Calendar.DAY_OF_YEAR, 3);	// move to January 4, 1970
-		
-		// TODO Print out date to check
-		
-		// Start time in minutes
+
+		// Set start time in minutes
 		Date[] startAndEnd = new Date[2];
 		int day = (int) (_loc.x / _dim.x);
 		int timeStart = (int) (_loc.y / _dim.y) * 30;	// half hour number --> minutes
@@ -84,10 +81,13 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 		// End time (start time + 30 minutes)
 		c.add(Calendar.MINUTE, 30);
 		startAndEnd[1] = c.getTime();
-		
-		// TODO Test the conversions are right
-		
+				
 		return startAndEnd;
+	}
+	
+	// TODO
+	public void hover(boolean h) {
+		_isHovering = h;
 	}
 	
 	/* Selection methods */
@@ -118,28 +118,34 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	/* Drawing methods */
 	
 	// TODO: Comment
-	public void draw(Graphics2D g) {	
-		// Paint border
-/// 	TODO: On half hour, draw dashed lines or no border?
-//		g.setColor(_isOnHalfHour? dashedBorderColor : borderColor);
-//		g.setStroke(_isOnHalfHour? border_stroke_dashed : border_stroke);
+	public void draw(Graphics2D g) {
+		
+		/* Paint border */
 		
 		g.setColor(borderColor);
-		g.setStroke(border_stroke);
-		
-		if (_isOnHalfHour) 
-			g.clipRect((int)(getX()-border_width), (int)(getY()), (int)(getWidth()+border_width), (int)(getHeight()));
-		
+		g.setStroke(border_stroke);	
+		// Clip borders for half-hour boxes
+		if (_isOnHalfHour) {
+			g.clipRect((int)(getX()-border_width), (int)(getY()), 
+							(int)(getWidth()+2*border_width), (int)(getHeight()));
+		}
 		
 		// TODO: If _isFirstBlock, need to draw left and upper border
 		
-		g.draw(this);
-		
+		g.draw(this);	
+		// Reset clip after borders were trimmed
 		if (_isOnHalfHour) 
 			g.setClip(null);
 		
+		/* Paint fill */
+		
 		// Fill with color
-		g.setColor(_isSelected? selectedColor : unselectedColor);
+		g.setColor(_isSelected? selectedColor:_isHovering? hoverColor:unselectedColor);
+		
+		// Hover over unselected block
+		if (_isHovering && !_isSelected) 
+			g.setColor(hoverColor);
+		
 		g.fill(this);
 		
 ///////

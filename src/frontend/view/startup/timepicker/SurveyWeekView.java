@@ -18,6 +18,11 @@ import data.Vec2d;
 import frontend.Utils;
 
 public class SurveyWeekView extends JPanel {
+	
+	// TODO: BUG: Sometimes drags selected over selected, and unselected over unselected
+		// Trigger by dragging some blocks and trying to deselect them by dragging a subgroup of those blocks
+	// TODO:  Upper left corner border of first box!
+	// TODO: When you drag, the first box does not get selected
 
 	private static final long serialVersionUID = 888327935955233878L;
 	
@@ -101,7 +106,7 @@ public class SurveyWeekView extends JPanel {
 		}
 		return null;
 	}
-	
+		
 	/* Data Access methods */
 	
 	/**
@@ -125,7 +130,7 @@ public class SurveyWeekView extends JPanel {
 		List<UnavailableBlock> ublockslist = new ArrayList<>();
 		for (SurveyTimeBlock b: _blocks) {
 			// If not selected
-			if (!b.isSelected()) {
+			if (b.isSelected()) {
 				Date[] times = b.getRange();
 				// Create UnavailableBlock and add to returned list
 				ublockslist.add(new UnavailableBlock(times[0], times[1], null));
@@ -181,6 +186,24 @@ public class SurveyWeekView extends JPanel {
 		}
 	}
 	
+	// TODO Complete and comment
+	private void handleHover(Vec2d loc) {
+		Point2D p = new Point2D.Double(loc.x, loc.y);
+		for (SurveyTimeBlock block: _blocks) {
+			if (block.contains(p)) {
+				if (block != _currBlock) {
+					if (block != null) {
+						block.hover(true);
+						repaint();
+					}
+					_currBlock = block;
+				} 
+			} 
+			else block.hover(false);
+		}
+				
+	}
+	
 	/* Private inner classes (for user input) */
 	
 	private class BlockDragListener implements MouseMotionListener {
@@ -198,6 +221,7 @@ public class SurveyWeekView extends JPanel {
 		@Override
 		public void mouseMoved(MouseEvent e) { 
 			// TODO: Block hover response
+			handleHover(new Vec2d(e.getX(), e.getY()));
 		}
 	}
 	

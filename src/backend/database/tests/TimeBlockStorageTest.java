@@ -5,8 +5,10 @@ import static org.junit.Assert.*;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Before;
@@ -38,6 +40,7 @@ public class TimeBlockStorageTest {
 	@After
 	public void tearDown() throws Exception {
 		System.setErr(_oldStdErr);
+		StorageService.cleanup();
 	}
 	
 	/*
@@ -462,31 +465,43 @@ public class TimeBlockStorageTest {
 				new Date(System.currentTimeMillis() + (86400 * 1000) * 12), 
 				task); 
 		
+		//We need to the date of all of the default timeBlocks to this week
+		Calendar cal = Calendar.getInstance();
+		cal.set(1970, Calendar.JANUARY, 4, 0, 0); 
+		long msWeekStart = cal.getTimeInMillis(); 
+		
+		ArrayList<UnavailableBlock> unavailableBlocks = new ArrayList<>();  
 		UnavailableBlock unavailable1 = new UnavailableBlock(
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
+				new Date(msWeekStart - TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)), 
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(2, TimeUnit.HOURS)), 
 				null); 
 		UnavailableBlock unavailable2 = new UnavailableBlock(
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(0, TimeUnit.HOURS)), 
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)),  
 				null); 
 		UnavailableBlock unavailable3 = new UnavailableBlock(
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 11), 
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 13), 
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS)), 
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(25, TimeUnit.HOURS)), 
 				null);
 		UnavailableBlock unavailable4 = new UnavailableBlock(
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 1), 
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
+				new Date(msWeekStart - TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)), 
+				new Date(msWeekStart - TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)), 
 				null); 
 		UnavailableBlock unavailable5 = new UnavailableBlock(
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 6), 
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(166, TimeUnit.HOURS)), 
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(170, TimeUnit.HOURS)),
 				null); 
 		UnavailableBlock unavailable6 = new UnavailableBlock(
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 1), 
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 7), 
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(170, TimeUnit.HOURS)), 
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(174, TimeUnit.HOURS)),
 				null); 
 		
+		unavailableBlocks.add(unavailable1);
+		unavailableBlocks.add(unavailable2); 
+		unavailableBlocks.add(unavailable3); 
+		unavailableBlocks.add(unavailable4); 
+		unavailableBlocks.add(unavailable5);
+		unavailableBlocks.add(unavailable6);
 		
 		//Add objects in correct order to the db
 		try {
@@ -496,19 +511,21 @@ public class TimeBlockStorageTest {
 			StorageService.addTimeBlock(block2);
 			StorageService.addTimeBlock(block3); 
 			StorageService.addTimeBlock(block4);
-			StorageService.addTimeBlock(unavailable1);
-			StorageService.addTimeBlock(unavailable2);
-			StorageService.addTimeBlock(unavailable3);
-			StorageService.addTimeBlock(unavailable4);
-			StorageService.addTimeBlock(unavailable5);
-			StorageService.addTimeBlock(unavailable6);
+			StorageService.addAllDefaultUnavailableBlocks(unavailableBlocks);
 		} 
 		catch (StorageServiceException e) {
 			fail(e.getMessage());
 		} 
 		
-		assert(StorageService.getAllUnavailableBlocksWithinRange(
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 5)).size() == 5);
+		cal.setTimeInMillis(System.currentTimeMillis());
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+		cal.set(Calendar.HOUR_OF_DAY,0);
+		cal.set(Calendar.MINUTE,0);
+		cal.set(Calendar.SECOND,0);
+		long msWeekStartNow = cal.getTimeInMillis(); 
+		
+		assertTrue(StorageService.getAllUnavailableBlocksWithinRange(
+				new Date(msWeekStartNow), 
+				new Date(msWeekStartNow + TimeUnit.MILLISECONDS.convert(168, TimeUnit.HOURS))).size() == 4);
 	}
 }

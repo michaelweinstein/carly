@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,8 +25,13 @@ import data.TemplateStep;
 public class AssignmentTaskStorageTest {
 	
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		StorageService.initialize(true);
+	}
+	
+	@After
+	public void cleanUp() {
+		StorageService.cleanup();
 	}
 	
 	/*
@@ -343,6 +349,31 @@ public class AssignmentTaskStorageTest {
 	/*
 	 * Testing Task related functionality
 	 */
+	
+	@Test
+	public void updateTask() {
+		final Date dueDate = new Date();
+		final Template template = new Template("Template 1");
+		template.addStep(new TemplateStep("Step 1", 1.0));
+		final Assignment asgn = new Assignment("Assignment 1", dueDate, template);
+		final Task task = new Task("Task 1", 1, asgn.getID());  
+		asgn.addTask(task);
+		
+		final String asgnId = asgn.getID();
+		
+		try {
+			StorageService.addTemplate(template);
+			StorageService.addAssignment(asgn);
+		} catch (final StorageServiceException e) {
+			fail(e.getMessage());
+		}
+		
+		task.setPercentComplete(0.174);
+		StorageService.updateTask(task); 
+		
+		final Assignment afterAsgn = StorageService.getAssignment(asgnId);
+		assertEquals(asgn.fullString(), afterAsgn.fullString());
+	}
 	
 	@Test
 	public void getTasksWithinRange() {

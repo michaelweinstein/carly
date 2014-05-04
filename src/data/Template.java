@@ -9,7 +9,7 @@ import frontend.Utils;
 public class Template implements ITemplate {
 	
 	private final String				_uid;
-	private final String				_name;
+	private String						_name;
 	// Using ArrayList so we can add elements at specific index
 	private final List<ITemplateStep>	_steps;
 	private final double				_preferredConsecutiveHours;
@@ -107,8 +107,7 @@ public class Template implements ITemplate {
 			}
 			return true;
 		}
-		Utils.printError("A TemplateStep of that name already " + "exists in Template " + _name
-			+ "  (Template.addStep)");
+		Utils.printError("A TemplateStep of that name already exists in Template " + _name + "  (Template.addStep)");
 		return false;
 	}
 	
@@ -133,8 +132,7 @@ public class Template implements ITemplate {
 			final int index = _steps.indexOf(stepToRemove);
 			return _steps.remove(index);
 		}
-		Utils.printError("_steps does not contain " + // print line
-			"stepToRemove; returning null (Template.removeStep)");
+		Utils.printError("_steps does not contain" + stepToRemove + " : returning null (Template.removeStep)");
 		return null;
 	}
 	
@@ -164,7 +162,7 @@ public class Template implements ITemplate {
 	 * 
 	 * @return old List of TemplateSteps
 	 */
-	// TODO: Do I need to declare clearSteps to ITemplate interface?
+	@Override
 	public List<ITemplateStep> clearSteps() {
 		final List<ITemplateStep> oldSteps = _steps;
 		_steps.clear();
@@ -229,5 +227,10 @@ public class Template implements ITemplate {
 	@Override
 	public int hashCode() {
 		return Objects.hash(fullString());
+	}
+	
+	@Override
+	public void setTitle(final String titleTemplate) {
+		_name = titleTemplate;
 	}
 }

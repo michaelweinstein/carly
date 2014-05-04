@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.geom.RoundRectangle2D;
 
 import javax.swing.JButton;
@@ -17,9 +19,11 @@ import frontend.Utils;
  * 
  * @author dgattey
  */
-public class CButton extends JButton {
+public class CButton extends JButton implements MouseListener {
 	
 	private static final long	serialVersionUID	= 1L;
+	private boolean				_hovered;
+	private boolean				_pressed;
 	
 	/**
 	 * Constructor with title
@@ -28,6 +32,7 @@ public class CButton extends JButton {
 	 */
 	public CButton(final String name) {
 		super(name);
+		addMouseListener(this);
 	}
 	
 	@Override
@@ -41,16 +46,53 @@ public class CButton extends JButton {
 		
 		// Draw the background
 		final RoundRectangle2D.Double back = new RoundRectangle2D.Double(3, 3, getWidth() - 4, getHeight() - 4, 10, 10);
-		canvas.setColor(new Color(30, 30, 30));
+		canvas.setColor(_pressed ? Utils.COLOR_ALTERNATE.brighter() : _hovered ? new Color(50, 50, 50) : new Color(30,
+				30, 30));
 		canvas.fill(back);
-		canvas.setColor(Utils.COLOR_ACCENT);
+		canvas.setColor(isEnabled() ? Utils.COLOR_ACCENT : Utils.COLOR_ALTERNATE);
 		canvas.draw(back);
 		
 		// Draw text
-		canvas.setColor(Utils.COLOR_FOREGROUND);
+		canvas.setColor(isEnabled() ? Utils.COLOR_FOREGROUND : Utils.COLOR_FOREGROUND.darker());
 		final String s = getText();
 		final int w = getWidth();
 		final int x = (int) ((w - canvas.getFontMetrics().getStringBounds(s, g).getWidth()) / 2);
 		canvas.drawString(s, x, getHeight() / 2 + 6);
-	};
+	}
+	
+	@Override
+	public void mouseClicked(final MouseEvent e) {}
+	
+	@Override
+	public void mousePressed(final MouseEvent e) {
+		_pressed = true;
+		repaint();
+	}
+	
+	@Override
+	public void mouseReleased(final MouseEvent e) {
+		_pressed = false;
+		repaint();
+	}
+	
+	@Override
+	public void mouseEntered(final MouseEvent e) {
+		_hovered = true;
+		repaint();
+	}
+	
+	@Override
+	public void mouseExited(final MouseEvent e) {
+		_hovered = false;
+		repaint();
+	}
+	
+	/**
+	 * Resets colors
+	 */
+	public void reset() {
+		_hovered = false;
+		_pressed = false;
+		repaint();
+	}
 }
