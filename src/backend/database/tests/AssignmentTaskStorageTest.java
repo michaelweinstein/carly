@@ -345,6 +345,31 @@ public class AssignmentTaskStorageTest {
 	 */
 	
 	@Test
+	public void updateTask() {
+		final Date dueDate = new Date();
+		final Template template = new Template("Template 1");
+		template.addStep(new TemplateStep("Step 1", 1.0));
+		final Assignment asgn = new Assignment("Assignment 1", dueDate, template);
+		final Task task = new Task("Task 1", 1, asgn.getID());  
+		asgn.addTask(task);
+		
+		final String asgnId = asgn.getID();
+		
+		try {
+			StorageService.addTemplate(template);
+			StorageService.addAssignment(asgn);
+		} catch (final StorageServiceException e) {
+			fail(e.getMessage());
+		}
+		
+		task.setPercentComplete(0.174);
+		StorageService.updateTask(task); 
+		
+		final Assignment afterAsgn = StorageService.getAssignment(asgnId);
+		assertEquals(asgn.fullString(), afterAsgn.fullString());
+	}
+	
+	@Test
 	public void getTasksWithinRange() {
 		final ArrayList<ITemplateStep> templateSteps = new ArrayList<>();
 		templateSteps.add(new TemplateStep("Step", 1.0, 1));

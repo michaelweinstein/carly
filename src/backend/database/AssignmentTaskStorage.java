@@ -752,6 +752,65 @@ public class AssignmentTaskStorage {
 	}
 	
 	/**
+	 * Update a task that already exists in the db.
+	 * 
+	 * @param task Task to be updated
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
+	 * @return Task that was updated, for chaining calls 
+	 */
+	protected static ITask updateTask(final ITask task, final JdbcConnectionPool pool) {
+		PreparedStatement taskStatement = null;
+	    Connection con = null; 
+	    
+	    try {
+	    	Class.forName("org.h2.Driver");
+	    	con = pool.getConnection();
+	        con.setAutoCommit(false);
+	        
+	        taskStatement = con.prepareStatement(Utilities.UPDATE_TASK); 
+            Utilities.setValues(taskStatement, task.getName(), task.getPercentOfTotal(), 
+            		task.getPercentComplete(), task.getPreferredTimeOfDay().name(), 
+            		task.getSuggestedBlockLength(), task.getTaskID());
+            taskStatement.execute();
+            
+            //commit to the database
+            con.commit();
+	    } 
+	    catch (final ClassNotFoundException e) {
+			Utilities.printException("AssignmentTaskStorage: updateTask: db drive class not found", e);
+		} 
+	    catch (final SQLException e) {
+	        Utilities.printSQLException("AssignmentTaskStorage: updateTask: " +
+	        		"attempting to roll back transaction", e);
+	        if (con != null) {
+	            try {
+	                con.rollback();
+	            } 
+	            catch(final SQLException x) {
+	                Utilities.printSQLException("AssignmentTaskStorage: updateTask: " +
+	                		"could not roll back transaction", x);
+	            }
+	        }
+	    } 
+	    finally {
+	    	try {
+	    		if (taskStatement != null) {
+		            taskStatement.close();
+		        }
+		        con.setAutoCommit(true);
+		        if (con != null) {
+	    			con.close(); 
+	    		}
+	    	}
+	    	catch(final SQLException x) {
+                Utilities.printSQLException("AssignmentTaskStorage: updateTask: could not close resource", x);
+            }
+	    } 
+	    
+		return task; 
+	}
+			
+	/**
 	 * Retrieves all the Tasks whose associated Assignment's dueDate falls within the range specified, inclusive of
 	 * bounds.
 	 * 
