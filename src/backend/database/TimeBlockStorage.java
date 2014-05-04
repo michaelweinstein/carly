@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -46,7 +47,8 @@ public class TimeBlockStorage {
 	 */
 	protected static List<UnavailableBlock> getAllUnavailableBlocksWithinRange(
 			Date date1, Date date2, JdbcConnectionPool pool) {
-		PreparedStatement statement = null; 
+		PreparedStatement modifiedStatement = null;
+		PreparedStatement defaultStatement = null;
 	    Connection con = null; 
 	    ArrayList<UnavailableBlock> results = new ArrayList<>(); 
 	    
@@ -58,11 +60,11 @@ public class TimeBlockStorage {
 	    	Class.forName("org.h2.Driver");
 	    	con = pool.getConnection();
 			
-	        statement = con.prepareStatement(Utilities.SELECT_UNAVAILABLE_BLOCKS_BY_DATE); 
-        	Utilities.setValues(statement, earlier.getTime(), later.getTime(),
+	        modifiedStatement = con.prepareStatement(Utilities.SELECT_UNAVAILABLE_BLOCKS_BY_DATE); 
+        	Utilities.setValues(modifiedStatement, earlier.getTime(), later.getTime(),
         			earlier.getTime(), later.getTime(),
         			earlier.getTime(), later.getTime());
-        	ResultSet blockResults = statement.executeQuery();
+        	ResultSet blockResults = modifiedStatement.executeQuery();
         	
         	while (blockResults.next()) {
         		String blockId = blockResults.getString("BLOCK_ID");
@@ -71,6 +73,37 @@ public class TimeBlockStorage {
         		boolean blockMovable = blockResults.getBoolean("BLOCK_MOVABLE");
         		
         		results.add(new UnavailableBlock(blockId, blockStart, blockEnd, null, blockMovable)); 
+        	}
+        	
+        	if (results.size() == 0) {
+        		defaultStatement = con.prepareStatement(Utilities.SELECT_DEFAULT_UNAVAILABLE_BLOCKS); 
+            	blockResults = defaultStatement.executeQuery();
+            	
+            	while (blockResults.next()) {
+            		//We need to the date of all of the default timeBlocks to this week
+            		Calendar cal = Calendar.getInstance();
+            		cal.setTime(earlier);
+            		cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+            		cal.set(Calendar.HOUR_OF_DAY,0);
+            		cal.set(Calendar.MINUTE,0);
+            		cal.set(Calendar.SECOND,0);
+            		long msWeekStartNow = cal.getTimeInMillis();            		
+            		cal.set(1970, Calendar.JANUARY, 4, 0, 0); 
+            		long msWeekStartDefault = cal.getTimeInMillis(); 
+            		long msModifier = msWeekStartNow - msWeekStartDefault;
+            		
+            		//Getting all of the required fields to reconstruct the UnavailableBlock
+            		String blockId = blockResults.getString("BLOCK_ID");
+            		Date blockStart = new Date(blockResults.getLong("BLOCK_START") + msModifier);
+            		Date blockEnd = new Date(blockResults.getLong("BLOCK_END") + msModifier);
+            		boolean blockMovable = blockResults.getBoolean("BLOCK_MOVABLE");
+            		
+            		if ((blockStart.compareTo(earlier) >= 0 && blockStart.compareTo(later) <= 0) ||
+            				(blockEnd.compareTo(earlier) >= 0 && blockEnd.compareTo(later) <= 0) ||
+            				(blockStart.compareTo(earlier) <= 0 && blockEnd.compareTo(later) >= 0)) {
+            			results.add(new UnavailableBlock(blockId, blockStart, blockEnd, null, blockMovable));
+            		}
+            	}
         	}
 	    } 
 	    catch (ClassNotFoundException e) {
@@ -83,8 +116,11 @@ public class TimeBlockStorage {
 	    } 
 	    finally {
 	    	try {
-	    		if (statement != null) {
-		            statement.close();
+	    		if (modifiedStatement != null) {
+		            modifiedStatement.close();
+		        }
+	    		if (defaultStatement != null) {
+	    			defaultStatement.close();
 		        }
 	    		if (con != null) {
 	    			con.close(); 
@@ -390,7 +426,8 @@ public class TimeBlockStorage {
 	 * 
 	 * @param blockList List of blocks to to be added to or updated in the database
 	 * @param pool JdbcConnectionPool for retrieving connection to the database
-	 * @return A list of INVALID TimeBlocks (that is, those whose associated Task cannot be found in the database) that were NOT added/updated
+	 * @return A list of INVALID TimeBlocks (that is, those whose associated Task cannot be found in the database) 
+	 * 			that were NOT added/updated
 	 */
 	protected static List<ITimeBlockable> mergeAllTimeBlocks(List<ITimeBlockable> blockList, JdbcConnectionPool pool) {
 		List<ITimeBlockable> blocksNotAdded = new ArrayList<>();
@@ -623,7 +660,12 @@ public class TimeBlockStorage {
 		return block; 
 	}
 	
-	//TODO: untested 
+	/**
+	 * Add all default unavailable blocks from the startup survey
+	 * 
+	 * @param blockList List of default unavailable blocks to add
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
+	 */
 	protected static void addAllDefaultUnavailableBlocks(final List<UnavailableBlock> blockList,
 			final JdbcConnectionPool pool) {
 		PreparedStatement blockStatement = null;
@@ -639,10 +681,9 @@ public class TimeBlockStorage {
 	        	blockStatement = con.prepareStatement(Utilities.INSERT_TIME_BLOCK); 
 	            Utilities.setValues(blockStatement, block.getId(), block.getTaskId(), block.getStart().getTime(),
 	            		block.getEnd().getTime(), block.isMovable(), true);
-	            blockStatement.addBatch();
+	            blockStatement.execute();
 	        }
 	        
-	        blockStatement.executeBatch(); 	        
             //commit to the database
             con.commit();
 	    } 
@@ -673,7 +714,8 @@ public class TimeBlockStorage {
 	    		}
 	    	}
 	    	catch(final SQLException x) {
-                Utilities.printSQLException("TimeBlockStorage: addAllDefaultUnavailableBlocks: could not close resource", x);
+                Utilities.printSQLException("TimeBlockStorage: addAllDefaultUnavailableBlocks: " +
+                		"could not close resource", x);
             }
 	    }
 	}

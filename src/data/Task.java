@@ -16,6 +16,8 @@ public class Task implements ITask {
 	private TimeOfDay		_timeOfDay;
 	// Optimal length of blocks to complete Task
 	private double			_suggestedBlockLength;
+	private final int 			_taskNumber;
+	// TODO: Add _taskNumber to the constructor that Dylan uses, when creating Task from TemplateStep
 	
 	/**
 	 * Constructor without Assignment UID; _assignmentId is null
@@ -29,6 +31,8 @@ public class Task implements ITask {
 		_uniqueId = DataUtil.generateID() + _name.hashCode();
 		/* Sets _percentComplete, _timeOfDay, _suggestedBlockLength */
 		setInitialValues();
+		// TODO Set with constructor parameter
+		_taskNumber = 0;
 	}
 	
 	/**
@@ -40,6 +44,8 @@ public class Task implements ITask {
 		_assignmentId = assignmentUID;
 		_uniqueId = assignmentUID + _name.hashCode();
 		setInitialValues();
+		// TODO Set with constructor parameter
+		_taskNumber = 0;
 	}
 	
 	/**
@@ -54,6 +60,8 @@ public class Task implements ITask {
 		_percentComplete = percentComplete;
 		_timeOfDay = timeOfDay;
 		_suggestedBlockLength = suggestedBlockLength;
+		// TODO Set with constructor parameter
+		_taskNumber = 0;
 	}
 	
 	/* Private methods */
@@ -144,6 +152,13 @@ public class Task implements ITask {
 	public double getSuggestedBlockLength() {
 		return _suggestedBlockLength;
 	}
+	
+	@Override
+	public int getTaskNumber() {
+		return _taskNumber;
+	}
+	
+	/* Holy trinity methods */
 	
 	@Override
 	public String toString() {
