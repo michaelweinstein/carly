@@ -27,13 +27,19 @@ public class TimeModifier {
 	 */
 	public static boolean updateBlock(final ITimeBlockable block, final Date newStart, final Date newEnd) {
 		final Date now = new Date();
-		final Assignment asgn = StorageService.getAssignment(block.getTask().getAssignmentID());
 		
-		// Ensure that a user cannot lengthen, shorten, or drag a block outside of the valid time range
-		if (!newStart.after(now) || !newEnd.before(asgn.getDueDate())) {
-			return false;
+		ITask task = block.getTask();
+		
+		//If a block is an AssignmentBlock, then the task will NOT be null
+		if(task != null) {
+			final Assignment asgn = StorageService.getAssignment(task.getAssignmentID());
+			
+			// Ensure that a user cannot lengthen, shorten, or drag a block outside of the valid time range
+			if (!newStart.after(now) || !newEnd.before(asgn.getDueDate())) {
+				return false;
+			}
 		}
-		
+
 		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
 		// get the entire block set from the db...
 		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
