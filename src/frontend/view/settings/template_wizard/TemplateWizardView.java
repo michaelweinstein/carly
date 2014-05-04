@@ -89,9 +89,6 @@ public class TemplateWizardView extends JPanel {
 		// Set theme and layout of wizard
 		Utils.themeComponent(this);
 		// // // TODO: Get rid of border if I can get it to look similar for entire SettingsView
-		// Utils.addBorderTop(this);
-		// Utils.addBorderBottom(this);
-		// Utils.padComponentWithBorder(this, padding, padding);
 		Utils.padComponent(this, padding, padding);
 		
 		// TODO: Removing Templates -- user needs a way to delete an existing Template!

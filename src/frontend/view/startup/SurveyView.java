@@ -7,6 +7,8 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.List;
 
 import javax.swing.JCheckBox;
@@ -24,16 +26,15 @@ import frontend.view.startup.timepicker.SurveyWeekView;
 
 public class SurveyView extends JDialog {
 	
-	// TODO On close, quit program and delete database
-			// --- Eric will create method to delete database
-	// TODO Don't let user close until data has been submitted.
-	
 	private static final long			serialVersionUID	= -3311099840458252581L;
 	
+	/* Styling vars */
 	private static final Dimension		minimum_size		= new Dimension(605, 670);
 	private static final Insets			insets				= new Insets(6, 5, 6, 5);
 	private static final int			padding				= 15;
 	private static final int			title_size			= 46;
+	
+	/* String vars */
 	private static final String			title_label			= "Welcome to Carly!";
 	private static final String			hours_label			= "When do you prefer to work during the day?";
 	private static final String			learner_label		= "Would you like settings to be adjusted based on your behavior?";
@@ -44,6 +45,9 @@ public class SurveyView extends JDialog {
 	private final JComboBox<TimeOfDay>	_todPicker;
 	private final JCheckBox				_learnerCheck;
 	private final SurveyWeekView		_timeView;
+	
+	/* Boolean vars */
+	private boolean 					_submitted 			= false;
 	
 	public SurveyView() {
 		super();
@@ -123,11 +127,8 @@ public class SurveyView extends JDialog {
 		c.gridheight = 2;
 		c.anchor = GridBagConstraints.CENTER;
 		this.add(_timeView, c);
-		
-		// ///
-		c.insets = insets;
-		
-		// 'Submit survey' button
+
+		/* 'Submit survey' button */
 		final CButton submitBtn = new CButton(submit_label);
 		submitBtn.setPreferredSize(new Dimension(300, 30));
 		submitBtn.addActionListener(new ActionListener() {
@@ -144,7 +145,25 @@ public class SurveyView extends JDialog {
 		c.anchor = GridBagConstraints.CENTER;
 		this.add(submitBtn, c);
 		
-		// TODO User should not be able to close unless survey is completed
+		/* === WindowListener: Handles case in which user closes without submitting === */
+		
+		this.addWindowListener(new WindowListener() {
+			public void windowOpened(WindowEvent e) { }
+			// Triggered on 'close' or on 'submit' (submitSurvey's dispose() call)
+			public void windowClosing(WindowEvent e) { 
+				// User closes without submitting
+				if (!_submitted) {
+					// Delete database and quit program
+					StorageService.dropTables();
+					System.exit(0);
+				} 
+			}
+			public void windowClosed(WindowEvent e) { }
+			public void windowIconified(WindowEvent e) { }
+			public void windowDeiconified(WindowEvent e) { }
+			public void windowActivated(WindowEvent e) { }
+			public void windowDeactivated(WindowEvent e) { }
+		});
 	}
 	
 	/**
@@ -170,7 +189,10 @@ public class SurveyView extends JDialog {
 		final List<UnavailableBlock> uBlocks = _timeView.getUnavailableBlocks();
 		StorageService.addAllDefaultUnavailableBlocks(uBlocks);
 		
-		// Close window on Submit
+		// Indicate to WindowListener that submission was successful
+		_submitted = true;
+		
+		// Close window without quitting program
 		dispose();
 	}
 }
