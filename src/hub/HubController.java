@@ -14,7 +14,6 @@ import backend.time.TimeModifier;
 import data.Assignment;
 import data.ITask;
 import data.ITimeBlockable;
-import data.UnavailableBlock;
 import frontend.Utils;
 import frontend.app.GUIApp;
 
@@ -132,8 +131,22 @@ public class HubController {
 		});
 	}
 	
+	/**
+	 * For unavailable blocks instead of regular ones
+	 * 
+	 * @param startDate the start of the list of blocks
+	 * @param endDate the end of the list of blocks
+	 * @param blockList the actual blocks to save
+	 */
 	public static void updateUnavailableBlocks(final Date startDate, final Date endDate,
-			final List<UnavailableBlock> blockList) {
-		
+			final List<ITimeBlockable> blockList) {
+		// TODO: actually update all in backend
+		SwingUtilities.invokeLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				_app.reload();
+			};
+		});
 	}
 }
