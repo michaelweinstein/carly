@@ -213,7 +213,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 			c.setTime(new Date());
 			final int i = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
 			final int start = (int) ((i / DAYS) * (getWidth() - X_OFFSET) + X_OFFSET);
-			brush.fillRect(start, 0, (int) dayWidth + 1, getHeight());
+			brush.fillRect(start, 0, (int) dayWidth + 2, getHeight());
 		}
 		
 		// Background of labels
@@ -663,7 +663,8 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		final int type = getCursor().getType();
 		
 		// Top edge or bottom edge
-		if (CanvasUtils.atTopEdge(e, t, Y_PAD) || CanvasUtils.atBottomEdge(e, t, getHeight() - Y_PAD)) {
+		if (t != null && !t.getBlockable().getEnd().before(new Date())
+			&& (CanvasUtils.atTopEdge(e, t, Y_PAD) || CanvasUtils.atBottomEdge(e, t, getHeight() - Y_PAD))) {
 			if (type != CURSOR_CUST) {
 				setCursor(Cursor.getPredefinedCursor(CURSOR_CUST));
 			}

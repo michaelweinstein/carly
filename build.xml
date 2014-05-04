@@ -95,7 +95,7 @@
 
   <target name="create_exec" depends="compile,jar">
     <echo file="bin/${project}" append="false">#! /bin/bash
-        java -cp lib/*:${derived.jar} frontend.Main "$$@"</echo>
+        java -cp lib/*:${derived.jar} -Dswing.aatext=true frontend.Main "$$@"</echo>
     <apply executable="chmod">
       <arg value="+x"/>
       <fileset file="bin/${project}"/>

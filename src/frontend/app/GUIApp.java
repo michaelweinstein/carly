@@ -20,6 +20,7 @@ public class GUIApp extends App {
 	 * Uses the App constructor plus gui specific stuff
 	 * 
 	 * @param debug if we should be in debug mode
+	 * @param runStartUp if the startup survey should be run
 	 */
 	public GUIApp(final boolean debug, final boolean runStartUp) {
 		super(debug);

@@ -178,13 +178,13 @@ public class CalendarView extends JPanel {
 		final int endY = cal.get(Calendar.YEAR);
 		
 		// Set the format string for a normal week
-		String contents = String.format("Week %d (%s %d)", _currWeek, startM, _currYear);
+		String contents = String.format("%s %d (Week %d)", startM, _currYear, _currWeek);
 		if (!startM.equals(endM)) {
 			// Spanning a year as well as a month?
 			if (startY != endY) {
-				contents = String.format("Week %d (%s %d-%s %d)", _currWeek, startM, startY, endM, endY);
+				contents = String.format("%s %d-%s %d (Week %d)", startM, startY, endM, endY, _currWeek);
 			} else {
-				contents = String.format("Week %d (%s-%s %d)", _currWeek, startM, endM, _currYear);
+				contents = String.format("%s-%s %d (Week %d)", startM, endM, _currYear, _currWeek);
 			}
 		}
 		_weekYearLabel.setText(contents);

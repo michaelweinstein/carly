@@ -27,9 +27,8 @@ import data.Tuple;
 public abstract class Utils {
 	
 	public static final String			APP_NAME			= "Carly";
-	public static final String			REPL				= "repl";
 	public static final String			DEBUG				= "debug";
-	public static final String			USAGE				= "Usage: carly [--repl] [--debug]";
+	public static final String			USAGE				= "Usage: carly [--debug]";
 	
 	// GUI Constants
 	public static final Color			COLOR_BACKGROUND	= Color.DARK_GRAY.darker();
@@ -65,7 +64,7 @@ public abstract class Utils {
 			final File fontFile = new File("fonts/" + fontName + ".ttf");
 			
 			// Make new font of right size
-			font = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(1.0f * size);
+			font = Font.createFont(Font.TRUETYPE_FONT, fontFile).deriveFont(style, size);
 			final GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 			ge.registerFont(font);
 			fonts.put(fontName + "|" + size, font);

@@ -6,7 +6,6 @@ import java.util.Map;
 import backend.database.StorageService;
 import frontend.app.App;
 import frontend.app.GUIApp;
-import frontend.app.REPLApp;
 
 /**
  * Main class - runs the entire program
@@ -25,7 +24,6 @@ public class Main {
 	 */
 	public static ArgParser createFlagParser() {
 		final Map<String, Class<?>> possibleFlags = new HashMap<>();
-		possibleFlags.put(Utils.REPL, null);
 		possibleFlags.put(Utils.DEBUG, null);
 		return new ArgParser(possibleFlags, 0);
 	}
@@ -47,18 +45,10 @@ public class Main {
 			return;
 		}
 		
-		/**
-		 * For StorageService.initialize(false||true): <br>
-		 * Set 'true' if you want to drop old tables at the start of every run <br>
-		 * Set 'false' for persistence
-		 */
-		
-		// DEBUG
-		boolean runStartUp = StorageService.initialize(false);
-		
-		// Create an App, subtype dependent on the GUI command line flag
+		// Create an App
+		final boolean runStartUp = StorageService.initialize(false);
 		final boolean debug = parser.existsFlag(Utils.DEBUG);
-		a = (parser.existsFlag(Utils.REPL)) ? new REPLApp(debug) : new GUIApp(debug, runStartUp);
+		a = new GUIApp(debug, runStartUp);
 		a.start();
 	}
 }
