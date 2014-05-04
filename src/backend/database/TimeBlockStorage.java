@@ -106,9 +106,9 @@ public class TimeBlockStorage {
 	            		Date blockEnd = new Date(blockResults.getLong("BLOCK_END") + msModifier);
 	            		boolean blockMovable = blockResults.getBoolean("BLOCK_MOVABLE");
 	            		
-	            		if ((blockStart.compareTo(earlier) >= 0 && blockStart.compareTo(later) <= 0) ||
-	            				(blockEnd.compareTo(earlier) >= 0 && blockEnd.compareTo(later) <= 0) ||
-	            				(blockStart.compareTo(earlier) <= 0 && blockEnd.compareTo(later) >= 0)) {
+	            		if ((blockStart.compareTo(range.start) >= 0 && blockStart.compareTo(range.end) <= 0) ||
+	            				(blockEnd.compareTo(range.start) >= 0 && blockEnd.compareTo(range.end) <= 0) ||
+	            				(blockStart.compareTo(range.start) <= 0 && blockEnd.compareTo(range.end) >= 0)) {
 	            			results.add(new UnavailableBlock(blockId, blockStart, blockEnd, null, blockMovable));
 	            		}
 	            	}
