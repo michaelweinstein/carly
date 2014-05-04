@@ -73,11 +73,10 @@ public class HubController {
 				try {
 					talloc.insertAsgn(start, a.getDueDate());
 				} catch (final NotEnoughTimeException net) {
-					System.err.println("ERROR: " + net.getMessage());
+					Utils.printError(net.getMessage());
 				}
 				
 				StorageService.mergeAllTimeBlocks(talloc.getEntireBlockSet());
-				
 				SwingUtilities.invokeLater(new Runnable() {
 					
 					@Override
@@ -101,8 +100,7 @@ public class HubController {
 		final Date oldEnd = new Date(oldBlock.getEnd().getTime());
 		
 		if (TimeModifier.updateBlock(oldBlock, newStart, newEnd)) {
-			// TODO: If successful, update learner using oldStart and oldEnd
-			Learner.considerBlockUpdate(oldBlock, newStart, newEnd); 
+			Learner.considerBlockUpdate(oldBlock, newStart, newEnd);
 		}
 		SwingUtilities.invokeLater(new Runnable() {
 			

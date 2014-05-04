@@ -40,6 +40,6 @@ public class WeekView extends JScrollPane {
 		setViewportBorder(new EmptyBorder(0, 0, 0, 0));
 		Utils.padComponent(this, 0, 0);
 		Utils.padComponent(_canvas, 0, 0);
-		getVerticalScrollBar().setUI(new CScrollBarUI());
+		getVerticalScrollBar().setUI(new CScrollBarUI(Utils.COLOR_ALTERNATE));
 	}
 }

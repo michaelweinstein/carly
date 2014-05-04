@@ -6,12 +6,16 @@ import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
 
+import javax.swing.AbstractAction;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
 
 import data.TimeOfDay;
 import frontend.Utils;
@@ -38,10 +42,22 @@ public class SettingsView extends JDialog {
 		super();
 		setPreferredSize(minimum_size);
 		setMinimumSize(minimum_size);
-		// Pad root pane
 		Utils.themeComponent(getRootPane());
 		Utils.padComponent(getRootPane(), 15, 15);
-		// setMinimumSize(getMinimumSize());
+		
+		// Keyboard shortcut
+		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "escape");
+		getRootPane().getActionMap().put("escape", new AbstractAction() {
+			
+			private static final long	serialVersionUID	= 1L;
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				setVisible(false);
+				dispose();
+			}
+			
+		});
 		
 		// TODO: Switch back to BorderLayout
 		setLayout(new BorderLayout());

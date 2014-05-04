@@ -112,6 +112,10 @@ public class LineCanvas extends JPanel {
 			}
 			_y += h * 1.3;
 		}
+		
+		// Draws the right side
+		brush.setColor(Utils.COLOR_ALTERNATE);
+		brush.fillRect(getWidth() - _cv.getScrollWidth(), 0, _cv.getScrollWidth(), getHeight());
 	}
 	
 	/**

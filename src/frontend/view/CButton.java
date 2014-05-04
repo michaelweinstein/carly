@@ -43,11 +43,11 @@ public class CButton extends JButton {
 		final RoundRectangle2D.Double back = new RoundRectangle2D.Double(3, 3, getWidth() - 4, getHeight() - 4, 10, 10);
 		canvas.setColor(new Color(30, 30, 30));
 		canvas.fill(back);
-		canvas.setColor(Utils.COLOR_ACCENT);
+		canvas.setColor(isEnabled() ? Utils.COLOR_ACCENT : Utils.COLOR_ALTERNATE);
 		canvas.draw(back);
 		
 		// Draw text
-		canvas.setColor(Utils.COLOR_FOREGROUND);
+		canvas.setColor(isEnabled() ? Utils.COLOR_FOREGROUND : Utils.COLOR_FOREGROUND.darker());
 		final String s = getText();
 		final int w = getWidth();
 		final int x = (int) ((w - canvas.getFontMetrics().getStringBounds(s, g).getWidth()) / 2);

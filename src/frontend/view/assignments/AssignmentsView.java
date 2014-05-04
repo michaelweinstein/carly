@@ -185,6 +185,7 @@ public class AssignmentsView extends JPanel {
 				}
 			};
 			_confirm.addActionListener(_deleter);
+			_deletionDialog.setLocationRelativeTo(getParent());
 			_deletionDialog.setVisible(true);
 		}
 	}
