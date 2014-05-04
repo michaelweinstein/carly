@@ -26,7 +26,7 @@ public class GUIApp extends App {
 	 * that the user has submitted the survey, and execution can continue.
 	 */
 	private boolean _isFillingOutSurvey;
-	private boolean _runSurvey;
+//	private boolean _runSurvey;
 	
 	/**
 	 * Uses the App constructor plus gui specific stuff
@@ -38,12 +38,12 @@ public class GUIApp extends App {
 		super(debug);
 		_window = new MainFrame(this);
 		
-		_runSurvey = runStartUp;
+//		_runSurvey = runStartUp;
 		
 		// TODO: Re-comment runSurvey block if we want to lock execution until survey is submitted
-/*		if (runStartUp) {
+		if (runStartUp) {
 			runSurvey();
-		}*/
+		}
 	}
 	
 	/**
@@ -61,10 +61,10 @@ public class GUIApp extends App {
 				
 				// TODO: Either run this block or runSurvey in constructor
 				// Called after MainFrame so it appears on top
-				if (_runSurvey) {
+/*				if (_runSurvey) {
 					SurveyView survey = new SurveyView();
 					survey.setVisible(true);
-				}
+				}*/
 			}
 		});
 	}
