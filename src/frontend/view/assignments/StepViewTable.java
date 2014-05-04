@@ -125,8 +125,7 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 		String content = (int) (perc * 100) + "%";
 		if (perc == 0) {
 			textX = 0;
-			content = "Click to set % complete";
-			c = Utils.COLOR_ACCENT;
+			content = "0 % complete (click)";
 		}
 		
 		// Draw hover
@@ -175,10 +174,7 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 	public void mouseClicked(final MouseEvent e) {
 		if (_moveWithMouse && _mousePoint != null) {
 			final double percent = _mousePoint.getX() / getWidth();
-			System.out.println(percent);
 			((ITask) getValueAt(_hoveredRow, 0)).setPercentComplete(percent);
-			
-			//TODO: EVAN ADDED THIS
 			HubController.changeTask(_assignment.getTasks().get(_hoveredRow), percent);
 		}
 		_moveWithMouse = !_moveWithMouse;

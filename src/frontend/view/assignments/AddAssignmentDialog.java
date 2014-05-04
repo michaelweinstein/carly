@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -39,6 +40,7 @@ import javax.swing.event.TableModelListener;
 import javax.swing.table.JTableHeader;
 
 import backend.database.StorageService;
+import backend.database.StorageServiceException;
 import data.Assignment;
 import data.ITemplate;
 import data.ITemplateStep;
@@ -61,6 +63,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	private static final long		serialVersionUID	= -5465413225077024401L;
 	protected final GUIApp			_app;
 	private JButton					_cancelButton;
+	private JButton					_templateButton;
 	protected JButton				_addButton;
 	protected JTextField			_titleField;
 	protected JSpinner				_dateTimeField;
@@ -71,6 +74,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	protected StepModel				_stepModel;
 	protected JTextField			_numHours;
 	public JLabel					_dialogTitle;
+	private String					_lastTemplateAdded;
 	
 	/**
 	 * Constructor creates all relevant data
@@ -137,13 +141,28 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			}
 			
 		});
+		
+		// Saves the template
+		_templateButton = new CButton("Save Template");
+		_templateButton.addActionListener(new ActionListener() {
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				addTemplateToDatabase();
+			}
+		});
+		_templateButton.setEnabled(false);
+		
 		final JPanel pane = new JPanel(new GridLayout(2, 1));
 		pane.setAlignmentX(SwingConstants.CENTER);
 		pane.setAlignmentY(SwingConstants.CENTER);
 		final JPanel buttons = new JPanel();
 		buttons.setLayout(new BoxLayout(buttons, BoxLayout.X_AXIS));
 		buttons.add(Box.createHorizontalGlue());
+		buttons.add(_templateButton);
+		buttons.add(Box.createHorizontalStrut(5));
 		buttons.add(_cancelButton);
+		buttons.add(Box.createHorizontalStrut(5));
 		buttons.add(_addButton);
 		pane.add(_statusLabel);
 		pane.add(buttons);
@@ -154,6 +173,77 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		Utils.addBorderBottom(_statusLabel);
 		Utils.padComponentWithBorder(_statusLabel, 0, 0, 10, 0);
 		return pane;
+	}
+	
+	/**
+	 * Adds the template represented by the custom template to database
+	 */
+	protected void addTemplateToDatabase() {
+		// Error checking on title of template
+		final String titleTemplate = _titleField.getText();
+		if (titleTemplate == null || titleTemplate.isEmpty()) {
+			_statusLabel.setText("Couldn't save: need a name to create");
+			return;
+		}
+		
+		/**
+		 * If the last template string is null, get by name, otherwise get by id so as not to add the same thing with a
+		 * slightly different name
+		 */
+		ITemplate t = (_lastTemplateAdded == null) ? StorageService.getTemplateByName(titleTemplate) : StorageService
+				.getTemplate(_lastTemplateAdded);
+		try {
+			if (t == null) {
+				
+				// Template doesn't exist, so create it, add all steps, and add to database
+				t = new Template(titleTemplate);
+				updateSteps(t);
+				StorageService.addTemplate(t);
+			} else {
+				// Template already exists, so update the name, add all steps, and update in database
+				t.setTitle(titleTemplate);
+				updateSteps(t);
+				StorageService.updateTemplate(t);
+			}
+		} catch (final StorageServiceException | IllegalArgumentException e) {
+			_statusLabel.setText("Couldn't save: " + e.getMessage());
+			_lastTemplateAdded = null;
+			return;
+		}
+		
+		// At this point, all is well so set status and save ID
+		_lastTemplateAdded = t.getID();
+		_statusLabel.setText(String.format("Template saved with title \"%s\"", titleTemplate.length() > 20
+				? titleTemplate.substring(0, 20) + "..." : titleTemplate));
+	}
+	
+	/**
+	 * Takes a template, clears its steps, and updates from the step list
+	 * 
+	 * @param t a given template
+	 * @throws IllegalArgumentException a message if something parsed wrong
+	 */
+	private void updateSteps(final ITemplate t) {
+		t.clearSteps();
+		for (int i = 0; i < _stepModel.getRowCount() - 1; i++) { // -1 handles last blank row
+			final String stepName = _stepModel.getValueAt(i, 0).toString();
+			
+			// Error checking on name
+			if (stepName == null || stepName.isEmpty()) {
+				throw new IllegalArgumentException("step name not a string");
+			}
+			double stepPercent;
+			try {
+				final String s = _stepModel.getValueAt(i, 1).toString();
+				if (s == null || s.isEmpty()) {
+					throw new IllegalArgumentException("percent of total not a number");
+				}
+				stepPercent = Double.parseDouble(s);
+			} catch (final NumberFormatException e) {
+				throw new IllegalArgumentException("percent of total not a number");
+			}
+			t.addStep(new TemplateStep(stepName, stepPercent / 100.0, i));
+		}
 	}
 	
 	/**
@@ -298,7 +388,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		_dateTimeField = new JSpinner(new SpinnerDateModel());
 		final JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(_dateTimeField, DATE_FORMAT_STRING);
 		_dateTimeField.setEditor(timeEditor);
-		_dateTimeField.setValue(new Date());
+		_dateTimeField.setValue(new Date(new Date().getTime() + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS)));
 		Utils.themeComponent(_dateTimeField);
 		c.weightx = 1;
 		c.gridx = 1;
@@ -348,6 +438,11 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 					_stepModel.clear();
 					for (final ITemplateStep step : item.getAllSteps()) {
 						_stepModel.addItem(step);
+					}
+					_templateButton.setEnabled(false);
+					if (event.getItem().toString().equals("Custom")) {
+						_stepModel.addItem(new TemplateStep("Part 1", 1.0));
+						_templateButton.setEnabled(true);
 					}
 					_stepModel.addBlankItem();
 					_stepList.revalidate();
@@ -406,6 +501,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		if (_templatePicker.getSelectedIndex() != 0) {
 			_saveTable = true;
 			_templatePicker.setSelectedIndex(0);
+			_templateButton.setEnabled(true);
 			_saveTable = false;
 		}
 		revalidate();
@@ -433,10 +529,12 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	 */
 	protected void clearContents() {
 		_statusLabel.setText(DEFAULT_LABEL);
+		_lastTemplateAdded = null;
 		_titleField.setText("");
 		_numHours.setText("");
-		_dateTimeField.setValue(new Date());
+		_dateTimeField.setValue(new Date(new Date().getTime() + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS)));
 		_stepModel.clear();
+		_stepModel.addItem(new TemplateStep("Part 1", 1.0));
 		_stepModel.addBlankItem();
 	}
 	
@@ -447,7 +545,6 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		final List<ITemplate> temps = StorageService.getAllTemplates();
 		if (temps != null) {
 			for (final ITemplate temp : temps) {
-				// TODO: Fix so it takes all non-custom from database
 				if (!temp.getName().equals("Custom")) {
 					_templatePicker.addItem(temp);
 				}
@@ -458,7 +555,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	
 	@Override
 	public Dimension getMinimumSize() {
-		return new Dimension(410, 500);
+		return new Dimension(400, 500);
 	}
 	
 }

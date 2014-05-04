@@ -1,5 +1,6 @@
 package frontend.view;
 
+import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -18,6 +19,17 @@ import frontend.Utils;
  * @author dgattey
  */
 public class CScrollBarUI extends BasicScrollBarUI {
+	
+	private final Color	_bg;
+	
+	// Does nothing
+	public CScrollBarUI() {
+		_bg = Utils.COLOR_BACKGROUND;
+	}
+	
+	public CScrollBarUI(final Color background) {
+		_bg = background;
+	}
 	
 	@Override
 	protected JButton createDecreaseButton(final int orientation) {
@@ -61,7 +73,7 @@ public class CScrollBarUI extends BasicScrollBarUI {
 		canvas.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		canvas.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 		canvas.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-		canvas.setBackground(Utils.COLOR_BACKGROUND);
+		canvas.setBackground(_bg);
 		canvas.clearRect(0, 0, width, height);
 		canvas.setColor(Utils.COLOR_ACCENT);
 		
@@ -85,8 +97,20 @@ public class CScrollBarUI extends BasicScrollBarUI {
 			yPoints[2] = 8;
 			break;
 		case WEST:
+			xPoints[0] = width - 8;
+			xPoints[1] = width - height - 6;
+			xPoints[2] = width - 8;
+			yPoints[0] = 2;
+			yPoints[1] = height / 2;
+			yPoints[2] = height - 2;
 			break;
 		case EAST:
+			xPoints[0] = 8;
+			xPoints[1] = height + 6;
+			xPoints[2] = 8;
+			yPoints[0] = 2;
+			yPoints[1] = height / 2;
+			yPoints[2] = height - 2;
 			break;
 		default:
 			break;
@@ -96,7 +120,7 @@ public class CScrollBarUI extends BasicScrollBarUI {
 	
 	@Override
 	protected void paintTrack(final Graphics g, final JComponent c, final Rectangle trackBounds) {
-		g.setColor(Utils.COLOR_BACKGROUND);
+		g.setColor(_bg);
 		g.fillRect(trackBounds.x, trackBounds.y, trackBounds.width, trackBounds.height);
 		
 		if (trackHighlight == DECREASE_HIGHLIGHT) {

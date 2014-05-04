@@ -31,7 +31,7 @@ public class TemplateStepStorage {
 		templateCols.add(StorageService.concatColumn("TEMPLATE_ID", "VARCHAR(255) NOT NULL PRIMARY KEY"));
 		templateCols.add(StorageService.concatColumn("TEMPLATE_NAME", "VARCHAR(255)"));
 		templateCols.add(StorageService.concatColumn("TEMPLATE_CONSECUTIVE_HOURS", "DOUBLE"));
-		templateCols.add(StorageService.concatColumn("TEMPLATE_NUM_CONSECUTIVE", "INT")); 
+		templateCols.add(StorageService.concatColumn("TEMPLATE_NUM_CONSECUTIVE", "INT"));
 		queries.add(Utilities.buildCreateString("TEMPLATE", templateCols));
 		
 		// Template step table
@@ -145,7 +145,7 @@ public class TemplateStepStorage {
 		return template;
 	}
 	
-	//TODO: testing
+	// TODO: testing
 	protected static ITemplate getTemplateByName(final String name, final JdbcConnectionPool pool) {
 		PreparedStatement statement = null;
 		Connection con = null;
@@ -190,6 +190,7 @@ public class TemplateStepStorage {
 			// Null check in case the template with the corresponding id is not found
 			if (template != null) {
 				Collections.sort(stepList, new Comparator<ITemplateStep>() {
+					
 					@Override
 					public int compare(final ITemplateStep arg0, final ITemplateStep arg1) {
 						final int stepNum1 = arg0.getStepNumber();
@@ -208,8 +209,8 @@ public class TemplateStepStorage {
 		} catch (final ClassNotFoundException e) {
 			Utilities.printException("TemplateStepStorage: getTemplateByName: db drive class not found", e);
 		} catch (final SQLException e) {
-			Utilities.printSQLException("TemplateStepStorage: getTemplateByName: " + 
-					"could not retrieve assignments", e);
+			Utilities.printSQLException("TemplateStepStorage: getTemplateByName: " + "could not retrieve assignments",
+					e);
 		}
 		finally {
 			try {
@@ -220,8 +221,7 @@ public class TemplateStepStorage {
 					con.close();
 				}
 			} catch (final SQLException x) {
-				Utilities.printSQLException("TemplateStepStorage: getTemplateByName: " + 
-						"could not close resource", x);
+				Utilities.printSQLException("TemplateStepStorage: getTemplateByName: " + "could not close resource", x);
 			}
 		}
 		
@@ -263,7 +263,7 @@ public class TemplateStepStorage {
 			// insert associated tasks
 			for (final ITemplateStep step : temp.getAllSteps()) {
 				Utilities.setValues(stepStatement, templateId, step.getName(), step.getPercentOfTotal(),
-						step.getStepNumber(), step.getBestTimeToWork().name(), new Double[]{0.0, 0.0, 0.0, 0.0});
+						step.getStepNumber(), step.getBestTimeToWork().name(), new Double[] { 0.0, 0.0, 0.0, 0.0 });
 				stepStatement.addBatch();
 			}
 			stepStatement.executeBatch();
@@ -319,7 +319,7 @@ public class TemplateStepStorage {
 		}
 		
 		PreparedStatement templateStatement = null;
-		PreparedStatement todCountersStatement = null; 
+		PreparedStatement todCountersStatement = null;
 		PreparedStatement deleteStepStatement = null;
 		PreparedStatement insertStepStatement = null;
 		Connection con = null;
@@ -334,17 +334,18 @@ public class TemplateStepStorage {
 			Utilities.setValues(templateStatement, temp.getName(), temp.getPreferredConsecutiveHours(), temp.getID());
 			templateStatement.execute();
 			
-			//TODO: test this component
-			//Get the tod counters and from the existing template steps
-			HashMap<String,Double[]> stepIdToCounters = new HashMap<>(); 
+			// TODO: test this component
+			// Get the tod counters and from the existing template steps
+			final HashMap<String, Double[]> stepIdToCounters = new HashMap<>();
 			todCountersStatement = con.prepareStatement(Utilities.SELECT_TEMPLATE_STEP_TOD_COUNTERS_BY_TEMPLATE_ID);
 			Utilities.setValues(todCountersStatement, temp.getID());
 			final ResultSet todCountersResults = todCountersStatement.executeQuery();
 			
 			while (todCountersResults.next()) {
 				final String stepName = todCountersResults.getString("STEP_NAME");
-				final Double[] todCounters = (Double[])(todCountersResults.getArray("STEP_TOD_COUNTERS").getArray()); 
-				stepIdToCounters.put(stepName, todCounters); 
+				// TODO: FIX THIS!
+				// final Double[] todCounters = (Double[])(todCountersResults.getArray("STEP_TOD_COUNTERS").getArray());
+				// stepIdToCounters.put(stepName, todCounters);
 			}
 			
 			// Delete all template steps from before
@@ -356,10 +357,10 @@ public class TemplateStepStorage {
 			insertStepStatement = con.prepareStatement(Utilities.INSERT_TEMPLATE_STEP);
 			for (final ITemplateStep step : temp.getAllSteps()) {
 				
-				//TODO: test this!
-				Double[] todCounters = {0.0, 0.0, 0.0, 0.0};  
+				// TODO: test this!
+				Double[] todCounters = { 0.0, 0.0, 0.0, 0.0 };
 				if (stepIdToCounters.containsKey(step.getName())) {
-					todCounters = stepIdToCounters.get(step.getName()); 
+					todCounters = stepIdToCounters.get(step.getName());
 				}
 				
 				Utilities.setValues(insertStepStatement, temp.getID(), step.getName(), step.getPercentOfTotal(),
@@ -555,8 +556,6 @@ public class TemplateStepStorage {
 	
 	protected static TemplateStep getTemplateStepFromTaskId(final String taskId) {
 		
-		
-		
-		return null; 		
+		return null;
 	}
 }
