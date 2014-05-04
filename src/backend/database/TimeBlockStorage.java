@@ -87,8 +87,9 @@ public class TimeBlockStorage {
             		cal.set(Calendar.HOUR_OF_DAY,0);
             		cal.set(Calendar.MINUTE,0);
             		cal.set(Calendar.SECOND,0);
-            		long msWeekStartNow = cal.getTimeInMillis();            		
-            		cal.set(1970, Calendar.JANUARY, 4, 0, 0); 
+            		long msWeekStartNow = cal.getTimeInMillis(); 	
+            		cal.setTime(new Date(0));
+            		cal.add(Calendar.DAY_OF_YEAR, 3);
             		long msWeekStartDefault = cal.getTimeInMillis(); 
             		long msModifier = msWeekStartNow - msWeekStartDefault;
             		

@@ -46,6 +46,7 @@ public class StorageServiceTest {
 	@After
 	public void tearDown() throws Exception {
 		_con.close();
+		StorageService.cleanup();
 	}
 	
 	/*

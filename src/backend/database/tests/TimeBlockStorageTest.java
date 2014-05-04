@@ -40,6 +40,7 @@ public class TimeBlockStorageTest {
 	@After
 	public void tearDown() throws Exception {
 		System.setErr(_oldStdErr);
+		StorageService.cleanup();
 	}
 	
 	/*

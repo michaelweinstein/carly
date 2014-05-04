@@ -26,7 +26,6 @@ import java.util.concurrent.TimeUnit;
 import javax.swing.AbstractAction;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JDialog;
@@ -65,9 +64,9 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	private static final String		DEFAULT_LABEL		= " ";
 	private static final long		serialVersionUID	= -5465413225077024401L;
 	protected final GUIApp			_app;
-	private JButton					_cancelButton;
-	private JButton					_templateButton;
-	protected JButton				_addButton;
+	private CButton					_cancelButton;
+	private CButton					_templateButton;
+	protected CButton				_addButton;
 	protected JTextField			_titleField;
 	protected JSpinner				_dateTimeField;
 	protected JLabel				_statusLabel;
@@ -565,6 +564,9 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		_stepModel.clear();
 		_stepModel.addItem(new TemplateStep("Part 1", 1.0));
 		_stepModel.addBlankItem();
+		_cancelButton.reset();
+		_addButton.reset();
+		_templateButton.reset();
 	}
 	
 	@Override

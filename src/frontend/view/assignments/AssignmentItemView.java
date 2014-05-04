@@ -18,6 +18,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.SwingUtilities;
 
 import data.IAssignment;
@@ -36,6 +37,7 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 	private final IAssignment		_assignment;
 	private final AssignmentsView	_parent;
 	private JPanel					_taskPanel;
+	private JProgressBar			_progress;
 	private StepViewTable			_taskTable;
 	private JButton					_delete;
 	private JButton					_edit;
@@ -79,6 +81,15 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		dueLabel.setForeground(Utils.COLOR_FOREGROUND.darker());
 		dueLabel.setFont(Utils.getFont(Font.ITALIC, 12));
 		add(dueLabel);
+		add(Box.createVerticalStrut(10));
+		
+		// Progress
+		_progress = new DProgressBar();
+		Utils.themeComponent(_progress);
+		Utils.padComponent(_progress, 15, 0);
+		_progress.setPreferredSize(new Dimension(100, 4));
+		_progress.setValue((int) (_assignment.getPercentComplete() * 100));
+		add(_progress);
 		add(Box.createVerticalStrut(10));
 		
 		// Edit button
@@ -128,7 +139,6 @@ public class AssignmentItemView extends JPanel implements MouseListener {
 		for (int i = 0; i < tasks.size(); i++) {
 			dataValues[i][0] = tasks.get(i);
 			dataValues[i][1] = Math.round(tasks.get(i).getPercentOfTotal() * 100) + "%";
-			// TODO: More with percent of total, better stuff in general
 		}
 		final String colNames[] = { "Step Name", "% of Total" };
 		final StepModel mod = new StepModel(dataValues, colNames);
