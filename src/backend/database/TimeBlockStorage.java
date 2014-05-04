@@ -71,17 +71,19 @@ public class TimeBlockStorage {
 	        			range.start.getTime(), range.end.getTime());
 	        	ResultSet blockResults = modifiedStatement.executeQuery();
 	        	
+	        	int numResults = 0; 
 	        	while (blockResults.next()) {
 	        		String blockId = blockResults.getString("BLOCK_ID");
 	        		Date blockStart = new Date(blockResults.getLong("BLOCK_START"));
 	        		Date blockEnd = new Date(blockResults.getLong("BLOCK_END"));
 	        		boolean blockMovable = blockResults.getBoolean("BLOCK_MOVABLE");
 	        		
-	        		results.add(new UnavailableBlock(blockId, blockStart, blockEnd, null, blockMovable)); 
+	        		results.add(new UnavailableBlock(blockId, blockStart, blockEnd, null, blockMovable));
+	        		numResults++; 
 	        	}
 	        	
 	        	//No custom unavailable blocks this week, so return the default set!
-	        	if (results.size() == 0) {
+	        	if (numResults == 0) {
 	        		defaultStatement = con.prepareStatement(Utilities.SELECT_DEFAULT_UNAVAILABLE_BLOCKS); 
 	            	blockResults = defaultStatement.executeQuery();
 	            	
