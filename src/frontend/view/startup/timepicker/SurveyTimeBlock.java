@@ -54,7 +54,7 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 		// Create Calendar starting at first Sunday after epoch (1/1/1970)
 		final Calendar c = Calendar.getInstance();
 		c.set(1970, Calendar.JANUARY, 4, 0, 0, 0);
-//		c.add(Calendar.DAY_OF_YEAR, 3); // move to January 4, 1970
+		// c.add(Calendar.DAY_OF_YEAR, 3); // move to January 4, 1970
 		
 		// Set start time in minutes
 		final Date[] startAndEnd = new Date[2];
@@ -90,7 +90,7 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	/**
 	 * Mutator sets whether this block is _isSelected by user or not. Determines color of block in draw().
 	 * 
-	 * @param sel
+	 * @param sel if selected
 	 */
 	public void setSelected(final boolean sel) {
 		_isSelected = sel;
@@ -106,7 +106,12 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	
 	/* Drawing methods */
 	
-	// TODO: Comment
+	/**
+	 * Draws the given block - only fills if hovering or selected, and otherwise just draws the border (top and left
+	 * only because the rest is dealt with by the other blocks). If on half an hour, doesn't draw the top
+	 * 
+	 * @param g the graphics object to use in drawing
+	 */
 	public void draw(final Graphics2D g) {
 		
 		// Draws fill for selected or hovering block

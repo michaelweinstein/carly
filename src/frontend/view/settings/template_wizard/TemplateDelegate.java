@@ -67,7 +67,7 @@ public class TemplateDelegate {
 	 * Returns an array of ITemplate objects. Uses array, instead of List, because it is passed into constructor of
 	 * JComboBox in TemplateWizard.
 	 * 
-	 * @return
+	 * @return the array of templates to use for the picker
 	 */
 	public static ITemplate[] getExistingTemplates() {
 		final List<ITemplate> allTemps = StorageService.getAllTemplates();
