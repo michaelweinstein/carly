@@ -172,12 +172,12 @@ public class SettingsView extends JDialog {
 	 */
 	private void populateSettings(JComboBox<TimeOfDay> todPicker, JCheckBox learningToggle) {
 		// Set TimeOfDay item
-		String todString = StorageService.getSetting(SettingsConstants.TIMEOFDAY_SETTING);
+/*		String todString = StorageService.getSetting(SettingsConstants.TIMEOFDAY_SETTING);
 		TimeOfDay tod = TimeOfDay.valueOf(todString);
-		todPicker.setSelectedItem(tod);
+		todPicker.setSelectedItem(tod);*/
 		// Set Learning Toggle state
-		String learningString = StorageService.getSetting(SettingsConstants.LEARNER_SETTING);
-		learningToggle.setSelected(Boolean.parseBoolean(learningString));
+/*		String learningString = StorageService.getSetting(SettingsConstants.LEARNER_SETTING);
+		learningToggle.setSelected(Boolean.parseBoolean(learningString));*/
 	}
 	
 	/**
