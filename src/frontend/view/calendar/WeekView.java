@@ -24,7 +24,6 @@ public class WeekView extends JScrollPane {
 	public WeekView(final CalendarView cv) {
 		_canvas = new WeekCanvas(cv);
 		setViewportView(_canvas);
-		
 		themeAll();
 	}
 	

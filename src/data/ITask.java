@@ -46,16 +46,13 @@ public interface ITask {
 	 */
 	public double getPercentOfTotal();
 	
-	
-	//TODO Should we store actual length instead of percent length, which is already in TemplateStep?
 	/**
-	 * Returns number of hours expected
-	 * to finish this Task.
+	 * Gives the index, or order number of execution, of this task. <br>
+	 * Corresponds to the number of associated TemplateStep.
 	 * 
-	 * @return double for expected hours
+	 * @return int number of this Task in execution order
 	 */
-//	public double getExpectedHours();
-//	public void setExpectedHours();
+	public int getTaskNumber();
 	
 	/**
 	 * Gives the percent the user has completed (scale from 0 to 1 representing 0% to 1%) of this task

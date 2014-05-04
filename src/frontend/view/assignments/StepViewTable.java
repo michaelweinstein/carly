@@ -108,19 +108,19 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 	 */
 	private void drawHoveredRow(final Graphics2D canvas) {
 		final int h = getRowHeight();
-		final int w = getWidth();
+		final int w = getWidth() - 10;
 		final int y = _hoveredRow * h;
 		final int endY = y + h - 1;
 		canvas.setColor(getBackground());
-		canvas.fillRect(0, y, w, h);
+		canvas.fillRect(0, y, getWidth(), h);
 		
 		// Completed bar
 		final double perc = ((ITask) getValueAt(_hoveredRow, 0)).getPercentComplete();
 		canvas.setColor(Utils.COLOR_ALTERNATE.brighter());
-		canvas.fillRect(0, y, (int) (perc * w), h);
+		canvas.fillRect(0, y, (int) (perc == 1.0 ? getWidth() : perc * w), h);
 		
 		// Calculations for the text
-		int textX = (int) (perc * w) - 30;
+		int textX = (int) (perc < 0.2 ? (perc * w) + 6 : (perc * w) - 30);
 		Color c = Utils.COLOR_FOREGROUND;
 		String content = (int) (perc * 100) + "%";
 		if (perc == 0) {
@@ -133,9 +133,9 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 			final double hover = _mousePoint.getX();
 			canvas.setColor(Utils.COLOR_ACCENT);
 			canvas.fillRect(0, y, (int) hover, h);
-			textX = (int) hover - 30;
-			content = (int) ((hover / w) * 100) + "%";
-			c = Utils.COLOR_BACKGROUND;
+			textX = (int) ((hover / w) < 0.2 ? hover + 6 : hover - 30);
+			content = (int) Math.min((hover / w) * 100, 100) + "%";
+			c = (hover / w) < 0.2 ? Utils.COLOR_FOREGROUND : Utils.COLOR_BACKGROUND;
 		}
 		canvas.setFont(Utils.getFont(Font.BOLD, 11));
 		canvas.setColor(c);
@@ -143,7 +143,7 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 		
 		// Line at bottom
 		canvas.setColor(Utils.COLOR_FOREGROUND);
-		canvas.drawLine(0, endY, w, endY);
+		canvas.drawLine(0, endY, getWidth(), endY);
 	}
 	
 	/**
@@ -173,7 +173,7 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 	@Override
 	public void mouseClicked(final MouseEvent e) {
 		if (_moveWithMouse && _mousePoint != null) {
-			final double percent = _mousePoint.getX() / getWidth();
+			final double percent = Math.max(Math.min(_mousePoint.getX() / (getWidth() - 10), 1.0), 0.0);
 			((ITask) getValueAt(_hoveredRow, 0)).setPercentComplete(percent);
 			HubController.changeTask(_assignment.getTasks().get(_hoveredRow), percent);
 		}
@@ -193,7 +193,10 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 	
 	@Override
 	public void mouseExited(final MouseEvent e) {
-		_hoveredRow = null;
-		repaint();
+		if (e.getY() < 0 || e.getY() > getHeight()) {
+			_moveWithMouse = false;
+			_hoveredRow = null;
+			repaint();
+		}
 	}
 }
