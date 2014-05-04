@@ -46,6 +46,7 @@ public class AssignmentTaskStorage {
 				"REFERENCES ASSIGNMENT (ASGN_ID) ON DELETE CASCADE"));
 		taskCols.add(StorageService.concatColumn("TASK_ID", "VARCHAR(255) NOT NULL PRIMARY KEY"));
 		taskCols.add(StorageService.concatColumn("TASK_NAME", "VARCHAR(255)"));
+		taskCols.add(StorageService.concatColumn("TASK_TASK_NUMBER", "INT"));
 		taskCols.add(StorageService.concatColumn("TASK_PERCENT_TOTAL", "DOUBLE"));
 		taskCols.add(StorageService.concatColumn("TASK_PERCENT_COMPLETE", "DOUBLE"));
 		taskCols.add(StorageService.concatColumn("TASK_TIME_OF_DAY", "VARCHAR(255)"));
@@ -85,9 +86,9 @@ public class AssignmentTaskStorage {
 			
 			// insert associated tasks
 			for (final ITask task : assignment.getTasks()) {
-				Utilities.setValues(taskStatement, assignmentId, task.getTaskID(), task.getName(),
-						task.getPercentOfTotal(), task.getPercentComplete(), task.getPreferredTimeOfDay().name(),
-						task.getSuggestedBlockLength());
+				Utilities.setValues(taskStatement, assignmentId, task.getTaskID(), task.getName(), 
+						task.getTaskNumber(), task.getPercentOfTotal(), task.getPercentComplete(), 
+						task.getPreferredTimeOfDay().name(), task.getSuggestedBlockLength());
 				taskStatement.addBatch();
 			}
 			taskStatement.executeBatch();
@@ -268,8 +269,8 @@ public class AssignmentTaskStorage {
 			taskInsertStatement = con.prepareStatement(Utilities.INSERT_TASK);
 			for (final ITask task : assignment.getTasks()) {
 				Utilities.setValues(taskInsertStatement, assignmentId, task.getTaskID(), task.getName(),
-						task.getPercentOfTotal(), task.getPercentComplete(), task.getPreferredTimeOfDay().name(),
-						task.getSuggestedBlockLength());
+						task.getTaskNumber(), task.getPercentOfTotal(), task.getPercentComplete(), 
+						task.getPreferredTimeOfDay().name(), task.getSuggestedBlockLength());
 				taskInsertStatement.addBatch();
 			}
 			taskInsertStatement.executeBatch();
@@ -346,6 +347,7 @@ public class AssignmentTaskStorage {
 				// Getting all of the field for reconstructing the task object
 				final String taskId = asgnTaskResults.getString("TASK_ID");
 				final String taskName = asgnTaskResults.getString("TASK_NAME");
+				final int taskNumber = asgnTaskResults.getInt("TASK_TASK_NUMBER"); 
 				final double taskPercentTotal = asgnTaskResults.getDouble("TASK_PERCENT_TOTAL");
 				final double taskPercentComplete = asgnTaskResults.getDouble("TASK_PERCENT_COMPLETE");
 				final String timeOfDay = asgnTaskResults.getString("TASK_TIME_OF_DAY");
@@ -355,8 +357,8 @@ public class AssignmentTaskStorage {
 				// Get the necessary fields from assignment
 				final String asgnId = asgnTaskResults.getString("ASSIGNMENT.ASGN_ID");
 				
-				final Task task = new Task(taskId, taskName, taskPercentTotal, asgnId, taskPercentComplete,
-						taskTimeOfDay, taskSuggestedLength);
+				final Task task = new Task(taskId, taskName, taskNumber, taskPercentTotal, asgnId, 
+						taskPercentComplete, taskTimeOfDay, taskSuggestedLength);
 				
 				// if the assignment hasn't been reconstructed yet
 				if (result == null) {
@@ -472,6 +474,7 @@ public class AssignmentTaskStorage {
 				// Getting all of the fields for reconstructing the task object
 				final String taskId = asgnTaskResults.getString("TASK_ID");
 				final String taskName = asgnTaskResults.getString("TASK_NAME");
+				final int taskNumber = asgnTaskResults.getInt("TASK_TASK_NUMBER"); 
 				final double taskPercentTotal = asgnTaskResults.getDouble("TASK_PERCENT_TOTAL");
 				final double taskPercentComplete = asgnTaskResults.getDouble("TASK_PERCENT_COMPLETE");
 				final String timeOfDay = asgnTaskResults.getString("TASK_TIME_OF_DAY");
@@ -483,8 +486,8 @@ public class AssignmentTaskStorage {
 				final String asgnTemplateId = asgnTaskResults.getString("ASGN_TEMPLATE_ID");
 				
 				Assignment asgn;
-				final Task task = new Task(taskId, taskName, taskPercentTotal, asgnId, taskPercentComplete,
-						taskTimeOfDay, taskSuggestedLength);
+				final Task task = new Task(taskId, taskName, taskNumber, taskPercentTotal, asgnId, 
+						taskPercentComplete, taskTimeOfDay, taskSuggestedLength);
 				
 				// if the assignment hasn't been reconstructed yet
 				if (!idToAssignment.containsKey(asgnId)) {
@@ -629,6 +632,7 @@ public class AssignmentTaskStorage {
 				// Getting all of the field for reconstructing the task object
 				final String taskId = asgnTaskResults.getString("TASK_ID");
 				final String taskName = asgnTaskResults.getString("TASK_NAME");
+				final int taskNumber = asgnTaskResults.getInt("TASK_TASK_NUMBER"); 
 				final double taskPercentTotal = asgnTaskResults.getDouble("TASK_PERCENT_TOTAL");
 				final double taskPercentComplete = asgnTaskResults.getDouble("TASK_PERCENT_COMPLETE");
 				final String timeOfDay = asgnTaskResults.getString("TASK_TIME_OF_DAY");
@@ -640,8 +644,8 @@ public class AssignmentTaskStorage {
 				final String asgnTemplateId = asgnTaskResults.getString("ASGN_TEMPLATE_ID");
 				
 				Assignment asgn;
-				final Task task = new Task(taskId, taskName, taskPercentTotal, asgnId, taskPercentComplete,
-						taskTimeOfDay, taskSuggestedLength);
+				final Task task = new Task(taskId, taskName, taskNumber, taskPercentTotal, asgnId, 
+						taskPercentComplete, taskTimeOfDay, taskSuggestedLength);
 				
 				// if the assignment hasn't been reconstructed yet
 				if (!idToAssignment.containsKey(asgnId)) {
@@ -842,14 +846,15 @@ public class AssignmentTaskStorage {
 				final String taskId = taskResults.getString("TASK_ID");
 				final String asgnId = taskResults.getString("ASGN_ID");
 				final String taskName = taskResults.getString("TASK_NAME");
+				final int taskNumber = taskResults.getInt("TASK_TASK_NUMBER"); 
 				final double taskPercentTotal = taskResults.getDouble("TASK_PERCENT_TOTAL");
 				final double taskPercentComplete = taskResults.getDouble("TASK_PERCENT_COMPLETE");
 				final String timeOfDay = taskResults.getString("TASK_TIME_OF_DAY");
 				final TimeOfDay taskTimeOfDay = TimeOfDay.valueOf(timeOfDay);
 				final double taskSuggestedLength = taskResults.getDouble("TASK_SUGGESTED_LENGTH");
 				
-				results.add(new Task(taskId, taskName, taskPercentTotal, asgnId, taskPercentComplete, taskTimeOfDay,
-						taskSuggestedLength));
+				results.add(new Task(taskId, taskName, taskNumber, taskPercentTotal, asgnId, taskPercentComplete, 
+						taskTimeOfDay, taskSuggestedLength));
 			}
 		} catch (final ClassNotFoundException e) {
 			Utilities.printException("AssignmentTaskStorage: getAllTasksWithinRange: db drive class not found", e);

@@ -16,7 +16,7 @@ public class Task implements ITask {
 	private TimeOfDay		_timeOfDay;
 	// Optimal length of blocks to complete Task
 	private double			_suggestedBlockLength;
-	private final int 			_taskNumber;
+	private final int 		_taskNumber;
 	// TODO: Add _taskNumber to the constructor that Dylan uses, when creating Task from TemplateStep
 	
 	/**
@@ -51,17 +51,17 @@ public class Task implements ITask {
 	/**
 	 * Constructor used by StorageService to recreate the task object
 	 */
-	public Task(final String id, final String name, final double percentTotal, final String asgnId,
-			final double percentComplete, final TimeOfDay timeOfDay, final double suggestedBlockLength) {
+	public Task(final String id, final String name, final int taskNumber, final double percentTotal, 
+			final String asgnId, final double percentComplete, final TimeOfDay timeOfDay, 
+			final double suggestedBlockLength) {
 		_uniqueId = id;
 		_name = name;
+		_taskNumber = taskNumber;
 		_percentOfTotal = percentTotal;
 		_assignmentId = asgnId;
 		_percentComplete = percentComplete;
 		_timeOfDay = timeOfDay;
 		_suggestedBlockLength = suggestedBlockLength;
-		// TODO Set with constructor parameter
-		_taskNumber = 0;
 	}
 	
 	/* Private methods */

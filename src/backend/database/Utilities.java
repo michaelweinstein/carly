@@ -123,9 +123,9 @@ public abstract class Utilities {
 	
 	protected static final String INSERT_TASK = 
 			"INSERT INTO TASK " +
-	        "(ASGN_ID, TASK_ID, TASK_NAME, TASK_PERCENT_TOTAL, TASK_PERCENT_COMPLETE, " +
+	        "(ASGN_ID, TASK_ID, TASK_NAME, TASK_TASK_NUMBER, TASK_PERCENT_TOTAL, TASK_PERCENT_COMPLETE, " +
 	        "TASK_TIME_OF_DAY, TASK_SUGGESTED_LENGTH) " + 
-	        "VALUES (?, ?, ?, ?, ?, ?, ?) ";
+	        "VALUES (?, ?, ?, ?, ?, ?, ?, ?) ";
 	
 	protected static final String SELECT_TASKS_BY_DATE = 
 			"SELECT TASK.* FROM TASK " +
