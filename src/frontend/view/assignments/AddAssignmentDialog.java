@@ -23,16 +23,19 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import javax.swing.AbstractAction;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SpinnerDateModel;
 import javax.swing.SwingConstants;
 import javax.swing.event.TableModelEvent;
@@ -84,6 +87,32 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	public AddAssignmentDialog(final GUIApp app) {
 		super();
 		_app = app;
+		
+		// Keyboard shortcuts
+		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ctrl S"), "save");
+		getRootPane().getActionMap().put("save", new AbstractAction() {
+			
+			private static final long	serialVersionUID	= 1L;
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				addToDatabase();
+			}
+			
+		});
+		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "escape");
+		getRootPane().getActionMap().put("escape", new AbstractAction() {
+			
+			private static final long	serialVersionUID	= 1L;
+			
+			@Override
+			public void actionPerformed(final ActionEvent e) {
+				setVisible(false);
+				clearContents();
+				dispose();
+			}
+			
+		});
 		
 		Utils.themeComponent(this);
 		Utils.themeComponent(getRootPane());

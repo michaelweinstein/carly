@@ -47,11 +47,11 @@ public class CanvasUtils {
 		final int max = 10000;
 		if (colors == null) {
 			colors = new HashMap<>();
+			final Random r = new Random(max);
 			for (int i = 0; i <= max; i++) {
-				final Random r = new Random();
-				final int x = r.nextInt(180) + 20;
-				final int y = r.nextInt(180) + 20;
-				final int z = r.nextInt(180) + 20;
+				final int x = r.nextInt(190) + 10;
+				final int y = r.nextInt(190) + 10;
+				final int z = r.nextInt(190) + 10;
 				final Color c = new Color(x, y, z, 215);
 				colors.put(i, c);
 			}

@@ -120,8 +120,10 @@ public class CScrollBarUI extends BasicScrollBarUI {
 	
 	@Override
 	protected void paintTrack(final Graphics g, final JComponent c, final Rectangle trackBounds) {
-		g.setColor(_bg);
+		g.setColor(Utils.COLOR_BACKGROUND);
 		g.fillRect(trackBounds.x, trackBounds.y, trackBounds.width, trackBounds.height);
+		g.setColor(_bg);
+		g.drawRect(trackBounds.x, trackBounds.y, trackBounds.width - 1, trackBounds.height - 1);
 		
 		if (trackHighlight == DECREASE_HIGHLIGHT) {
 			paintDecreaseHighlight(g);
