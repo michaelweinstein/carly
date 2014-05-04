@@ -28,7 +28,6 @@ public class TemplateDelegate {
 		try {
 			StorageService.addTemplate(t);
 		} catch (final StorageServiceException e) {
-			// TODO Handle exception?
 			System.out.println("ERROR: StorageServiceException for template " + t + " (TemplateDelegate.addTemplate)");
 			e.printStackTrace();
 		}
@@ -56,7 +55,6 @@ public class TemplateDelegate {
 					+ "another Template [updatedTemplate] unless their IDs match.  (TemplateDelegate.updateTemplate)");
 			}
 		} catch (final StorageServiceException e) {
-			// TODO: Handle exception?
 			Utils.printError("Template update failed! Make sure updatedTemplate, " + updatedTemplate.fullString()
 				+ ", has same ID as Template to database!");
 			e.printStackTrace();

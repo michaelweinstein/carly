@@ -7,6 +7,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.JCheckBox;
@@ -17,6 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 
+import backend.database.StorageService;
 import data.TimeOfDay;
 import frontend.Utils;
 import frontend.view.settings.template_wizard.TemplateWizardView;
@@ -77,16 +80,25 @@ public class SettingsView extends JDialog {
 		// TODO: Add scroll pane (using CScrollPane)
 	}
 	
-	// TODO: Comment and finish
+	/**
+	 * Creates small input panel with GridBagLayout to 
+	 * be added after TemplateWizardView. <br>
+	 * Consists of the 'Toggle Learning Algorithm' JCheckBox
+	 * and the 'TimeOfDay Preference' JComboBox.
+	 * Input field listeners trigger data submission
+	 * to StorageService. <br>
+	 * Fields are initialized to the values stored in database
+	 * from previous settings and/or startup survey.
+	 * 
+	 * @return input JPanel with user input fields included
+	 */
 	private JPanel createInputPanel() {
 		final JPanel inputPanel = new JPanel();
-		
 		/* Styling */
 		Utils.themeComponent(inputPanel);
 		// Utils.addBorderTop(inputPanel);
 		Utils.addBorderBottom(inputPanel);
 		Utils.padComponentWithBorder(inputPanel, padding, padding);
-		
 		/* Grid Bag Layout */
 		inputPanel.setLayout(new GridBagLayout());
 		final GridBagConstraints c = new GridBagConstraints();
@@ -95,27 +107,32 @@ public class SettingsView extends JDialog {
 		c.weighty = 0;
 		c.insets = new Insets(5, 0, 5, 0); // top left bottom right
 		
-		/* User Input Elements */
-		// TODO: Wire the user input to SettingsDelegate; Create ActionListeners
-		
-		// TODO: Set initial values: TimeOfDay value stored in database
-		// TODO: (does Toggle Learning have an initial value, from start-up survey?)
-		
+		/* User Input Elements */			
 		// TimeOfDay: Label, JComboBox
+		final JLabel timeOfDayLabel = new JLabel(preferred_timeofday);
+		Utils.themeComponent(timeOfDayLabel);
+		c.gridx = 1;
+		c.gridy = 2;
+		c.gridwidth = 2;
+		inputPanel.add(timeOfDayLabel);
 		final JComboBox<TimeOfDay> timeOfDayPicker = new JComboBox<>(getTimesOfDay());
+		timeOfDayPicker.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				// TODO Test StorageService submission
+				TimeOfDay item = (TimeOfDay) timeOfDayPicker.getSelectedItem();
+				StorageService.mergeSetting(SettingsConstants.TIMEOFDAY_SETTING, item.name());
+			}
+		});
 		c.gridx = 0;
 		c.gridy = 1;
 		c.gridwidth = 2;
 		inputPanel.add(timeOfDayPicker);
-		final JLabel timeOfDayLabel = new JLabel(preferred_timeofday);
-		Utils.themeComponent(timeOfDayLabel);
-		c.gridx = 0;
-		c.gridy = 2;
-		c.gridwidth = 2;
-		inputPanel.add(timeOfDayLabel);
 		
 		// Toggle learning algorithm Check Box
 		final JLabel learningLabel = new JLabel(toggle_learning);
+		Utils.themeComponent(learningLabel);
 		c.gridx = 0;
 		c.gridy = 3;
 		c.gridwidth = 1;
@@ -124,23 +141,54 @@ public class SettingsView extends JDialog {
 		learningCheckBox.setSelected(true);
 		Utils.themeComponent(learningCheckBox);
 		Utils.padComponent(learningCheckBox, 5, 5);
+		learningCheckBox.addItemListener(new ItemListener() {
+
+			@Override
+			public void itemStateChanged(ItemEvent e) {
+				// TODO Test StorageService submission
+				Boolean sel = learningCheckBox.isSelected();
+				StorageService.mergeSetting(SettingsConstants.LEARNER_SETTING, sel.toString());
+			}	
+		});
 		c.gridx = 1;
 		c.gridy = 3;
 		c.gridwidth = 1;
-		// c.gridwidth = GridBagConstraints.REMAINDER;
 		inputPanel.add(learningCheckBox, c);
 		
-		// TODO: Do I have to add TemplateWizardView to the JDialogue directly!
-		// Make TemplateWizard
-		/*
-		 * TemplateWizardView templateWizard = new TemplateWizardView(); c.gridx = 1; c.gridy = 2; c.gridheight = 8;
-		 * inputPanel.add(templateWizard, c);
-		 */
+		// TODO Test that the settings persistence works
+		populateSettings(timeOfDayPicker, learningCheckBox);
 		
 		return inputPanel;
 	}
 	
-	// TODO: Complete and comment
+	/**
+	 * Populates TimeOfDay JComboBox and Learner's on/off checkbox
+	 * with the values previously stored in database. Ensures
+	 * persistence of Settings, and data retrieval from initial
+	 * start-up survey. Called at end of constructor.
+	 * 
+	 * @param todPicker TimeOfDay JComboBox
+	 * @param learningToggle JCheckBox
+	 */
+	private void populateSettings(JComboBox<TimeOfDay> todPicker, JCheckBox learningToggle) {
+		// Set TimeOfDay item
+		String todString = StorageService.getSetting(SettingsConstants.TIMEOFDAY_SETTING);
+		TimeOfDay tod = TimeOfDay.valueOf(todString);
+		todPicker.setSelectedItem(tod);
+		// Set Learning Toggle state
+		String learningString = StorageService.getSetting(SettingsConstants.LEARNER_SETTING);
+		learningToggle.setSelected(Boolean.parseBoolean(learningString));
+	}
+	
+	/**
+	 * Returns the formatted JLabel of the title
+	 * 'Settings' at top of Settings dialog box.
+	 * Includes border on bottom, custom size
+	 * and bold font. <br>
+	 * Values set as constants in class.
+	 * 
+	 * @return Settings title JLabel
+	 */
 	private static JLabel createSettingsTitle() {
 		final JLabel title = new JLabel(page_title);
 		title.setOpaque(true);
@@ -151,7 +199,10 @@ public class SettingsView extends JDialog {
 		return title;
 	}
 	
-	// TODO: Complete and comment
+	/**	 
+	 * @return array of all possible values of 
+	 * 		the <code>TimeOfDay</code> enum.
+	 */
 	private static TimeOfDay[] getTimesOfDay() {
 		return TimeOfDay.values();
 	}
