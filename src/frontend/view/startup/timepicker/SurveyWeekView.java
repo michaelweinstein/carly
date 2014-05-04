@@ -3,10 +3,10 @@ package frontend.view.startup.timepicker;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
-import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -14,21 +14,16 @@ import java.util.List;
 import javax.swing.JPanel;
 
 import data.UnavailableBlock;
-import data.Vec2d;
 import frontend.Utils;
 
 public class SurveyWeekView extends JPanel {
 	
-	// TODO: BUG: Sometimes drags selected over selected, and unselected over unselected
-		// Trigger by dragging some blocks and trying to deselect them by dragging a subgroup of those blocks
-	// TODO: When you drag, the first box does not get selected
-		// TODO: Drag between boxes; select any between the start and end drag
-
-	private static final long serialVersionUID = 888327935955233878L;
+	// TODO: Drag between boxes; select any between the start and end drag
 	
-
+	private static final long			serialVersionUID	= 888327935955233878L;
+	
 	/* Dimensional vals */
-	private static final Dimension		size				= new Dimension(480, 400);
+	private static final Dimension		size				= new Dimension(500, 400);
 	private static final double			numCols				= 7.0;
 	private static final double			numRows				= 48.0;					// every half hour
 	public static final double			COL_WIDTH			= size.width / numCols;
@@ -37,8 +32,7 @@ public class SurveyWeekView extends JPanel {
 	/* Instance vars */
 	private final List<SurveyTimeBlock>	_blocks;
 	private SurveyTimeBlock				_currBlock;
-	private boolean						_currSelectedVal;
-	private boolean						_initialMouseDown;
+	private Boolean						_currSelectedVal;
 	
 	public SurveyWeekView() {
 		super();
@@ -47,7 +41,6 @@ public class SurveyWeekView extends JPanel {
 		_blocks = createBlocks();
 		_currBlock = _blocks.get(0);
 		_currSelectedVal = true;
-		_initialMouseDown = true;
 		addMouseListener(new BlockMouseListener());
 		addMouseMotionListener(new BlockDragListener());
 		repaint();
@@ -90,13 +83,12 @@ public class SurveyWeekView extends JPanel {
 	 * Finds the SurveyTimeBlock in _blocks that contains the specified point, stored as a Vec2d. <br>
 	 * Runs in O(n)
 	 * 
-	 * @param loc, location of cursor/point
+	 * @param loc location of cursor/point
 	 * @return block containing loc
 	 */
-	private SurveyTimeBlock findBlockAt(final Vec2d loc) {
-		final Point2D p = new Point2D.Double(loc.x, loc.y);
+	private SurveyTimeBlock findBlockAt(final Point loc) {
 		for (final SurveyTimeBlock block : _blocks) {
-			if (block.contains(p)) {
+			if (block.contains(loc)) {
 				return block;
 			}
 		}
@@ -163,58 +155,53 @@ public class SurveyWeekView extends JPanel {
 	 * On user's initial mouse down when dragging, indicated by <code>_initialMouseDown</code>, stores selected boolean.
 	 * All subsequent blocks in this drag are then set to the same <code>selected</code> value as the initial block.
 	 * 
-	 * @param loc of mouse click Vec2d
+	 * @param p point of mouse click
 	 */
-	private void handleMouse(final Vec2d loc) {
-		final SurveyTimeBlock block = findBlockAt(loc);
-		if (block != _currBlock) {
-			if (block != null) {
-				if (_initialMouseDown) {
-					_currSelectedVal = !(block.isSelected());
-				}
-				block.setSelected(_currSelectedVal);
-				repaint();
-			}
+	private void handleMouse(final Point p) {
+		final SurveyTimeBlock block = findBlockAt(p);
+		if (_currBlock == null) {
+			_currBlock = block;
+			_currSelectedVal = !_currBlock.isSelected();
+			_currBlock.hover(false);
+		}
+		if (block != null) {
+			block.setSelected(_currSelectedVal);
 			_currBlock = block;
 		}
+		repaint();
 	}
 	
-	// TODO Complete and comment
-	private void handleHover(final Vec2d loc) {
-		final Point2D p = new Point2D.Double(loc.x, loc.y);
+	/**
+	 * Hovers the given block
+	 * 
+	 * @param p the point where the block should be done
+	 */
+	private void handleHover(final Point p) {
 		for (final SurveyTimeBlock block : _blocks) {
 			if (block.contains(p)) {
 				if (block != _currBlock) {
 					block.hover(true);
-					repaint();
 					_currBlock = block;
 				}
 			} else {
 				block.hover(false);
-				repaint();
 			}
 		}
-		
+		repaint();
 	}
 	
 	/* Private inner classes (for user input) */
 	
 	private class BlockDragListener implements MouseMotionListener {
 		
-		/**
-		 * After handling mouse click once, set _initialMouseDown to false to indicate that subsequent calls are not on
-		 * the user's initial mouse down for this drag. Reset on release.
-		 */
 		@Override
 		public void mouseDragged(final MouseEvent e) {
-			handleMouse(new Vec2d(e.getX(), e.getY()));
-			_initialMouseDown = false;
+			handleMouse(e.getPoint());
 		}
 		
 		@Override
 		public void mouseMoved(final MouseEvent e) {
-			// TODO: Block hover response
-			handleHover(new Vec2d(e.getX(), e.getY()));
+			handleHover(e.getPoint());
 		}
 	}
 	
@@ -225,16 +212,13 @@ public class SurveyWeekView extends JPanel {
 		
 		@Override
 		public void mousePressed(final MouseEvent e) {
-			handleMouse(new Vec2d(e.getX(), e.getY()));
+			_currSelectedVal = null;
+			_currBlock = null;
+			handleMouse(e.getPoint());
 		}
 		
-		/**
-		 * Indicate that the next click is an initial mouse down click in the drag.
-		 */
 		@Override
-		public void mouseReleased(final MouseEvent e) {
-			_initialMouseDown = true;
-		}
+		public void mouseReleased(final MouseEvent e) {}
 		
 		@Override
 		public void mouseClicked(final MouseEvent e) {}
@@ -243,6 +227,11 @@ public class SurveyWeekView extends JPanel {
 		public void mouseEntered(final MouseEvent e) {}
 		
 		@Override
-		public void mouseExited(final MouseEvent e) {}
+		public void mouseExited(final MouseEvent e) {
+			if (_currBlock != null) {
+				_currBlock.hover(false);
+				repaint();
+			}
+		}
 	}
 }

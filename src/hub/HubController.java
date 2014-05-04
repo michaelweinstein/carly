@@ -98,8 +98,9 @@ public class HubController {
 		final Date oldStart = new Date(oldBlock.getStart().getTime());
 		final Date oldEnd = new Date(oldBlock.getEnd().getTime());
 		
+		// Time modifier updates old block with newStart and newEnd so by the time the learner acts on it, it's "new"
 		if (TimeModifier.updateBlock(oldBlock, newStart, newEnd)) {
-			Learner.considerBlockUpdate(oldBlock, newStart, newEnd);
+			Learner.considerBlockUpdate(oldBlock, oldStart, oldEnd);
 		}
 		SwingUtilities.invokeLater(new Runnable() {
 			
@@ -119,6 +120,7 @@ public class HubController {
 	public static void changeTask(final ITask oldTask, final double newCompletion) {
 		final double oldCompletion = oldTask.getPercentComplete();
 		TimeModifier.updateBlocksInTask(oldTask, newCompletion);
+		
 		// TODO: Update learner using old percent and new percent
 		oldTask.setPercentComplete(newCompletion);
 		StorageService.updateTask(oldTask);
@@ -140,6 +142,7 @@ public class HubController {
 	 */
 	public static void updateUnavailableBlocks(final Date startDate, final Date endDate,
 			final List<ITimeBlockable> blockList) {
+		
 		// TODO: actually update all in backend
 		SwingUtilities.invokeLater(new Runnable() {
 			
