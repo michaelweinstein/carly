@@ -207,6 +207,18 @@ public class Assignment implements IAssignment {
 		return _template;
 	}
 	
+	@Override
+	public double getPercentComplete() {
+		double complete = 0;
+		if (_tasks == null) {
+			return 0;
+		}
+		for (final ITask t : _tasks) {
+			complete += t.getPercentComplete() * t.getPercentOfTotal();
+		}
+		return complete;
+	}
+	
 	/* Holy trinity */
 	
 	/**

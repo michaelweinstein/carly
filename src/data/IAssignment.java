@@ -60,6 +60,13 @@ public interface IAssignment {
 	public ITemplate getTemplate();
 	
 	/**
+	 * Gets the current percent complete of this assignment
+	 * 
+	 * @return the percent complete of all children
+	 */
+	public double getPercentComplete();
+	
+	/**
 	 * Gives the full string
 	 * 
 	 * @return a string containing all possible information
