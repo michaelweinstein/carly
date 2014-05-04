@@ -284,6 +284,11 @@ public class StorageService {
 		return TimeBlockStorage.removeTimeBlock(block, _pool);
 	}
 	
+	/**
+	 * Add all default unavailable blocks from the startup survey
+	 * 
+	 * @param blockList List of default unavailable blocks to add
+	 */
 	public static void addAllDefaultUnavailableBlocks(List<UnavailableBlock> blockList) {
 		TimeBlockStorage.addAllDefaultUnavailableBlocks(blockList, _pool); 
 	}

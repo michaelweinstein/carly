@@ -68,6 +68,11 @@ public abstract class Utilities {
 			"AND BLOCK_MOVABLE = FALSE " +
 			"ORDER BY TIME_BLOCK.BLOCK_START";
 	
+	protected static final String SELECT_DEFAULT_UNAVAILABLE_BLOCKS = 
+			"SELECT * FROM TIME_BLOCK " + 
+			"WHERE BLOCK_DEFAULT = TRUE AND BLOCK_MOVABLE = FALSE " +
+			"ORDER BY TIME_BLOCK.BLOCK_START";
+	
 	/*
 	 * Assignment SQL statements
 	 */
