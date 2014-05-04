@@ -125,7 +125,7 @@ public class SurveyWeekView extends JPanel {
 		List<UnavailableBlock> ublockslist = new ArrayList<>();
 		for (SurveyTimeBlock b: _blocks) {
 			// If not selected
-			if (!b.isSelected()) {
+			if (b.isSelected()) {
 				Date[] times = b.getRange();
 				// Create UnavailableBlock and add to returned list
 				ublockslist.add(new UnavailableBlock(times[0], times[1], null));

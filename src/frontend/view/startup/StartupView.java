@@ -4,9 +4,10 @@ import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -16,6 +17,7 @@ import backend.database.StorageService;
 import data.TimeOfDay;
 import data.UnavailableBlock;
 import frontend.Utils;
+import frontend.view.CButton;
 import frontend.view.settings.SettingsConstants;
 import frontend.view.startup.timepicker.SurveyWeekView;
 
@@ -78,6 +80,7 @@ public class StartupView extends JDialog {
 		/* "Would you like settings to be adjusted based on your behavior?" */
 		JLabel learnerLabel = new JLabel(learner_label);
 		_learnerCheck = new JCheckBox();
+		_learnerCheck.setSelected(true);	// Starts as true
 		Utils.themeComponent(learnerLabel);
 		c.gridx = 0;
 		c.gridy = 1;
@@ -98,16 +101,23 @@ public class StartupView extends JDialog {
 		this.add(timeLabel, c);
 		c.gridx = 0;
 		c.gridy = 3;
+		c.gridwidth = 2;
+		c.gridheight = 2;
 		this.add(_timeView, c);
 		
-		// TODO: Create 'Submit survey' button
-/*		JButton submitBtn = new JButton(submit_label);
-		submitBtn.setPreferredSize(new Dimension(20, 200));
+		// 'Submit survey' button
+		CButton submitBtn = new CButton(submit_label);
+		submitBtn.setPreferredSize(new Dimension(300, 30));
+		submitBtn.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				submitSurvey();
+			}
+		});
 		c.gridx = 0;
-		c.gridy = 4;
-		c.gridwidth = 1;*/
-//		c.anchor = GridBagConstraints.WEST;
-//		this.add(submitBtn, c);
+		c.gridy = 5;
+		c.gridwidth = 2;
+		this.add(submitBtn, c);
 		
 		// TODO User should not be able to close unless survey is completed
 	}
@@ -123,16 +133,17 @@ public class StartupView extends JDialog {
 	 * </ul>
 	 */
 	private void submitSurvey() {
+		// TODO: Delete printlines; Make calls to Storage Service
 		// Add TOD preference
 		TimeOfDay todPref = (TimeOfDay) (_todPicker.getSelectedItem());
-		StorageService.mergeSetting(SettingsConstants.TIMEOFDAY_SETTING, todPref.name());
+//		StorageService.mergeSetting(SettingsConstants.TIMEOFDAY_SETTING, todPref.name());
 		
 		// Add Learner preference
 		Boolean learnerPref = _learnerCheck.isSelected();
-		StorageService.mergeSetting(SettingsConstants.LEARNER_SETTING, learnerPref.toString());
+//		StorageService.mergeSetting(SettingsConstants.LEARNER_SETTING, learnerPref.toString());
 		
 		// Add UnavailableBlocks to StorageService
 		List<UnavailableBlock> uBlocks = _timeView.getUnavailableBlocks();
-		StorageService.addAllDefaultUnavailableBlocks(uBlocks);
+//		StorageService.addAllDefaultUnavailableBlocks(uBlocks);
 	}
 }

@@ -64,14 +64,12 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	 * @return Date[] where [0] = start time [1] = end time
 	 */
 	public Date[] getRange() {
-		
+		// Create Calendar starting at first Sunday after epoch (1/1/1970)
 		Calendar c = Calendar.getInstance();
 		c.setTime(new Date(0));
 		c.add(Calendar.DAY_OF_YEAR, 3);	// move to January 4, 1970
-		
-		// TODO Print out date to check
-		
-		// Start time in minutes
+
+		// Set start time in minutes
 		Date[] startAndEnd = new Date[2];
 		int day = (int) (_loc.x / _dim.x);
 		int timeStart = (int) (_loc.y / _dim.y) * 30;	// half hour number --> minutes
@@ -84,9 +82,7 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 		// End time (start time + 30 minutes)
 		c.add(Calendar.MINUTE, 30);
 		startAndEnd[1] = c.getTime();
-		
-		// TODO Test the conversions are right
-		
+				
 		return startAndEnd;
 	}
 	
