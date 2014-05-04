@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import org.h2.jdbcx.JdbcConnectionPool;
 
@@ -50,62 +52,68 @@ public class TimeBlockStorage {
 		PreparedStatement modifiedStatement = null;
 		PreparedStatement defaultStatement = null;
 	    Connection con = null; 
-	    ArrayList<UnavailableBlock> results = new ArrayList<>(); 
+	    TreeSet<UnavailableBlock> results = new TreeSet<>(); 
 	    
 	    //Defensive programming in case the date1 is not earlier than date2
 	    Date earlier = (date1.compareTo(date2) < 0) ? date1 : date2; 
 	    Date later = (date2.compareTo(date1) > 0) ? date2 : date1; 
 	    
+	    ArrayList<DateRange> ranges = TimeBlockStorage.splitIntoWeekRanges(earlier, later); 
+	    
 	    try {
 	    	Class.forName("org.h2.Driver");
 	    	con = pool.getConnection();
 			
-	        modifiedStatement = con.prepareStatement(Utilities.SELECT_UNAVAILABLE_BLOCKS_BY_DATE); 
-        	Utilities.setValues(modifiedStatement, earlier.getTime(), later.getTime(),
-        			earlier.getTime(), later.getTime(),
-        			earlier.getTime(), later.getTime());
-        	ResultSet blockResults = modifiedStatement.executeQuery();
-        	
-        	while (blockResults.next()) {
-        		String blockId = blockResults.getString("BLOCK_ID");
-        		Date blockStart = new Date(blockResults.getLong("BLOCK_START"));
-        		Date blockEnd = new Date(blockResults.getLong("BLOCK_END"));
-        		boolean blockMovable = blockResults.getBoolean("BLOCK_MOVABLE");
-        		
-        		results.add(new UnavailableBlock(blockId, blockStart, blockEnd, null, blockMovable)); 
-        	}
-        	
-        	if (results.size() == 0) {
-        		defaultStatement = con.prepareStatement(Utilities.SELECT_DEFAULT_UNAVAILABLE_BLOCKS); 
-            	blockResults = defaultStatement.executeQuery();
-            	
-            	while (blockResults.next()) {
-            		//We need to the date of all of the default timeBlocks to this week
-            		Calendar cal = Calendar.getInstance();
-            		cal.setTime(earlier);
-            		cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-            		cal.set(Calendar.HOUR_OF_DAY,0);
-            		cal.set(Calendar.MINUTE,0);
-            		cal.set(Calendar.SECOND,0);
-            		long msWeekStartNow = cal.getTimeInMillis(); 	
-            		cal.setTime(new Date(0));
-            		cal.add(Calendar.DAY_OF_YEAR, 3);
-            		long msWeekStartDefault = cal.getTimeInMillis(); 
-            		long msModifier = msWeekStartNow - msWeekStartDefault;
-            		
-            		//Getting all of the required fields to reconstruct the UnavailableBlock
-            		String blockId = blockResults.getString("BLOCK_ID");
-            		Date blockStart = new Date(blockResults.getLong("BLOCK_START") + msModifier);
-            		Date blockEnd = new Date(blockResults.getLong("BLOCK_END") + msModifier);
-            		boolean blockMovable = blockResults.getBoolean("BLOCK_MOVABLE");
-            		
-            		if ((blockStart.compareTo(earlier) >= 0 && blockStart.compareTo(later) <= 0) ||
-            				(blockEnd.compareTo(earlier) >= 0 && blockEnd.compareTo(later) <= 0) ||
-            				(blockStart.compareTo(earlier) <= 0 && blockEnd.compareTo(later) >= 0)) {
-            			results.add(new UnavailableBlock(blockId, blockStart, blockEnd, null, blockMovable));
-            		}
-            	}
-        	}
+	    	for (DateRange range : ranges) {
+	    		modifiedStatement = con.prepareStatement(Utilities.SELECT_UNAVAILABLE_BLOCKS_BY_DATE); 
+	        	Utilities.setValues(modifiedStatement, range.start.getTime(), range.end.getTime(),
+	        			range.start.getTime(), range.end.getTime(),
+	        			range.start.getTime(), range.end.getTime());
+	        	ResultSet blockResults = modifiedStatement.executeQuery();
+	        	
+	        	while (blockResults.next()) {
+	        		String blockId = blockResults.getString("BLOCK_ID");
+	        		Date blockStart = new Date(blockResults.getLong("BLOCK_START"));
+	        		Date blockEnd = new Date(blockResults.getLong("BLOCK_END"));
+	        		boolean blockMovable = blockResults.getBoolean("BLOCK_MOVABLE");
+	        		
+	        		results.add(new UnavailableBlock(blockId, blockStart, blockEnd, null, blockMovable)); 
+	        	}
+	        	
+	        	//No custom unavailable blocks this week, so return the default set!
+	        	if (results.size() == 0) {
+	        		defaultStatement = con.prepareStatement(Utilities.SELECT_DEFAULT_UNAVAILABLE_BLOCKS); 
+	            	blockResults = defaultStatement.executeQuery();
+	            	
+	            	while (blockResults.next()) {
+	            		//We need to the date of all of the default timeBlocks to this week
+	            		Calendar cal = Calendar.getInstance();
+	            		cal.setTime(earlier);
+	            		cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+	            		cal.set(Calendar.HOUR_OF_DAY, 0);
+	            		cal.set(Calendar.MINUTE, 0);
+	            		cal.set(Calendar.SECOND, 0);
+	            		cal.set(Calendar.MILLISECOND, 0);
+	            		long msWeekStartNow = cal.getTimeInMillis(); 	
+	            		cal.setTime(new Date(0));
+	            		cal.add(Calendar.DAY_OF_YEAR, 3);
+	            		long msWeekStartDefault = cal.getTimeInMillis(); 
+	            		long msModifier = msWeekStartNow - msWeekStartDefault;
+	            		
+	            		//Getting all of the required fields to reconstruct the UnavailableBlock
+	            		String blockId = blockResults.getString("BLOCK_ID");
+	            		Date blockStart = new Date(blockResults.getLong("BLOCK_START") + msModifier);
+	            		Date blockEnd = new Date(blockResults.getLong("BLOCK_END") + msModifier);
+	            		boolean blockMovable = blockResults.getBoolean("BLOCK_MOVABLE");
+	            		
+	            		if ((blockStart.compareTo(earlier) >= 0 && blockStart.compareTo(later) <= 0) ||
+	            				(blockEnd.compareTo(earlier) >= 0 && blockEnd.compareTo(later) <= 0) ||
+	            				(blockStart.compareTo(earlier) <= 0 && blockEnd.compareTo(later) >= 0)) {
+	            			results.add(new UnavailableBlock(blockId, blockStart, blockEnd, null, blockMovable));
+	            		}
+	            	}
+	        	}
+	    	}
 	    } 
 	    catch (ClassNotFoundException e) {
 			Utilities.printException("TimeBlockStorage: getAllUnavailableBlocksWithinRange: " +
@@ -133,7 +141,7 @@ public class TimeBlockStorage {
             }
 	    }
 		
-		return results; 
+		return new ArrayList<UnavailableBlock>(results); 
 	}
 	
 	/**
@@ -173,13 +181,14 @@ public class TimeBlockStorage {
         		
         		String asgnId = blockResults.getString("ASGN_ID");
         		String taskName = blockResults.getString("TASK_NAME");
+        		int taskNumber = blockResults.getInt("TASK_TASK_NUMBER"); 
         		double taskPercentTotal = blockResults.getDouble("TASK_PERCENT_TOTAL");
         		double taskPercentComplete = blockResults.getDouble("TASK_PERCENT_COMPLETE");
         		String timeOfDay = blockResults.getString("TASK_TIME_OF_DAY");
         		TimeOfDay taskTimeOfDay = TimeOfDay.valueOf(timeOfDay); 
         		double taskSuggestedLength = blockResults.getDouble("TASK_SUGGESTED_LENGTH");
         		
-        		Task task = new Task(taskId, taskName, taskPercentTotal, asgnId, taskPercentComplete, 
+        		Task task = new Task(taskId, taskName, taskNumber, taskPercentTotal, asgnId, taskPercentComplete, 
         				taskTimeOfDay, taskSuggestedLength);
         		results.add(new AssignmentBlock(blockId, blockStart, blockEnd, task, blockMovable)); 
         	}
@@ -241,13 +250,14 @@ public class TimeBlockStorage {
     		
     		String asgnId = blockResults.getString("ASGN_ID");
     		String taskName = blockResults.getString("TASK_NAME");
+    		int taskNumber = blockResults.getInt("TASK_TASK_NUMBER"); 
     		double taskPercentTotal = blockResults.getDouble("TASK_PERCENT_TOTAL");
     		double taskPercentComplete = blockResults.getDouble("TASK_PERCENT_COMPLETE");
     		String timeOfDay = blockResults.getString("TASK_TIME_OF_DAY");
     		TimeOfDay taskTimeOfDay = TimeOfDay.valueOf(timeOfDay); 
     		double taskSuggestedLength = blockResults.getDouble("TASK_SUGGESTED_LENGTH");
     		
-    		Task task = new Task(taskId, taskName, taskPercentTotal, asgnId, taskPercentComplete, 
+    		Task task = new Task(taskId, taskName, taskNumber, taskPercentTotal, asgnId, taskPercentComplete, 
     				taskTimeOfDay, taskSuggestedLength);
     		
 			block = new AssignmentBlock(id, blockStart, blockEnd, task, blockMovable);
@@ -560,7 +570,7 @@ public class TimeBlockStorage {
                 			"TimeBlock's associated Task must be in the database."); 
                 }
             }
-
+            
 	        blockStatement = con.prepareStatement(Utilities.UPDATE_TIME_BLOCK); 
             Utilities.setValues(blockStatement, block.getStart().getTime(),
             		block.getEnd().getTime(), block.getTaskId(), block.getId());
@@ -719,5 +729,68 @@ public class TimeBlockStorage {
                 		"could not close resource", x);
             }
 	    }
+	}
+	
+	
+	/*
+	 * Helper methods and classes
+	 */
+	//Public for testing 
+	public static ArrayList<DateRange> splitIntoWeekRanges(Date earlier, Date later) {
+		ArrayList<DateRange> ranges = new ArrayList<>(); 
+		
+		Calendar cal = Calendar.getInstance(); 
+		cal.setTime(earlier);
+		
+		DateRange range = new DateRange(earlier, earlier); 
+		DateRange currentRange = range; 
+		
+		//set time to midnight the next day
+		cal.setTime(earlier);
+		cal.add(Calendar.DAY_OF_YEAR, 1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		
+		while (later.after(currentRange.start) || (later.getTime() > currentRange.start.getTime())) {
+			//Add one to move away from the starting Sunday
+			cal.add(Calendar.DAY_OF_YEAR, 1);
+			
+			//Increment until nex Sunday 
+			while (cal.get(Calendar.DAY_OF_WEEK) != 1) {
+				cal.add(Calendar.DAY_OF_YEAR, 1);
+			}
+			
+			currentRange.end = cal.getTime(); 
+			range = currentRange; 
+			ranges.add(range); 
+			
+			currentRange = new DateRange(cal.getTime()); 
+		}
+		
+		range.end = later; 
+		
+		return ranges; 
+	}
+	
+	//Public for testing
+	public static class DateRange {
+		public Date start; 
+		public Date end;
+		
+		public DateRange(Date start) {
+			this.start = start; 
+		}
+		
+		public DateRange(Date start, Date end) {
+			this.start = start; 
+			this.end = end;
+		}
+		
+		@Override
+		public String toString() {
+			return "\n\tDateRange: [start: " + start.toString() + "; end: " + end.toString() + "]"; 
+		}
 	}
 }

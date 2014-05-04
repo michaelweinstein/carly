@@ -62,17 +62,17 @@ public class Task implements ITask {
 	 * @param timeOfDay the time of day we like working on this
 	 * @param suggestedBlockLength the suggested length of time to work on it
 	 */
-	public Task(final String id, final String name, final double percentTotal, final String asgnId,
-			final double percentComplete, final TimeOfDay timeOfDay, final double suggestedBlockLength) {
+	public Task(final String id, final String name, final int taskNumber, final double percentTotal, 
+			final String asgnId, final double percentComplete, final TimeOfDay timeOfDay, 
+			final double suggestedBlockLength) {
 		_uniqueId = id;
 		_name = name;
+		_taskNumber = taskNumber;
 		_percentOfTotal = percentTotal;
 		_assignmentId = asgnId;
 		_percentComplete = percentComplete;
 		_timeOfDay = timeOfDay;
 		_suggestedBlockLength = suggestedBlockLength;
-		// TODO Set with constructor parameter
-		_taskNumber = 0;
 	}
 	
 	/* Private methods */

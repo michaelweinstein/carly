@@ -27,6 +27,11 @@ import data.Template;
 import data.TemplateStep;
 import data.UnavailableBlock;
 
+import backend.database.StorageService;
+import backend.database.StorageServiceException;
+import backend.database.TimeBlockStorage;
+import backend.database.TimeBlockStorage.DateRange;
+
 public class TimeBlockStorageTest {
 	
 	private final ByteArrayOutputStream	errorFd	= new ByteArrayOutputStream();
@@ -46,7 +51,208 @@ public class TimeBlockStorageTest {
 	}
 	
 	/*
-	 * Testing Time Block (generic block) related functionality
+	 * Testing the helper methods
+	 */
+	
+	@Test
+	public void weekRangeMidnightTwoChunks() {
+		
+		Calendar cal = Calendar.getInstance(); 
+		cal.set(Calendar.YEAR, 2000);
+		cal.set(Calendar.MONTH, Calendar.JANUARY);
+		cal.set(Calendar.DAY_OF_MONTH, 1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		
+		//Set to Monday at midnight
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+		Date earlier = cal.getTime();
+		
+		//Set the later date to Monday at midnight one week later
+		cal.add(Calendar.WEEK_OF_YEAR, 1);
+		Date later = cal.getTime(); 
+		
+		ArrayList<DateRange> ranges = TimeBlockStorage.splitIntoWeekRanges(earlier, later); 
+		
+		assertTrue(ranges.size() == 2); 
+		assertEquals(ranges.get(0).start.toString(), earlier.toString()); 
+		assertEquals(ranges.get(ranges.size() - 1).end.toString(), later.toString());
+	}
+	
+	@Test
+	public void weekRangeNotMidnightTwoChunks() {
+		
+		Calendar cal = Calendar.getInstance(); 
+		cal.set(Calendar.YEAR, 2000);
+		cal.set(Calendar.MONTH, Calendar.JANUARY);
+		cal.set(Calendar.DAY_OF_MONTH, 1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		
+		//Set to Monday not at midnight
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+		cal.add(Calendar.HOUR_OF_DAY, 5);
+		Date earlier = cal.getTime();
+		
+		//Set the later date to Monday not at midnight one week later
+		cal.add(Calendar.WEEK_OF_YEAR, 1);
+		Date later = cal.getTime(); 
+		
+		ArrayList<DateRange> ranges = TimeBlockStorage.splitIntoWeekRanges(earlier, later); 
+		
+		assertTrue(ranges.size() == 2); 
+		assertEquals(ranges.get(0).start.toString(), earlier.toString()); 
+		assertEquals(ranges.get(ranges.size() - 1).end.toString(), later.toString());
+	}
+	
+	@Test
+	public void weekRangeMidnightMultipleChunks() {
+		
+		Calendar cal = Calendar.getInstance(); 
+		cal.set(Calendar.YEAR, 2000);
+		cal.set(Calendar.MONTH, Calendar.JANUARY);
+		cal.set(Calendar.DAY_OF_MONTH, 1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		
+		//Set to Monday at midnight
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+		Date earlier = cal.getTime();
+		
+		//Set the later date to Monday at midnight one week later
+		cal.add(Calendar.WEEK_OF_YEAR, 1);
+		cal.add(Calendar.DAY_OF_YEAR, 6);
+		Date later = cal.getTime(); 
+		
+		ArrayList<DateRange> ranges = TimeBlockStorage.splitIntoWeekRanges(earlier, later); 
+		
+		assertTrue(ranges.size() == 2); 
+		assertEquals(ranges.get(0).start.toString(), earlier.toString()); 
+		assertEquals(ranges.get(ranges.size() - 1).end.toString(), later.toString());
+	}
+	
+	@Test
+	public void weekRangeNotMidnightMultipleChunks() {
+		
+		Calendar cal = Calendar.getInstance(); 
+		cal.set(Calendar.YEAR, 2000);
+		cal.set(Calendar.MONTH, Calendar.JANUARY);
+		cal.set(Calendar.DAY_OF_MONTH, 1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		
+		//Set to Monday not at midnight
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+		cal.add(Calendar.HOUR_OF_DAY, 5);
+		Date earlier = cal.getTime();
+		
+		//Set the later date to Monday not at midnight one week later
+		cal.add(Calendar.WEEK_OF_YEAR, 1);
+		cal.add(Calendar.DAY_OF_YEAR, 6);
+		Date later = cal.getTime(); 
+		
+		ArrayList<DateRange> ranges = TimeBlockStorage.splitIntoWeekRanges(earlier, later); 
+		
+		assertTrue(ranges.size() == 3); 
+		assertEquals(ranges.get(0).start.toString(), earlier.toString()); 
+		assertEquals(ranges.get(ranges.size() - 1).end.toString(), later.toString());
+	}
+	
+	@Test
+	public void weekRangeNotMidnightDifferentYear() {
+		
+		Calendar cal = Calendar.getInstance(); 
+		cal.set(Calendar.YEAR, 2000);
+		cal.set(Calendar.MONTH, Calendar.JANUARY);
+		cal.set(Calendar.DAY_OF_MONTH, 1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		
+		//Set to previous year 
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+		cal.add(Calendar.WEEK_OF_YEAR, -1);
+		cal.add(Calendar.HOUR_OF_DAY, 5);
+		Date earlier = cal.getTime();
+		
+		//Set the later date to Monday not at midnight one week later
+		cal.add(Calendar.WEEK_OF_YEAR, 1);
+		cal.add(Calendar.DAY_OF_YEAR, 6);
+		Date later = cal.getTime(); 
+		
+		ArrayList<DateRange> ranges = TimeBlockStorage.splitIntoWeekRanges(earlier, later); 
+		
+		assertTrue(ranges.size() == 3); 
+		assertEquals(ranges.get(0).start.toString(), earlier.toString()); 
+		assertEquals(ranges.get(ranges.size() - 1).end.toString(), later.toString());
+	}
+	
+	@Test
+	public void weekRangeMidnightSunday() {
+		
+		Calendar cal = Calendar.getInstance(); 
+		cal.set(Calendar.YEAR, 2000);
+		cal.set(Calendar.MONTH, Calendar.JANUARY);
+		cal.set(Calendar.DAY_OF_MONTH, 1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		
+		//Set to Sunday at midnight 
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+		Date earlier = cal.getTime();
+		
+		//Set the later date to Monday not at midnight one week later
+		cal.add(Calendar.WEEK_OF_YEAR, 1);
+		cal.add(Calendar.DAY_OF_YEAR, 6);
+		Date later = cal.getTime(); 
+		
+		ArrayList<DateRange> ranges = TimeBlockStorage.splitIntoWeekRanges(earlier, later); 
+		
+		assertTrue(ranges.size() == 2); 
+		assertEquals(ranges.get(0).start.toString(), earlier.toString()); 
+		assertEquals(ranges.get(ranges.size() - 1).end.toString(), later.toString());
+	}
+	
+	@Test
+	public void weekRangeMidnightSundaytoMidnightSunday() {
+		
+		Calendar cal = Calendar.getInstance(); 
+		cal.set(Calendar.YEAR, 2000);
+		cal.set(Calendar.MONTH, Calendar.JANUARY);
+		cal.set(Calendar.DAY_OF_MONTH, 1);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		
+		//Set to Sunday at midnight 
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+		Date earlier = cal.getTime();
+		
+		//Set the later date to Monday not at midnight one week later
+		cal.add(Calendar.WEEK_OF_YEAR, 1);
+		Date later = cal.getTime(); 
+		
+		ArrayList<DateRange> ranges = TimeBlockStorage.splitIntoWeekRanges(earlier, later); 
+		
+		assertTrue(ranges.size() == 1); 
+		assertEquals(ranges.get(0).start.toString(), earlier.toString()); 
+		assertEquals(ranges.get(ranges.size() - 1).end.toString(), later.toString());
+	}
+	
+	/*
+	 * Testing Time Block (generic block) related functionality 
 	 */
 	
 	@Test
@@ -377,48 +583,68 @@ public class TimeBlockStorageTest {
 	 */
 	
 	@Test
-	public void getAllUnavailableBlocksWithinRange() {
-		// Create needed objects
-		final ArrayList<ITemplateStep> templateSteps = new ArrayList<>();
-		templateSteps.add(new TemplateStep("Step", 1.0, 1));
-		final Template template = new Template("Template", templateSteps);
-		final Assignment assignment = new Assignment("Assignment", new Date(), template);
-		final Task task = new Task("Task", 1, 1, assignment.getID());
-		assignment.addTask(task);
+	public void getAllUnavailableBlocksWithinRangeDefaultBlocks() {
+		//Create needed objects
+		ArrayList<ITemplateStep> templateSteps = new ArrayList<>(); 
+		templateSteps.add(new TemplateStep("Step", 1.0, 1)); 
+		Template template = new Template("Template", templateSteps); 
+		Assignment assignment = new Assignment("Assignment", new Date(), template); 
+		Task task = new Task("Task", 1, 1, assignment.getID()); 
+		assignment.addTask(task); 
 		
-		final AssignmentBlock block1 = new AssignmentBlock(new Date(System.currentTimeMillis() + (86400 * 1000) * 2),
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), task);
-		final AssignmentBlock block2 = new AssignmentBlock(new Date(System.currentTimeMillis() + (86400 * 1000) * 3),
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), task);
-		final AssignmentBlock block3 = new AssignmentBlock(new Date(System.currentTimeMillis() + (86400 * 1000) * 2),
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), task);
-		final AssignmentBlock block4 = new AssignmentBlock(new Date(System.currentTimeMillis() + (86400 * 1000) * 10),
-				new Date(System.currentTimeMillis() + (86400 * 1000) * 12), task);
+		AssignmentBlock block1 = new AssignmentBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
+				task); 
+		AssignmentBlock block2 = new AssignmentBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
+				task); 
+		AssignmentBlock block3 = new AssignmentBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
+				task); 
+		AssignmentBlock block4 = new AssignmentBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 10), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 12), 
+				task); 
 		
-		// We need to the date of all of the default timeBlocks to this week
-		final Calendar cal = Calendar.getInstance();
-		cal.set(1970, Calendar.JANUARY, 4, 0, 0);
-		final long msWeekStart = cal.getTimeInMillis();
+		//We need to the date of all of the default timeBlocks to this week
+		Calendar cal = Calendar.getInstance();
+		cal.set(Calendar.YEAR, 1970);
+		cal.set(Calendar.MONTH, Calendar.JANUARY);
+		cal.set(Calendar.DAY_OF_MONTH, 4);
+		cal.set(Calendar.HOUR_OF_DAY, 0);
+		cal.set(Calendar.MINUTE, 0);
+		cal.set(Calendar.SECOND, 0);
+		cal.set(Calendar.MILLISECOND, 0);
+		long msWeekStart = cal.getTimeInMillis(); 
 		
-		final ArrayList<UnavailableBlock> unavailableBlocks = new ArrayList<>();
-		final UnavailableBlock unavailable1 = new UnavailableBlock(new Date(msWeekStart
-			- TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)), new Date(msWeekStart
-			+ TimeUnit.MILLISECONDS.convert(2, TimeUnit.HOURS)), null);
-		final UnavailableBlock unavailable2 = new UnavailableBlock(new Date(msWeekStart
-			+ TimeUnit.MILLISECONDS.convert(0, TimeUnit.HOURS)), new Date(msWeekStart
-			+ TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)), null);
-		final UnavailableBlock unavailable3 = new UnavailableBlock(new Date(msWeekStart
-			+ TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS)), new Date(msWeekStart
-			+ TimeUnit.MILLISECONDS.convert(25, TimeUnit.HOURS)), null);
-		final UnavailableBlock unavailable4 = new UnavailableBlock(new Date(msWeekStart
-			- TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)), new Date(msWeekStart
-			- TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)), null);
-		final UnavailableBlock unavailable5 = new UnavailableBlock(new Date(msWeekStart
-			+ TimeUnit.MILLISECONDS.convert(166, TimeUnit.HOURS)), new Date(msWeekStart
-			+ TimeUnit.MILLISECONDS.convert(170, TimeUnit.HOURS)), null);
-		final UnavailableBlock unavailable6 = new UnavailableBlock(new Date(msWeekStart
-			+ TimeUnit.MILLISECONDS.convert(170, TimeUnit.HOURS)), new Date(msWeekStart
-			+ TimeUnit.MILLISECONDS.convert(174, TimeUnit.HOURS)), null);
+		ArrayList<UnavailableBlock> unavailableBlocks = new ArrayList<>();  
+		UnavailableBlock unavailable1 = new UnavailableBlock(
+				new Date(msWeekStart - TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)), 
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(2, TimeUnit.HOURS)), 
+				null); 
+		UnavailableBlock unavailable2 = new UnavailableBlock(
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(0, TimeUnit.HOURS)), 
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)),  
+				null); 
+		UnavailableBlock unavailable3 = new UnavailableBlock(
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS)), 
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(25, TimeUnit.HOURS)), 
+				null);
+		UnavailableBlock unavailable4 = new UnavailableBlock(
+				new Date(msWeekStart - TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)), 
+				new Date(msWeekStart - TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)), 
+				null); 
+		UnavailableBlock unavailable5 = new UnavailableBlock(
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(166, TimeUnit.HOURS)), 
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(170, TimeUnit.HOURS)),
+				null); 
+		UnavailableBlock unavailable6 = new UnavailableBlock(
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(170, TimeUnit.HOURS)), 
+				new Date(msWeekStart + TimeUnit.MILLISECONDS.convert(174, TimeUnit.HOURS)),
+				null); 
 		
 		unavailableBlocks.add(unavailable1);
 		unavailableBlocks.add(unavailable2);
@@ -449,5 +675,179 @@ public class TimeBlockStorageTest {
 		
 		assertTrue(StorageService.getAllUnavailableBlocksWithinRange(new Date(msWeekStartNow),
 				new Date(msWeekStartNow + TimeUnit.MILLISECONDS.convert(168, TimeUnit.HOURS))).size() == 4);
+	}
+	
+	@Test
+	public void getAllUnavailableBlocksWithinRangeUserAdjusted() {
+		//Create needed objects
+		ArrayList<ITemplateStep> templateSteps = new ArrayList<>(); 
+		templateSteps.add(new TemplateStep("Step", 1.0, 1)); 
+		Template template = new Template("Template", templateSteps); 
+		Assignment assignment = new Assignment("Assignment", new Date(), template); 
+		Task task = new Task("Task", 1, 1, assignment.getID()); 
+		assignment.addTask(task); 
+		
+		AssignmentBlock block1 = new AssignmentBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
+				task); 
+		AssignmentBlock block2 = new AssignmentBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
+				task); 
+		AssignmentBlock block3 = new AssignmentBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
+				task); 
+		AssignmentBlock block4 = new AssignmentBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 10), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 12), 
+				task); 
+		
+		//We need to the date of all of the default timeBlocks to this week
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(System.currentTimeMillis());
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+		cal.set(Calendar.HOUR_OF_DAY,0);
+		cal.set(Calendar.MINUTE,0);
+		cal.set(Calendar.SECOND,0);
+		cal.set(Calendar.MILLISECOND,0);
+		long msBase = cal.getTimeInMillis(); 
+		
+		UnavailableBlock unavailable1 = new UnavailableBlock(
+				new Date(msBase - TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)), 
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(2, TimeUnit.HOURS)), 
+				null); 
+		UnavailableBlock unavailable2 = new UnavailableBlock(
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(0, TimeUnit.HOURS)), 
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)),  
+				null); 
+		UnavailableBlock unavailable3 = new UnavailableBlock(
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS)), 
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(25, TimeUnit.HOURS)), 
+				null);
+		UnavailableBlock unavailable4 = new UnavailableBlock(
+				new Date(msBase - TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)), 
+				new Date(msBase - TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)), 
+				null); 
+		UnavailableBlock unavailable5 = new UnavailableBlock(
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(166, TimeUnit.HOURS)), 
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(170, TimeUnit.HOURS)),
+				null); 
+		UnavailableBlock unavailable6 = new UnavailableBlock(
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(170, TimeUnit.HOURS)), 
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(174, TimeUnit.HOURS)),
+				null); 
+		
+		//Add objects in correct order to the db
+		try {
+			StorageService.addTemplate(template); 
+			StorageService.addAssignment(assignment); 
+			StorageService.addTimeBlock(block1);
+			StorageService.addTimeBlock(block2);
+			StorageService.addTimeBlock(block3); 
+			StorageService.addTimeBlock(block4);
+			
+			StorageService.addTimeBlock(unavailable1);
+			StorageService.addTimeBlock(unavailable2);
+			StorageService.addTimeBlock(unavailable3);
+			StorageService.addTimeBlock(unavailable4);
+			StorageService.addTimeBlock(unavailable5);
+			StorageService.addTimeBlock(unavailable6);
+		} 
+		catch (StorageServiceException e) {
+			fail(e.getMessage());
+		} 
+		
+		assertTrue(StorageService.getAllUnavailableBlocksWithinRange(
+				new Date(msBase), 
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(168, TimeUnit.HOURS))).size() == 4);
+	}
+	
+	@Test
+	public void getAllUnavailableBlocksWithinRangeUserAdjustedEliminateDuplicates() {
+		//Create needed objects
+		ArrayList<ITemplateStep> templateSteps = new ArrayList<>(); 
+		templateSteps.add(new TemplateStep("Step", 1.0, 1)); 
+		Template template = new Template("Template", templateSteps); 
+		Assignment assignment = new Assignment("Assignment", new Date(), template); 
+		Task task = new Task("Task", 1, 1, assignment.getID()); 
+		assignment.addTask(task); 
+		
+		AssignmentBlock block1 = new AssignmentBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
+				task); 
+		AssignmentBlock block2 = new AssignmentBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 3), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
+				task); 
+		AssignmentBlock block3 = new AssignmentBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 2), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 4), 
+				task); 
+		AssignmentBlock block4 = new AssignmentBlock(
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 10), 
+				new Date(System.currentTimeMillis() + (86400 * 1000) * 12), 
+				task); 
+		
+		//We need to the date of all of the default timeBlocks to this week
+		Calendar cal = Calendar.getInstance();
+		cal.setTimeInMillis(System.currentTimeMillis());
+		cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+		cal.set(Calendar.HOUR_OF_DAY,0);
+		cal.set(Calendar.MINUTE,0);
+		cal.set(Calendar.SECOND,0);
+		cal.set(Calendar.MILLISECOND,0);
+		long msBase = cal.getTimeInMillis(); 
+		
+		UnavailableBlock unavailable1 = new UnavailableBlock(
+				new Date(msBase - TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)), 
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(2, TimeUnit.HOURS)), 
+				null); 
+		UnavailableBlock unavailable2 = new UnavailableBlock(
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(0, TimeUnit.HOURS)), 
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)),  
+				null); 
+		UnavailableBlock unavailable3 = new UnavailableBlock(
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(24, TimeUnit.HOURS)), 
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(25, TimeUnit.HOURS)), 
+				null);
+		UnavailableBlock unavailable4 = new UnavailableBlock(
+				new Date(msBase - TimeUnit.MILLISECONDS.convert(4, TimeUnit.HOURS)), 
+				new Date(msBase - TimeUnit.MILLISECONDS.convert(1, TimeUnit.HOURS)), 
+				null); 
+		UnavailableBlock unavailable5 = new UnavailableBlock(
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(166, TimeUnit.HOURS)), 
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(170, TimeUnit.HOURS)),
+				null); 
+		UnavailableBlock unavailable6 = new UnavailableBlock(
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(170, TimeUnit.HOURS)), 
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(174, TimeUnit.HOURS)),
+				null); 
+		
+		//Add objects in correct order to the db
+		try {
+			StorageService.addTemplate(template); 
+			StorageService.addAssignment(assignment); 
+			StorageService.addTimeBlock(block1);
+			StorageService.addTimeBlock(block2);
+			StorageService.addTimeBlock(block3); 
+			StorageService.addTimeBlock(block4);
+			
+			StorageService.addTimeBlock(unavailable1);
+			StorageService.addTimeBlock(unavailable2);
+			StorageService.addTimeBlock(unavailable3);
+			StorageService.addTimeBlock(unavailable4);
+			StorageService.addTimeBlock(unavailable5);
+			StorageService.addTimeBlock(unavailable6);
+		} 
+		catch (StorageServiceException e) {
+			fail(e.getMessage());
+		} 
+		
+		assertTrue(StorageService.getAllUnavailableBlocksWithinRange(
+				new Date(msBase), 
+				new Date(msBase + TimeUnit.MILLISECONDS.convert(169, TimeUnit.HOURS))).size() == 4);
 	}
 }
