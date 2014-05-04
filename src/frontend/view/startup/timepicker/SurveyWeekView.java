@@ -1,9 +1,11 @@
 package frontend.view.startup.timepicker;
 
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -23,11 +25,13 @@ public class SurveyWeekView extends JPanel {
 	private static final long			serialVersionUID	= 888327935955233878L;
 	
 	/* Dimensional vals */
-	private static final Dimension		size				= new Dimension(500, 400);
-	private static final double			numCols				= 7.0;
-	private static final double			numRows				= 48.0;					// every half hour
-	public static final double			COL_WIDTH			= size.width / numCols;
-	public static final double			ROW_HEIGHT			= size.height / numRows;
+	private static final Dimension		size				= new Dimension(540, 380);
+	private static final int			X_INSET				= 35;
+	private static final int			Y_INSET				= 40;
+	private static final double			NUM_COLS			= 7.0;
+	private static final double			NUM_ROWS			= 48.0;								// every half hour
+	public static final double			COL_WIDTH			= (size.width - X_INSET) / NUM_COLS;
+	public static final double			ROW_HEIGHT			= (size.height - Y_INSET) / NUM_ROWS;
 	
 	/* Instance vars */
 	private final List<SurveyTimeBlock>	_blocks;
@@ -59,11 +63,11 @@ public class SurveyWeekView extends JPanel {
 	private static List<SurveyTimeBlock> createBlocks() {
 		final List<SurveyTimeBlock> blocks = new ArrayList<>();
 		// for each day
-		for (int i = 0; i < numCols; i++) {
+		for (int i = 0; i < NUM_COLS; i++) {
 			// for each half hour
-			for (int j = 0; j < numRows; j++) {
+			for (int j = 0; j < NUM_ROWS; j++) {
 				// params: whether block starts on the half hour
-				blocks.add(new SurveyTimeBlock(i * COL_WIDTH, j * ROW_HEIGHT, !isEven(j)));
+				blocks.add(new SurveyTimeBlock(i * COL_WIDTH + X_INSET, j * ROW_HEIGHT + Y_INSET / 2, !isEven(j)));
 			}
 		}
 		return blocks;
@@ -134,10 +138,29 @@ public class SurveyWeekView extends JPanel {
 	@Override
 	public void paintComponent(final Graphics g) {
 		final Graphics2D g2 = (Graphics2D) g;
+		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+		g2.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+		
+		// Clears background and draws full border
 		g2.setBackground(Utils.COLOR_BACKGROUND);
 		g2.clearRect(0, 0, getWidth(), getHeight());
 		g2.setColor(SurveyTimeBlock.BORDER_COLOR);
-		g2.drawRect(0, 0, getWidth() - 1, getHeight() - 1);
+		g2.drawRect(X_INSET, Y_INSET / 2, getWidth() - X_INSET - 1, getHeight() - Y_INSET);
+		
+		// Draws num on left
+		g2.setFont(Utils.getFont(Font.BOLD, 10));
+		g2.setColor(Utils.COLOR_FOREGROUND);
+		for (int i = 0; i <= NUM_ROWS; i += 4) {
+			g2.drawString(Utils.getHourString(i / 2), 0, Y_INSET / 2 + (int) (i * ROW_HEIGHT) + 4);
+		}
+		
+		// Draws day of week on top
+		g2.setFont(Utils.getFont(Font.BOLD, 12));
+		final String[] days = { "Sun", "Mon", "Tues", "Wed", "Thu", "Fri", "Sat" };
+		for (int i = 0; i < days.length; i++) {
+			g2.drawString(days[i], X_INSET + 5 + (int) (i * COL_WIDTH), 15);
+		}
 		
 		// Draw all blocks
 		for (final SurveyTimeBlock b : _blocks) {
@@ -159,16 +182,16 @@ public class SurveyWeekView extends JPanel {
 	 */
 	private void handleMouse(final Point p) {
 		final SurveyTimeBlock block = findBlockAt(p);
-		if (_currBlock == null) {
-			_currBlock = block;
-			_currSelectedVal = !_currBlock.isSelected();
-			_currBlock.hover(false);
-		}
 		if (block != null) {
+			if (_currBlock == null) {
+				_currBlock = block;
+				_currSelectedVal = !_currBlock.isSelected();
+				_currBlock.hover(false);
+			}
 			block.setSelected(_currSelectedVal);
 			_currBlock = block;
+			repaint();
 		}
-		repaint();
 	}
 	
 	/**

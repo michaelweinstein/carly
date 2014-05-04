@@ -9,6 +9,8 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 import javax.swing.AbstractAction;
 import javax.swing.JCheckBox;
@@ -28,7 +30,7 @@ public class SettingsView extends JDialog {
 	
 	private static final long		serialVersionUID	= 836555231204678487L;
 	
-	/* Styling Vars */
+	/* Styling vars */
 	private static final Dimension	minimum_size		= new Dimension(400, 500);
 	private static final int		title_padding		= 10;
 	private static final int		padding				= 15;
@@ -40,6 +42,10 @@ public class SettingsView extends JDialog {
 	private static final String		preferred_timeofday	= "When do you prefer to work?";
 	
 	// private static final String template_wizard = "Template Wizard";
+	
+	/* Data Structure vars */
+	private static JComboBox<TimeOfDay> _todPicker;
+	private static JCheckBox _learnerToggle;
 	
 	public SettingsView() {
 		super();
@@ -75,7 +81,20 @@ public class SettingsView extends JDialog {
 		this.add(titlePanel, BorderLayout.NORTH);
 		this.add(templateWizardPanel, BorderLayout.CENTER);
 		this.add(inputPanel, BorderLayout.SOUTH);
-		// this.add(buttonPanel, BorderLayout.SOUTH);
+		
+		/* Window Listener */
+		this.addWindowListener(new WindowListener() {
+			public void windowOpened(WindowEvent e) {
+				// Populates settings whenever Settings Dialog is opened
+				populateSettings();
+			}
+			public void windowClosing(WindowEvent e) {}
+			public void windowClosed(WindowEvent e) {}
+			public void windowIconified(WindowEvent e) {}
+			public void windowDeiconified(WindowEvent e) {}
+			public void windowActivated(WindowEvent e) {}
+			public void windowDeactivated(WindowEvent e) {}
+		});
 		
 		// TODO: Add scroll pane (using CScrollPane)
 	}
@@ -115,20 +134,20 @@ public class SettingsView extends JDialog {
 		c.gridy = 2;
 		c.gridwidth = 2;
 		inputPanel.add(timeOfDayLabel);
-		final JComboBox<TimeOfDay> timeOfDayPicker = new JComboBox<>(getTimesOfDay());
-		timeOfDayPicker.addItemListener(new ItemListener() {
+		_todPicker = new JComboBox<>(getTimesOfDay());
+		_todPicker.addItemListener(new ItemListener() {
 
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				// TODO Test StorageService submission
-				TimeOfDay item = (TimeOfDay) timeOfDayPicker.getSelectedItem();
+				TimeOfDay item = (TimeOfDay) _todPicker.getSelectedItem();
 				StorageService.mergeSetting(SettingsConstants.TIMEOFDAY_SETTING, item.name());
 			}
 		});
 		c.gridx = 0;
 		c.gridy = 1;
 		c.gridwidth = 2;
-		inputPanel.add(timeOfDayPicker);
+		inputPanel.add(_todPicker);
 		
 		// Toggle learning algorithm Check Box
 		final JLabel learningLabel = new JLabel(toggle_learning);
@@ -137,26 +156,23 @@ public class SettingsView extends JDialog {
 		c.gridy = 3;
 		c.gridwidth = 1;
 		inputPanel.add(learningLabel, c);
-		final JCheckBox learningCheckBox = new JCheckBox();
-		learningCheckBox.setSelected(true);
-		Utils.themeComponent(learningCheckBox);
-		Utils.padComponent(learningCheckBox, 5, 5);
-		learningCheckBox.addItemListener(new ItemListener() {
+		_learnerToggle = new JCheckBox();
+		_learnerToggle.setSelected(true);
+		Utils.themeComponent(_learnerToggle);
+		Utils.padComponent(_learnerToggle, 5, 5);
+		_learnerToggle.addItemListener(new ItemListener() {
 
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				// TODO Test StorageService submission
-				Boolean sel = learningCheckBox.isSelected();
+				Boolean sel = _learnerToggle.isSelected();
 				StorageService.mergeSetting(SettingsConstants.LEARNER_SETTING, sel.toString());
 			}	
 		});
 		c.gridx = 1;
 		c.gridy = 3;
 		c.gridwidth = 1;
-		inputPanel.add(learningCheckBox, c);
-		
-		// TODO Test that the settings persistence works
-		populateSettings(timeOfDayPicker, learningCheckBox);
+		inputPanel.add(_learnerToggle, c);
 		
 		return inputPanel;
 	}
@@ -170,14 +186,15 @@ public class SettingsView extends JDialog {
 	 * @param todPicker TimeOfDay JComboBox
 	 * @param learningToggle JCheckBox
 	 */
-	private void populateSettings(JComboBox<TimeOfDay> todPicker, JCheckBox learningToggle) {
+	private void populateSettings() {
 		// Set TimeOfDay item
-/*		String todString = StorageService.getSetting(SettingsConstants.TIMEOFDAY_SETTING);
+		// TODO
+		String todString = StorageService.getSetting(SettingsConstants.TIMEOFDAY_SETTING);
 		TimeOfDay tod = TimeOfDay.valueOf(todString);
-		todPicker.setSelectedItem(tod);*/
+		_todPicker.setSelectedItem(tod);
 		// Set Learning Toggle state
-/*		String learningString = StorageService.getSetting(SettingsConstants.LEARNER_SETTING);
-		learningToggle.setSelected(Boolean.parseBoolean(learningString));*/
+		String learningString = StorageService.getSetting(SettingsConstants.LEARNER_SETTING);
+		_learnerToggle.setSelected(Boolean.parseBoolean(learningString));
 	}
 	
 	/**

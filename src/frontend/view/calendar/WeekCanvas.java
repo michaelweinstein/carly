@@ -218,7 +218,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		final Tuple<ITimeBlockable, DragType> currentlyMoving = _cv.getMovingBlock();
 		clearAllBlocks();
 		
-		// Today
+		// Today colors
 		final double dayWidth = (getWidth() - X_OFFSET - _cv.getScrollWidth()) / DAYS;
 		if (_weekStartDate.before(new Date()) && _weekEndDate.after(new Date())) {
 			brush.setColor(Utils.transparentColor(Utils.COLOR_ACCENT, 0.05));
@@ -257,9 +257,9 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 			brush.setFont(Utils.getFont(Font.BOLD, 11));
 			if (i == HRS) {
 				// Why necessary to special case? I don't know but it doesn't draw right otherwise
-				brush.drawString(getHourString(i), 5, (int) (getHeight() - Y_PAD));
+				brush.drawString(Utils.getHourString(i), 5, (int) (getHeight() - Y_PAD));
 			} else {
-				brush.drawString(getHourString(i), 5, (int) y + 5);
+				brush.drawString(Utils.getHourString(i), 5, (int) y + 5);
 			}
 		}
 		
@@ -548,20 +548,6 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	 */
 	public CalendarView getCalendarView() {
 		return _cv;
-	}
-	
-	/**
-	 * Given an int, gives back an hour string for that
-	 * 
-	 * @param i an int (0 to 24) representing the hour
-	 * @return the hour as a string
-	 */
-	private static String getHourString(final int i) {
-		int hour = i % 12;
-		if (hour == 0) {
-			hour = 12;
-		}
-		return hour + (i < 12 || i == 24 ? "am" : "pm");
 	}
 	
 	/**

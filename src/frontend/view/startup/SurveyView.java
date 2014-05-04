@@ -24,15 +24,15 @@ import frontend.view.startup.timepicker.SurveyWeekView;
 
 public class SurveyView extends JDialog {
 	
-	// TODO Don't let user close until data has been submitted.
 	// TODO On close, quit program and delete database
 			// --- Eric will create method to delete database
+	// TODO Don't let user close until data has been submitted.
 	
 	private static final long			serialVersionUID	= -3311099840458252581L;
 	
-	private static final Dimension		minimum_size		= new Dimension(650, 750);
-	private static final Insets			insets				= new Insets(10, 5, 10, 5);
-	private static final int			padding				= 25;
+	private static final Dimension		minimum_size		= new Dimension(605, 670);
+	private static final Insets			insets				= new Insets(6, 5, 6, 5);
+	private static final int			padding				= 15;
 	private static final int			title_size			= 46;
 	private static final String			title_label			= "Welcome to Carly!";
 	private static final String			hours_label			= "When do you prefer to work during the day?";
@@ -48,7 +48,7 @@ public class SurveyView extends JDialog {
 	public SurveyView() {
 		super();
 		setMinimumSize(minimum_size);
-		this.setResizable(false);
+		setResizable(false);
 		setPreferredSize(minimum_size);
 		Utils.themeComponent(getRootPane());
 		Utils.padComponent(getRootPane(), padding, padding);
@@ -86,10 +86,10 @@ public class SurveyView extends JDialog {
 		c.gridwidth = 1;
 		c.anchor = GridBagConstraints.WEST;
 		
-/// 	// TODO Pad left to lign up with _timePicker
+		// / // TODO Pad left to lign up with _timePicker
 		// top left bottom right
-//		c.insets = new Insets(10, 30, 10, 5);
-
+		// c.insets = new Insets(10, 30, 10, 5);
+		
 		this.add(todLabel, c);
 		c.gridx = 1;
 		c.anchor = GridBagConstraints.WEST;
@@ -124,7 +124,7 @@ public class SurveyView extends JDialog {
 		c.anchor = GridBagConstraints.CENTER;
 		this.add(_timeView, c);
 		
-/////
+		// ///
 		c.insets = insets;
 		
 		// 'Submit survey' button

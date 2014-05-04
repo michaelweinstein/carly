@@ -229,6 +229,20 @@ public abstract class Utils {
 	}
 	
 	/**
+	 * Given an int, gives back an hour string for that
+	 * 
+	 * @param i an int (0 to 24) representing the hour
+	 * @return the hour as a string
+	 */
+	public static String getHourString(final int i) {
+		int hour = i % 12;
+		if (hour == 0) {
+			hour = 12;
+		}
+		return hour + (i < 12 || i == 24 ? "am" : "pm");
+	}
+	
+	/**
 	 * Calculates minimum of many ints
 	 * 
 	 * @param ints a list of ints to find min of
