@@ -275,7 +275,7 @@ public class StorageService {
 	}
 	
 	public static void addAllDefaultUnavailableBlocks(List<UnavailableBlock> blockList) {
-		TimeBlockStorage.addAllDefaultUnavailableBlocks(blockList); 
+		TimeBlockStorage.addAllDefaultUnavailableBlocks(blockList, _pool); 
 	}
 	
 	/*
@@ -292,6 +292,10 @@ public class StorageService {
 	 */
 	public static ITemplate getTemplate(final String id) {
 		return TemplateStepStorage.getTemplate(id, _templates, _pool);
+	}
+	
+	public static ITemplate getTemplateByName(final String name) {
+		return TemplateStepStorage.getTemplateByName(name, _pool); 
 	}
 	
 	/**

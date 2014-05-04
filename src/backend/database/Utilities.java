@@ -137,8 +137,8 @@ public abstract class Utilities {
 	
 	protected static final String INSERT_TEMPLATE = 
 			"INSERT INTO TEMPLATE " +
-			"(TEMPLATE_ID, TEMPLATE_NAME, TEMPLATE_CONSECUTIVE_HOURS) " + 
-			"VALUES (?, ?, ?) ";
+			"(TEMPLATE_ID, TEMPLATE_NAME, TEMPLATE_CONSECUTIVE_HOURS, TEMPLATE_NUM_CONSECUTIVE) " + 
+			"VALUES (?, ?, ?, ?) ";
 
 	protected static final String UPDATE_TEMPLATE = 
 			"UPDATE TEMPLATE " +
@@ -160,6 +160,13 @@ public abstract class Utilities {
 			"WHERE TEMPLATE.TEMPLATE_ID = ? " +
 			"ORDER BY TEMPLATE.TEMPLATE_ID ";
 	
+	protected static final String SELECT_TEMPLATES_AND_STEPS_BY_NAME = 
+			"SELECT * FROM TEMPLATE " +
+			"INNER JOIN TEMPLATE_STEP " +
+			"ON TEMPLATE.TEMPLATE_ID = TEMPLATE_STEP.TEMPLATE_ID " +
+			"WHERE TEMPLATE.TEMPLATE_NAME = ? " +
+			"ORDER BY TEMPLATE.TEMPLATE_ID ";
+	
 	protected static final String SELECT_ALL_TEMPLATES_AND_STEPS = 
 			"SELECT * FROM TEMPLATE " +
 			"INNER JOIN TEMPLATE_STEP " +
@@ -172,13 +179,17 @@ public abstract class Utilities {
 	
 	protected static final String INSERT_TEMPLATE_STEP =  
 			"INSERT INTO TEMPLATE_STEP " +
-			"(TEMPLATE_ID, STEP_NAME, STEP_PERCENT_TOTAL, STEP_STEP_NUMBER, STEP_TIME_OF_DAY) " + 
-			"VALUES (?, ?, ?, ?, ?) ";
+			"(TEMPLATE_ID, STEP_NAME, STEP_PERCENT_TOTAL, STEP_STEP_NUMBER, STEP_TIME_OF_DAY, STEP_TOD_COUNTERS) " + 
+			"VALUES (?, ?, ?, ?, ?, ?) ";
 	
 	protected static final String MERGE_TEMPLATE_STEP = 
 			"MERGE INTO TEMPLATE_STEP " +
 			"(TEMPLATE_ID, STEP_NAME, STEP_PERCENT_TOTAL, STEP_STEP_NUMBER, STEP_TIME_OF_DAY) " +
 			"VALUES (?, ?, ?, ?, ?) ";
+	
+	protected static final String SELECT_TEMPLATE_STEP_TOD_COUNTERS_BY_TEMPLATE_ID =
+			"SELECT STEP_NAME, STEP_TOD_COUNTERS FROM TEMPLATE_STEP " +
+			"WHERE TEMPLATE_ID = ? ";
 	
 	protected static final String DELETE_TEMPLATE_STEPS_BY_ID = 
 			"DELETE FROM TEMPLATE_STEP " +
