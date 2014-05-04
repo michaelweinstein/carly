@@ -20,7 +20,7 @@ import frontend.Utils;
 public class SurveyWeekView extends JPanel {
 	
 	// TODO: BUG: Sometimes drags selected over selected, and unselected over unselected
-	// Trigger by dragging some blocks and trying to deselect them by dragging a subgroup of those blocks
+		// Trigger by dragging some blocks and trying to deselect them by dragging a subgroup of those blocks
 	// TODO: When you drag, the first box does not get selected
 		// TODO: Drag between boxes; select any between the start and end drag
 
@@ -28,7 +28,7 @@ public class SurveyWeekView extends JPanel {
 	
 
 	/* Dimensional vals */
-	private static final Dimension		size				= new Dimension(480, 410);
+	private static final Dimension		size				= new Dimension(480, 400);
 	private static final double			numCols				= 7.0;
 	private static final double			numRows				= 48.0;					// every half hour
 	public static final double			COL_WIDTH			= size.width / numCols;

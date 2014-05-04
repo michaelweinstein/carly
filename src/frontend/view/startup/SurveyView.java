@@ -84,17 +84,14 @@ public class SurveyView extends JDialog {
 		c.gridwidth = 1;
 		c.anchor = GridBagConstraints.WEST;
 		
+/// 	// TODO Pad left to lign up with _timePicker
 		// top left bottom right
-		c.insets = new Insets(10, 0, 10, 5);
+//		c.insets = new Insets(10, 30, 10, 5);
 
 		this.add(todLabel, c);
 		c.gridx = 1;
 		c.anchor = GridBagConstraints.WEST;
 		this.add(_todPicker, c);
-		
-/////	TODO
-//		c.insets = insets;
-		c.insets = new Insets(10, 0, 10, 5);
 		
 		/* "Would you like settings to be adjusted based on your behavior?" */
 		final JLabel learnerLabel = new JLabel(learner_label);

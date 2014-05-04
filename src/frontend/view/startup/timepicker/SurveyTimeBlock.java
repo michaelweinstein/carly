@@ -53,8 +53,8 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	public Date[] getRange() {
 		// Create Calendar starting at first Sunday after epoch (1/1/1970)
 		final Calendar c = Calendar.getInstance();
-		c.setTime(new Date(0));
-		c.add(Calendar.DAY_OF_YEAR, 3); // move to January 4, 1970
+		c.set(1970, Calendar.JANUARY, 4, 0, 0, 0);
+//		c.add(Calendar.DAY_OF_YEAR, 3); // move to January 4, 1970
 		
 		// Set start time in minutes
 		final Date[] startAndEnd = new Date[2];
