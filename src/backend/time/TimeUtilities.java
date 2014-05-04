@@ -15,6 +15,12 @@ import data.UnavailableBlock;
 
 public class TimeUtilities {
 	
+	/**
+	 * Inserts the parameter ITimeBlockable into the parameter List.  This list is sorted in order
+	 * by the start Date in each ITimeBlockable.
+	 * @param allBlocks a List of ITimeBlockables
+	 * @param block a block that will be inserted into the parameter List upon exiting this function.
+	 */
 	public static void insertIntoSortedList(final List<ITimeBlockable> allBlocks, final ITimeBlockable block) {
 		int ind;
 		final int size = allBlocks.size();
@@ -43,10 +49,16 @@ public class TimeUtilities {
 		}
 	}
 	
-	// Returns the index in the list where the current time should appear
-	// This function uses START dates in its comparisons
+	/**
+	 * Returns the index in the list where the parameter "curr" would appear if it were to be
+	 * inserted into the list of ITimeBlockables.  Note that the list is sorted by start dates.
+	 * @param timeList a List of ITimeBlockable
+	 * @param curr a Date object.
+	 * @return the index of the location where the parameter date would fit if it were inserted
+	 *         into the list.
+	 */
 	public static int indexOfFitLocn(final List<ITimeBlockable> timeList, final Date curr) {
-		int ind;
+		int ind = -1;
 		final int size = timeList.size();
 		
 		if (timeList.size() == 0) {
@@ -71,6 +83,17 @@ public class TimeUtilities {
 		return ind;
 	}
 	
+	/**
+	 * Counts the number of free hours in between each pair of blocks in the parameter List
+	 * of ITimeBlockables, then determines if the parameter IAssignment may be able to fit in
+	 * the range [start, asgn.getDueDate()].  Note that this function may return true, yet a 
+	 * fit may still not exist based on the movability of blocks in the parameter List.
+	 * @param allBlocks A List of ITimeBlockables sorted by start Date
+	 * @param asgn An IAssignment with an expected number of hours
+	 * @param start The time to begin counting free hours in the parameter List
+	 * @return Returns true if the number of hours in between blocks in the parameter List is
+	 * 		   greater than or equal to the expected number of hours in "asgn"; false otherwise.
+	 */
 	public static boolean existsPossibleFit(final List<ITimeBlockable> allBlocks, final IAssignment asgn,
 			final Date start) {
 		long amtFreeTime = 0;
@@ -108,6 +131,13 @@ public class TimeUtilities {
 		return (numFreeHours >= asgn.getExpectedHours());
 	}
 	
+	/**
+	 * 
+	 * @param unavailable A List of UnavailableBlocks sorted by start Date
+	 * @param curr_asgns A List of AssignmentBlocks sorted by start Date
+	 * @return A List containing all elements of the two parameter lists, zipped together
+	 * 			in order sorted by start Date.
+	 */
 	public static List<ITimeBlockable> zipTimeBlockLists(final List<UnavailableBlock> unavailable,
 			final List<AssignmentBlock> curr_asgns) {
 		final List<ITimeBlockable> zippedList = new ArrayList<ITimeBlockable>(unavailable.size() + curr_asgns.size());
@@ -157,6 +187,11 @@ public class TimeUtilities {
 		return zippedList;
 	}
 	
+	/**
+	 * 
+	 * @param allBlocks A List of ITimeBlockables.
+	 * @return a String representing the contents of the parameter List of ITimeBlockables.
+	 */
 	public static String printSchedule(final List<ITimeBlockable> allBlocks) {
 		final StringBuilder builder = new StringBuilder();
 		for (int i = 0; i < allBlocks.size(); ++i) {
@@ -171,7 +206,17 @@ public class TimeUtilities {
 		return builder.toString();
 	}
 	
-	// Return false and do not modify the list if an insertion is not possible
+	/**
+	 * Attempts to switch the two parameter ITimeBlockables.  In order for ITimeBlockables to be switched,
+	 * there must not be conflicts with the due Date of either Assignment upon switching, and there must
+	 * be sufficient free space surrounding the two ITimeBlockables so that there is not an overlap
+	 * after conducting a switch.  If the switch is successful, the two ITimeBlockables are updated in
+	 * the StorageService.
+	 * @param allBlocks A List of ITimeBlockables sorted by start Date
+	 * @param source an ITimeBlockable to-be-switched with dest
+	 * @param dest an ITimeBlockable to-be-switched with source
+	 * @return Returns true if the operation was successful; false otherwise.
+	 */
 	public static boolean switchTimeBlocks(final List<ITimeBlockable> allBlocks, final ITimeBlockable source,
 			final ITimeBlockable dest) {
 		

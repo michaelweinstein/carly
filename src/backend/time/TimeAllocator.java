@@ -34,6 +34,13 @@ public class TimeAllocator {
 		m_lastTimePlaced = null;
 	}
 	
+	/**
+	 * Breaks the member variable Assignment into a series of Tasks, then inserts those Tasks
+	 * as a series of TimeBlocks in the StorageService.
+	 * @param start The date to start inserting blocks of the member-variable Assignment from
+	 * @param end The date to stop inserting blocks of the member-variable Assignment from
+	 * @throws NotEnoughTimeException in the event that insertion fails
+	 */
 	public void insertAsgn(final Date start, final Date end) throws NotEnoughTimeException{
 		double numHoursPerBlock;
 		int numBlocksLeft; // the number of blocks left to place
@@ -129,6 +136,17 @@ public class TimeAllocator {
 		
 	}
 	
+	/**
+	 * Attempts a uniform insertion policy over the parameter List. Returns true if successful.
+	 * @param allBlocks A List of ITimeBlockables, sorted by start Date
+	 * @param start The Date at which to begin insertion
+	 * @param end The Date at which to end insertion
+	 * @param step The TemplateStep currently being inserted (i.e. TemplateStep ~ Template as Task ~ Assignment)
+	 * @param numBlocksLeft The number of blocks to-be-inserted via the uniform-insertion-policy.
+	 * @param numHoursPerBlock The number of recommended hours per time block.
+	 * @return Returns true if the insertion was successful, or false otherwise.  Inserts all blocks
+	 * 			into the StorageService.
+	 */
 	private boolean tryUniformInsertion(final List<ITimeBlockable> allBlocks, final Date start, final Date end,
 			final ITemplateStep step, int numBlocksLeft, final double numHoursPerBlock) {
 		
@@ -169,6 +187,18 @@ public class TimeAllocator {
 	
 	// Return a newly-initialized AssignmentBlock containing the relevant start/end
 	// dates for the current chunk.
+	/**
+	 *  Iterates over the parameter List and uses a first-fit insertion policy to find a place to insert
+	 *  a block of length "blockLength".  Returns a newly-initialized AssignmentBlock containing the 
+	 *  relevant start/end dates for said block.
+	 * @param blockList The List of ITimeBlockables, sorted by start Date
+	 * @param blockLength The length of the ITimeBlockable to-be-inserted
+	 * @param asgnStart The start Date of the Assignment
+	 * @param asgnEnd The due Date of the Assignment
+	 * @param step The TemplateStep of the block being inserted
+	 * @return an initialized AssignmentBlock containing a Task, and a start/end Date over which the
+	 * 			user will be working.  Returns null if a fit could not be found.
+	 */
 	private AssignmentBlock findFit(final List<ITimeBlockable> blockList, final double blockLength, final Date asgnStart,
 			final Date asgnEnd, final ITemplateStep step) {
 		Date fitStart = null;
@@ -224,10 +254,19 @@ public class TimeAllocator {
 		return null;
 	}
 	
+	/**
+	 * 
+	 * @param hrs The duration of hours to convert to milliseconds
+	 * @return The duration of milliseconds represented by the parameter "hrs".
+	 */
 	private long convertHoursToMillis(final double hrs) {
 		return (long) (hrs * 60 * 60 * 1000);
 	}
 	
+	/**
+	 * ONLY call this function after calling the "insertAsgn()" function.
+	 * @return The List of ITimeBlockables representing the time stream.
+	 */
 	public List<ITimeBlockable> getEntireBlockSet() {
 		return new ArrayList<ITimeBlockable>(m_localChangesToBlocks);
 	}
