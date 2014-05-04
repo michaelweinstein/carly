@@ -95,7 +95,7 @@ public class Assignment implements IAssignment {
 			final List<ITask> tasks = new ArrayList<>(steps.size());
 			
 			// Loop through all steps and create tasks from them
-			for (int i = 0; i < tasks.size(); i++) {
+			for (int i = 0; i < steps.size(); i++) {
 				final ITemplateStep step = steps.get(i);
 				final String taskName = step.getName();
 				
