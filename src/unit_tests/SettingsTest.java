@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import backend.database.StorageService;
 
-import frontend.view.startup.StartupView;
+import frontend.view.startup.SurveyView;
 
 /**
  * Unit tests for Settings page
@@ -30,7 +30,7 @@ public class SettingsTest {
 	@Test
 	public void runStartupSurvey() 
 	{
-		StartupView surveyDialog = new StartupView();
+		SurveyView surveyDialog = new SurveyView();
 		surveyDialog.setVisible(true);
 		while(true);
 	}

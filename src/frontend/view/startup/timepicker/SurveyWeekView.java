@@ -18,6 +18,11 @@ import data.Vec2d;
 import frontend.Utils;
 
 public class SurveyWeekView extends JPanel {
+	
+	// TODO: BUG: Sometimes drags selected over selected, and unselected over unselected
+		// Trigger by dragging some blocks and trying to deselect them by dragging a subgroup of those blocks
+	// TODO:  Upper left corner border of first box!
+	// TODO: When you drag, the first box does not get selected
 
 	private static final long serialVersionUID = 888327935955233878L;
 	

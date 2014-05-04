@@ -48,6 +48,7 @@ public class Main {
 		// Create an App
 		final boolean runStartUp = StorageService.initialize(false);
 		final boolean debug = parser.existsFlag(Utils.DEBUG);
+
 		a = new GUIApp(debug, runStartUp);
 		a.start();
 	}
