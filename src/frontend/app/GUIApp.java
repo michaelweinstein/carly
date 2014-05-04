@@ -54,6 +54,7 @@ public class GUIApp extends App {
 			@Override
 			public void run() {
 				HubController.initialize(GUIApp.this);
+				reload();
 				_window.pack();
 				_window.setVisible(true);
 			}
