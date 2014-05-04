@@ -23,6 +23,7 @@ public class SurveyWeekView extends JPanel {
 		// Trigger by dragging some blocks and trying to deselect them by dragging a subgroup of those blocks
 	// TODO:  Upper left corner border of first box!
 	// TODO: When you drag, the first box does not get selected
+		// TODO: Drag between boxes; select any between the start and end drag
 
 	private static final long serialVersionUID = 888327935955233878L;
 	
