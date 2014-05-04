@@ -101,7 +101,7 @@ public class SurveyWeekView extends JPanel {
 		}
 		return null;
 	}
-	
+		
 	/* Data Access methods */
 	
 	/**
@@ -181,6 +181,24 @@ public class SurveyWeekView extends JPanel {
 		}
 	}
 	
+	// TODO Complete and comment
+	private void handleHover(Vec2d loc) {
+		Point2D p = new Point2D.Double(loc.x, loc.y);
+		for (SurveyTimeBlock block: _blocks) {
+			if (block.contains(p)) {
+				if (block != _currBlock) {
+					if (block != null) {
+						block.hover(true);
+						repaint();
+					}
+					_currBlock = block;
+				} 
+			} 
+			else block.hover(false);
+		}
+				
+	}
+	
 	/* Private inner classes (for user input) */
 	
 	private class BlockDragListener implements MouseMotionListener {
@@ -198,6 +216,7 @@ public class SurveyWeekView extends JPanel {
 		@Override
 		public void mouseMoved(MouseEvent e) { 
 			// TODO: Block hover response
+			handleHover(new Vec2d(e.getX(), e.getY()));
 		}
 	}
 	

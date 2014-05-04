@@ -1,6 +1,10 @@
 package unit_tests;
 
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+
+import backend.database.StorageService;
 
 import frontend.view.startup.StartupView;
 
@@ -13,7 +17,15 @@ import frontend.view.startup.StartupView;
 
 public class SettingsTest {
 	
-	// TODO: Delete runStartupSurvey and runSettings; maybe the whole class
+	// TODO: Delete GUI test runs; maybe the whole class
+	@Before
+	public void startUp() {
+		StorageService.initialize(true);
+	}
+	@After 
+	public void cleanUp() {
+		StorageService.cleanup();
+	}
 	
 	@Test
 	public void runStartupSurvey() 

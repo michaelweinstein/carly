@@ -133,17 +133,16 @@ public class StartupView extends JDialog {
 	 * </ul>
 	 */
 	private void submitSurvey() {
-		// TODO: Delete printlines; Make calls to Storage Service
 		// Add TOD preference
 		TimeOfDay todPref = (TimeOfDay) (_todPicker.getSelectedItem());
-//		StorageService.mergeSetting(SettingsConstants.TIMEOFDAY_SETTING, todPref.name());
+		StorageService.mergeSetting(SettingsConstants.TIMEOFDAY_SETTING, todPref.name());
 		
 		// Add Learner preference
 		Boolean learnerPref = _learnerCheck.isSelected();
-//		StorageService.mergeSetting(SettingsConstants.LEARNER_SETTING, learnerPref.toString());
+		StorageService.mergeSetting(SettingsConstants.LEARNER_SETTING, learnerPref.toString());
 		
 		// Add UnavailableBlocks to StorageService
 		List<UnavailableBlock> uBlocks = _timeView.getUnavailableBlocks();
-//		StorageService.addAllDefaultUnavailableBlocks(uBlocks);
+		StorageService.addAllDefaultUnavailableBlocks(uBlocks);
 	}
 }
