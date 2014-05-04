@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import backend.database.StorageService;
 import backend.database.Utilities;
@@ -38,7 +39,7 @@ public class Learner {
 	}
 	
 	private static double getHoursBetween(final Date earlier, final Date later) { 
-		return ((double)(later.getTime() - earlier.getTime())) * 0.001 / 3600;
+		return TimeUnit.HOURS.convert(later.getTime() - earlier.getTime(), TimeUnit.MILLISECONDS); 
 	}
 	
 	private static String extrapolateTimeOfDay(final Date earlier) {
@@ -54,7 +55,7 @@ public class Learner {
 			Utilities.printException("Learner: extrapolateTimeOfDay: could not parse Date's start time", x);
 			return ""; 
 		}
-			      
+		
 		//TimeOfDay enum uses 24-hour (military) time
 		for (TimeOfDay tod : TimeOfDay.values()) {
 			if (startTime >= tod.start && startTime <= tod.end) {

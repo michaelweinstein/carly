@@ -24,7 +24,7 @@ public class StartupView extends JDialog {
 	private static final long serialVersionUID = -3311099840458252581L;
 	
 	/* Styling vars */
-	private static final Dimension minimum_size = new Dimension(600, 800);
+	private static final Dimension minimum_size = new Dimension(650, 750);
 	// @params: top, left, bottom, right
 	private static final Insets insets = new Insets(10, 5, 10, 5);	
 	private static final int padding = 15;
@@ -35,7 +35,7 @@ public class StartupView extends JDialog {
 	private static final String learner_label = 
 				"Would you like settings to be adjusted based on your behavior?";
 	private static final String time_label =
-				"Please drag for the times you are available during the average week." + 
+				"Please drag for the times you are available during the average week. " + 
 						"This template is final!";
 	private static final String submit_label = "Submit survey";
 	
@@ -100,18 +100,28 @@ public class StartupView extends JDialog {
 		c.gridy = 3;
 		this.add(_timeView, c);
 		
-		JButton submitBtn = new JButton(submit_label);
+		// TODO: Create 'Submit survey' button
+/*		JButton submitBtn = new JButton(submit_label);
 		submitBtn.setPreferredSize(new Dimension(20, 200));
 		c.gridx = 0;
 		c.gridy = 4;
-		c.gridwidth = 1;
+		c.gridwidth = 1;*/
 //		c.anchor = GridBagConstraints.WEST;
 //		this.add(submitBtn, c);
 		
-		// TODO User cannot close unless survey is completed
+		// TODO User should not be able to close unless survey is completed
 	}
 	
-	// TODO: Complete and comment
+	/**
+	 * Stores all user-inputted settings by making calls to <code>StorageService</code>.<br>
+	 * Called when user submits start-up survey, from 'Submit' button <code>ActionListener</code>. </br>
+	 * Settings sent to StorageService:
+	 * <ul>
+	 * 	<li> <code>TimeOfDay</code> preference </li>
+	 * 	<li> Learner toggled preference </li>
+	 * 	<li> All <code>UnavailableBlock</code>s specified by user for the week template </li>
+	 * </ul>
+	 */
 	private void submitSurvey() {
 		// Add TOD preference
 		TimeOfDay todPref = (TimeOfDay) (_todPicker.getSelectedItem());
@@ -123,14 +133,6 @@ public class StartupView extends JDialog {
 		
 		// Add UnavailableBlocks to StorageService
 		List<UnavailableBlock> uBlocks = _timeView.getUnavailableBlocks();
-		for (UnavailableBlock b: uBlocks) {
-/*			try {
-				StorageService.addTimeBlock(b);
-			} catch (StorageServiceException e) {
-				System.out.println("ERROR: StorageServiceException when adding " + 
-						"time blocks (StartupView.submitSurvey)");
-				e.printStackTrace();
-			}*/
-		}
+		StorageService.addAllDefaultUnavailableBlocks(uBlocks);
 	}
 }

@@ -4,6 +4,7 @@ import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 
 import frontend.Utils;
+import frontend.view.CScrollBarUI;
 
 /**
  * Represents a week in the calendar with events throughout the day, every day
@@ -39,5 +40,6 @@ public class WeekView extends JScrollPane {
 		setViewportBorder(new EmptyBorder(0, 0, 0, 0));
 		Utils.padComponent(this, 0, 0);
 		Utils.padComponent(_canvas, 0, 0);
+		getVerticalScrollBar().setUI(new CScrollBarUI());
 	}
 }

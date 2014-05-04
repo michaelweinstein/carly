@@ -47,6 +47,7 @@ import data.TemplateStep;
 import frontend.Utils;
 import frontend.app.GUIApp;
 import frontend.view.CButton;
+import frontend.view.CScrollBarUI;
 
 /**
  * Class for the dialog box that pops up when adding a new assignment
@@ -88,6 +89,8 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		_dialogTitle = createDialogTitle();
 		final JPanel centerPane = createFieldsAndLabels();
 		final JScrollPane scroller = new JScrollPane(centerPane);
+		scroller.getVerticalScrollBar().setUI(new CScrollBarUI());
+		scroller.getHorizontalScrollBar().setUI(new CScrollBarUI());
 		final JPanel bottom = createButtonsAndStatusPane();
 		
 		Utils.themeComponent(scroller);

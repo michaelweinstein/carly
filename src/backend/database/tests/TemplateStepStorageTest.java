@@ -40,6 +40,22 @@ public class TemplateStepStorageTest {
 		 
 		assertEquals(template.fullString(), StorageService.getTemplate(template.getID()).fullString()); 
 	}
+	
+	@Test
+	public void getTemplateByName() {
+		Template template = new Template("Template 1"); 		
+		template.addStep(new TemplateStep("Step 1", 0.25));
+		template.addStep(new TemplateStep("Step 2", 0.25)); 
+		template.addStep(new TemplateStep("Step 3", 0.25));
+		template.addStep(new TemplateStep("Step 4", 0.25));
+		try {
+			StorageService.addTemplate(template);
+		} catch (StorageServiceException e) {
+			fail(e.getMessage()); 
+		} 
+		 
+		assertEquals(template.fullString(), StorageService.getTemplateByName(template.getName()).fullString()); 
+	}
 
 	@Test
 	public void updateTemplate() {

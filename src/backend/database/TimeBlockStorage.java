@@ -623,7 +623,58 @@ public class TimeBlockStorage {
 		return block; 
 	}
 	
-	protected static void addAllDefaultUnavailableBlocks(List<UnavailableBlock> blockList) {
-		
+	//TODO: untested 
+	protected static void addAllDefaultUnavailableBlocks(final List<UnavailableBlock> blockList,
+			final JdbcConnectionPool pool) {
+		PreparedStatement blockStatement = null;
+	    Connection con = null;
+	    
+	    try {
+	    	Class.forName("org.h2.Driver");
+	    	con = pool.getConnection();
+	    	
+	        con.setAutoCommit(false);
+	        
+	        for (final ITimeBlockable block: blockList) {
+	        	blockStatement = con.prepareStatement(Utilities.INSERT_TIME_BLOCK); 
+	            Utilities.setValues(blockStatement, block.getId(), block.getTaskId(), block.getStart().getTime(),
+	            		block.getEnd().getTime(), block.isMovable(), true);
+	            blockStatement.addBatch();
+	        }
+	        
+	        blockStatement.executeBatch(); 	        
+            //commit to the database
+            con.commit();
+	    } 
+	    catch (final ClassNotFoundException e) {
+			Utilities.printException("TimeBlockStorage: addAllDefaultUnavailableBlocks: db drive class not found", e);
+		} 
+	    catch (final SQLException e) {
+	        Utilities.printSQLException("TimeBlockStorage: addAllDefaultUnavailableBlocks: " +
+	        		"attempting to roll back transaction", e);
+	        if (con != null) {
+	            try {
+	                con.rollback();
+	            } 
+	            catch(SQLException x) {
+	                Utilities.printSQLException("TimeBlockStorage: addAllDefaultUnavailableBlocks: " +
+	                		"could not roll back transaction", x);
+	            }
+	        }
+	    } 
+	    finally {
+	    	try {
+	    		if (blockStatement != null) {
+		            blockStatement.close();
+		        }
+		        con.setAutoCommit(true);
+		        if (con != null) {
+	    			con.close(); 
+	    		}
+	    	}
+	    	catch(final SQLException x) {
+                Utilities.printSQLException("TimeBlockStorage: addAllDefaultUnavailableBlocks: could not close resource", x);
+            }
+	    }
 	}
 }

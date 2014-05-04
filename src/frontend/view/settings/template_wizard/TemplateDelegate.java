@@ -22,7 +22,7 @@ public class TemplateDelegate {
 	/**
 	 * Add Template to the database via StorageService. In case of StorageServiceException, prints error message.
 	 * 
-	 * @param t, Template to add
+	 * @param t Template to add
 	 */
 	public static void addTemplate(final ITemplate t) {
 		try {
@@ -40,8 +40,8 @@ public class TemplateDelegate {
 	 * and cancels storage. Takes in (1) new Template and (2) old Template, with identical IDs. This method is Called
 	 * when user edits and submits existing Template from TemplateWizardView.
 	 * 
-	 * @param updatedTemplate, updated Template (with same ID as toReplace)
-	 * @param toReplace, old Template to overwrite in database
+	 * @param updatedTemplate updated Template (with same ID as toReplace)
+	 * @param toReplace old Template to overwrite in database
 	 */
 	public static void updateTemplate(final ITemplate updatedTemplate, final ITemplate toReplace) {
 		try {

@@ -31,6 +31,7 @@ public class TemplateStepStorage {
 		templateCols.add(StorageService.concatColumn("TEMPLATE_ID", "VARCHAR(255) NOT NULL PRIMARY KEY"));
 		templateCols.add(StorageService.concatColumn("TEMPLATE_NAME", "VARCHAR(255)"));
 		templateCols.add(StorageService.concatColumn("TEMPLATE_CONSECUTIVE_HOURS", "DOUBLE"));
+		templateCols.add(StorageService.concatColumn("TEMPLATE_NUM_CONSECUTIVE", "INT")); 
 		queries.add(Utilities.buildCreateString("TEMPLATE", templateCols));
 		
 		// Template step table
@@ -42,6 +43,7 @@ public class TemplateStepStorage {
 		stepCols.add(StorageService.concatColumn("STEP_PERCENT_TOTAL", "DOUBLE"));
 		stepCols.add(StorageService.concatColumn("STEP_STEP_NUMBER", "INT"));
 		stepCols.add(StorageService.concatColumn("STEP_TIME_OF_DAY", "VARCHAR(255)"));
+		stepCols.add(StorageService.concatColumn("STEP_TOD_COUNTERS", "ARRAY"));
 		stepCols.add(StorageService.concatColumn("PRIMARY KEY", "(TEMPLATE_ID, STEP_NAME)"));
 		queries.add(Utilities.buildCreateString("TEMPLATE_STEP", stepCols));
 	}
@@ -63,7 +65,7 @@ public class TemplateStepStorage {
 		PreparedStatement statement = null;
 		Connection con = null;
 		Template template = null;
-		final ArrayList<ArrayList<ITemplateStep>> listOfTaskLists = new ArrayList<>();
+		final ArrayList<ArrayList<ITemplateStep>> listOfStepLists = new ArrayList<>();
 		
 		try {
 			Class.forName("org.h2.Driver");
@@ -90,7 +92,7 @@ public class TemplateStepStorage {
 					final double templateConsecutiveHours = templateStepResults.getDouble("TEMPLATE_CONSECUTIVE_HOURS");
 					final ArrayList<ITemplateStep> templateList = new ArrayList<>();
 					templateList.add(step);
-					listOfTaskLists.add(templateList);
+					listOfStepLists.add(templateList);
 					
 					template = new Template(templateId, templateName, templateList, templateConsecutiveHours);
 				}
@@ -103,7 +105,7 @@ public class TemplateStepStorage {
 			// Null check in case the template with the corresponding id is not found
 			if (template != null) {
 				templates.insert(id, template);
-				for (final ArrayList<ITemplateStep> list : listOfTaskLists) {
+				for (final ArrayList<ITemplateStep> list : listOfStepLists) {
 					Collections.sort(list, new Comparator<ITemplateStep>() {
 						
 						@Override
@@ -143,6 +145,89 @@ public class TemplateStepStorage {
 		return template;
 	}
 	
+	//TODO: testing
+	protected static ITemplate getTemplateByName(final String name, final JdbcConnectionPool pool) {
+		PreparedStatement statement = null;
+		Connection con = null;
+		Template template = null;
+		ArrayList<ITemplateStep> stepList = null;
+		
+		try {
+			Class.forName("org.h2.Driver");
+			con = pool.getConnection();
+			
+			statement = con.prepareStatement(Utilities.SELECT_TEMPLATES_AND_STEPS_BY_NAME);
+			Utilities.setValues(statement, name);
+			final ResultSet templateStepResults = statement.executeQuery();
+			
+			while (templateStepResults.next()) {
+				// Reconstructing the template step
+				final String stepName = templateStepResults.getString("STEP_NAME");
+				final double stepPercentTotal = templateStepResults.getDouble("STEP_PERCENT_TOTAL");
+				final int stepStepNumber = templateStepResults.getInt("STEP_STEP_NUMBER");
+				final String timeOfDay = templateStepResults.getString("STEP_TIME_OF_DAY");
+				final TimeOfDay stepTimeOfDay = TimeOfDay.valueOf(timeOfDay);
+				
+				final String templateId = templateStepResults.getString("TEMPLATE.TEMPLATE_ID");
+				final TemplateStep step = new TemplateStep(stepName, stepPercentTotal, stepStepNumber, stepTimeOfDay);
+				
+				// If the template hasn't already been reconstructed
+				if (template == null) {
+					final String templateName = templateStepResults.getString("TEMPLATE_NAME");
+					final double templateConsecutiveHours = templateStepResults.getDouble("TEMPLATE_CONSECUTIVE_HOURS");
+					final ArrayList<ITemplateStep> templateList = new ArrayList<>();
+					templateList.add(step);
+					stepList = templateList;
+					
+					template = new Template(templateId, templateName, templateList, templateConsecutiveHours);
+				}
+				// If the template has been reconstructed, add the reconstructed TemplateStep to its list
+				else {
+					template.addStep(step);
+				}
+			}
+			
+			// Null check in case the template with the corresponding id is not found
+			if (template != null) {
+				Collections.sort(stepList, new Comparator<ITemplateStep>() {
+					@Override
+					public int compare(final ITemplateStep arg0, final ITemplateStep arg1) {
+						final int stepNum1 = arg0.getStepNumber();
+						final int stepNum2 = arg1.getStepNumber();
+						
+						if (stepNum1 > stepNum2) {
+							return 1;
+						} else if (stepNum1 < stepNum2) {
+							return -1;
+						} else {
+							return 0;
+						}
+					}
+				});
+			}
+		} catch (final ClassNotFoundException e) {
+			Utilities.printException("TemplateStepStorage: getTemplateByName: db drive class not found", e);
+		} catch (final SQLException e) {
+			Utilities.printSQLException("TemplateStepStorage: getTemplateByName: " + 
+					"could not retrieve assignments", e);
+		}
+		finally {
+			try {
+				if (statement != null) {
+					statement.close();
+				}
+				if (con != null) {
+					con.close();
+				}
+			} catch (final SQLException x) {
+				Utilities.printSQLException("TemplateStepStorage: getTemplateByName: " + 
+						"could not close resource", x);
+			}
+		}
+		
+		return template;
+	}
+	
 	/**
 	 * Add a template to the database
 	 * 
@@ -172,13 +257,13 @@ public class TemplateStepStorage {
 			final String templateId = temp.getID();
 			
 			// insert assignment
-			Utilities.setValues(templateStatement, templateId, temp.getName(), temp.getPreferredConsecutiveHours());
+			Utilities.setValues(templateStatement, templateId, temp.getName(), temp.getPreferredConsecutiveHours(), 1);
 			templateStatement.execute();
 			
 			// insert associated tasks
 			for (final ITemplateStep step : temp.getAllSteps()) {
 				Utilities.setValues(stepStatement, templateId, step.getName(), step.getPercentOfTotal(),
-						step.getStepNumber(), step.getBestTimeToWork().name());
+						step.getStepNumber(), step.getBestTimeToWork().name(), new Double[]{0.0, 0.0, 0.0, 0.0});
 				stepStatement.addBatch();
 			}
 			stepStatement.executeBatch();
@@ -234,6 +319,7 @@ public class TemplateStepStorage {
 		}
 		
 		PreparedStatement templateStatement = null;
+		PreparedStatement todCountersStatement = null; 
 		PreparedStatement deleteStepStatement = null;
 		PreparedStatement insertStepStatement = null;
 		Connection con = null;
@@ -248,6 +334,19 @@ public class TemplateStepStorage {
 			Utilities.setValues(templateStatement, temp.getName(), temp.getPreferredConsecutiveHours(), temp.getID());
 			templateStatement.execute();
 			
+			//TODO: test this component
+			//Get the tod counters and from the existing template steps
+			HashMap<String,Double[]> stepIdToCounters = new HashMap<>(); 
+			todCountersStatement = con.prepareStatement(Utilities.SELECT_TEMPLATE_STEP_TOD_COUNTERS_BY_TEMPLATE_ID);
+			Utilities.setValues(todCountersStatement, temp.getID());
+			final ResultSet todCountersResults = todCountersStatement.executeQuery();
+			
+			while (todCountersResults.next()) {
+				final String stepName = todCountersResults.getString("STEP_NAME");
+				final Double[] todCounters = (Double[])(todCountersResults.getArray("STEP_TOD_COUNTERS").getArray()); 
+				stepIdToCounters.put(stepName, todCounters); 
+			}
+			
 			// Delete all template steps from before
 			deleteStepStatement = con.prepareStatement(Utilities.DELETE_TEMPLATE_STEPS_BY_ID);
 			Utilities.setValues(deleteStepStatement, temp.getID());
@@ -256,8 +355,15 @@ public class TemplateStepStorage {
 			// Insert new template steps
 			insertStepStatement = con.prepareStatement(Utilities.INSERT_TEMPLATE_STEP);
 			for (final ITemplateStep step : temp.getAllSteps()) {
+				
+				//TODO: test this!
+				Double[] todCounters = {0.0, 0.0, 0.0, 0.0};  
+				if (stepIdToCounters.containsKey(step.getName())) {
+					todCounters = stepIdToCounters.get(step.getName()); 
+				}
+				
 				Utilities.setValues(insertStepStatement, temp.getID(), step.getName(), step.getPercentOfTotal(),
-						step.getStepNumber(), step.getBestTimeToWork().name());
+						step.getStepNumber(), step.getBestTimeToWork().name(), todCounters);
 				insertStepStatement.addBatch();
 			}
 			insertStepStatement.executeBatch();
@@ -284,6 +390,12 @@ public class TemplateStepStorage {
 			try {
 				if (templateStatement != null) {
 					templateStatement.close();
+				}
+				if (todCountersStatement != null) {
+					todCountersStatement.close();
+				}
+				if (deleteStepStatement != null) {
+					deleteStepStatement.close();
 				}
 				if (insertStepStatement != null) {
 					insertStepStatement.close();

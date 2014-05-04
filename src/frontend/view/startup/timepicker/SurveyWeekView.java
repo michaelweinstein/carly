@@ -22,7 +22,7 @@ public class SurveyWeekView extends JPanel {
 	private static final long serialVersionUID = 888327935955233878L;
 	
 	/* Dimensional vals */
-	private static final Dimension size = new Dimension(450, 550);
+	private static final Dimension size = new Dimension(450, 400);
 	private static final double numCols = 7;
 	private static final double numRows = 48;	// every half hour
 	// public vals (accessed by SurveyTimeBlock)
@@ -67,8 +67,8 @@ public class SurveyWeekView extends JPanel {
 		for (int i=0; i<numCols; i++) {
 			// for each half hour
 			for (int j=0; j<numRows; j++) {
-				// Passes in whether this block starts on the half hour 
-				blocks.add(new SurveyTimeBlock(i*COL_WIDTH, j*ROW_HEIGHT, !isEven(j)));
+				// params: whether block starts on the half hour, whether upper-left first block
+				blocks.add(new SurveyTimeBlock(i*COL_WIDTH, j*ROW_HEIGHT, !isEven(j), i==0 && j==0));
 			}
 		}
 		return blocks;
