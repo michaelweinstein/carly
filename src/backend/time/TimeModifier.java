@@ -562,7 +562,7 @@ public class TimeModifier {
 		//TODO: IN TIMEALLOCATOR, use density of different block ranges to determine the range
 		//		over which to insert AssignmentBlocks.  This will be smart because it will prevent
 		//		the earlier blocks of a long assignment from being trapped by the First-Fit insertion policy.
-		task.setPercentComplete(percent);
+//		task.setPercentComplete(percent);
 		StorageService.updateTask(task);
 		
 		// If the percent to-adjust-to is the same as the current amount done, there's 

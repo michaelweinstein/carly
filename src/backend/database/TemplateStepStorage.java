@@ -349,6 +349,8 @@ public class TemplateStepStorage {
 			
 			while (todCountersResults.next()) {
 				final String stepName = todCountersResults.getString("STEP_NAME");
+				
+				//TODO: fix casting!!
 				final Double[] todCounters = (Double[])(todCountersResults.getArray("STEP_TOD_COUNTERS").getArray()); 
 				stepIdToCounters.put(stepName, todCounters); 
 			}
