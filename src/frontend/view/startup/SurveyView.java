@@ -1,7 +1,7 @@
 package frontend.view.startup;
 
-import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -31,7 +31,7 @@ public class SurveyView extends JDialog {
 	private static final Dimension		minimum_size		= new Dimension(650, 750);
 	private static final Insets			insets				= new Insets(10, 5, 10, 5);
 	private static final int			padding				= 15;
-	private static final float			title_size			= 52.0f;
+	private static final int			title_size			= 46;
 	private static final String			title_label			= "Welcome to Carly!";
 	private static final String			hours_label			= "When do you prefer to work during the day?";
 	private static final String			learner_label		= "Would you like settings to be adjusted based on your behavior?";
@@ -66,8 +66,8 @@ public class SurveyView extends JDialog {
 		/* "Welcome to Carly!" */
 		final JLabel titleLabel = new JLabel(title_label);
 		Utils.themeComponent(titleLabel);
-		titleLabel.setFont(titleLabel.getFont().deriveFont(title_size));
-		titleLabel.setForeground(Color.ORANGE);
+		titleLabel.setFont(Utils.getFont(Font.BOLD, title_size));
+		titleLabel.setForeground(Utils.COLOR_ACCENT);
 		c.gridx = 0;
 		c.gridy = ycount += 1; // 0
 		c.gridwidth = GridBagConstraints.REMAINDER;
@@ -107,7 +107,7 @@ public class SurveyView extends JDialog {
 		c.gridx = 0;
 		c.gridy = ycount += 1; // 4
 		c.gridwidth = 2;
-		c.anchor = GridBagConstraints.EAST;
+		c.anchor = GridBagConstraints.CENTER;
 		this.add(timeLabel, c);
 		c.gridx = 0;
 		c.gridy = ycount += 1; // 5
