@@ -84,37 +84,30 @@ public class Assignment implements IAssignment {
 	
 	/**
 	 * Creates a new Task in _tasks for each TemplateStep in _template. For each Task: sets percentOfTotal (and
-	 * suggestedBlockLength ?)
+	 * suggestedBlockLength)
 	 * 
-	 * @param ITemplate stored in _template
+	 * @param template stored in _template
+	 * @return a list of tasks created
 	 */
 	private List<ITask> createTasksFromTemplate(final ITemplate template) {
 		if (template != null) {
 			final List<ITemplateStep> steps = template.getAllSteps();
-			// Create List to store new Tasks with same length of template steps list
-			final List<ITask> tasks = new ArrayList<ITask>(steps.size());
-			// For each TemplateStep, create new Task
-			for (final ITemplateStep step : steps) {
-				// Task name in the form of Assignment:Step
-				// TODO: CHECK THIS TO MAKE SURE IT DIDN'T BREAK ANYTHING TO NOT HAVE _name: TO PREFACE
+			final List<ITask> tasks = new ArrayList<>(steps.size());
+			
+			// Loop through all steps and create tasks from them
+			for (int i = 0; i < steps.size(); i++) {
+				final ITemplateStep step = steps.get(i);
 				final String taskName = step.getName();
 				
-				// TODO Should we store actual amount of time in Task
-				// so we don't have to calculate every time?
-				// double lengthOfTask = step.getPercentOfTotal()*_expectedHours;
-				
-				// Create new Task with info from TemplateStep
-				final ITask task = new Task(taskName, step.getPercentOfTotal(), _uniqueId);
-				// Set preferred time of day in Task according to this TemplateStep
+				// Create a task from the given information
+				final ITask task = new Task(taskName, step.getPercentOfTotal(), i + 1, _uniqueId);
 				task.setPreferredTimeOfDay(step.getBestTimeToWork());
 				task.setSuggestedBlockLength(template.getPreferredConsecutiveHours());
-				// Add task
 				tasks.add(task);
 			}
 			return tasks;
-		} else {
-			return new ArrayList<ITask>();
 		}
+		return new ArrayList<>();
 	}
 	
 	/* Editing _tasks */
@@ -236,9 +229,8 @@ public class Assignment implements IAssignment {
 		if (o instanceof Assignment) {
 			final Assignment a = (Assignment) o;
 			return getID().equals(a.getID());
-		} else {
-			return false;
 		}
+		return false;
 	}
 	
 	/**

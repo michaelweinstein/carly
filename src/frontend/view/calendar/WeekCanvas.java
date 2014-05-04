@@ -419,6 +419,11 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		g.setStroke(rect.getStroke());
 		g.draw(rect);
 		
+		// For unavailable blocks, doesn't draw the titles
+		if (t.getTask() == null) {
+			return;
+		}
+		
 		// Wrap titles and draw them
 		final Font aFont = Utils.getFont(Font.BOLD, 12);
 		final Font taskFont = Utils.getFont(Font.PLAIN | Font.ITALIC, 11);
@@ -659,7 +664,17 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 			
 			// Toss it in the database if in the right order and no overlap
 			if (!end.before(start) && !checkBlockForOverlap(start, end, oldTask)) {
-				HubController.changeTimeBlock(oldTask, start, end);
+				if (oldTask.getTask() != null) {
+					HubController.changeTimeBlock(oldTask, start, end);
+				} else {
+					final List<ITimeBlockable> unavailable = new ArrayList<>();
+					for (final ITimeBlockable t : getAllBlocks().keySet()) {
+						if (!t.isMovable()) {
+							unavailable.add(t);
+						}
+					}
+					HubController.updateUnavailableBlocks(start, end, unavailable);
+				}
 			}
 		}
 		

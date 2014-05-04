@@ -14,6 +14,8 @@ import data.UnavailableBlock;
 
 public class TimeModifier {
 	
+	private static final long ETERNITY = 209769820398203L;
+	
 	/**
 	 * Takes in a block, and a new start/end time and updates the block in the database. The types of operations that
 	 * merit the use of this function are (1) lengthening a block, (2) shortening a block, and (3) dragging a block.
@@ -25,13 +27,19 @@ public class TimeModifier {
 	 */
 	public static boolean updateBlock(final ITimeBlockable block, final Date newStart, final Date newEnd) {
 		final Date now = new Date();
-		final Assignment asgn = StorageService.getAssignment(block.getTask().getAssignmentID());
 		
-		// Ensure that a user cannot lengthen, shorten, or drag a block outside of the valid time range
-		if (!newStart.after(now) || !newEnd.before(asgn.getDueDate())) {
-			return false;
+		ITask task = block.getTask();
+		
+		//If a block is an AssignmentBlock, then the task will NOT be null
+		if(task != null) {
+			final Assignment asgn = StorageService.getAssignment(task.getAssignmentID());
+			
+			// Ensure that a user cannot lengthen, shorten, or drag a block outside of the valid time range
+			if (!newStart.after(now) || !newEnd.before(asgn.getDueDate())) {
+				return false;
+			}
 		}
-		
+
 		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
 		// get the entire block set from the db...
 		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
@@ -41,7 +49,7 @@ public class TimeModifier {
 		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
 		// get the entire block set from the db...
 		final Date tempStart = new Date(0);
-		final Date tempEnd = new Date(209769820398203L);
+		final Date tempEnd = new Date(ETERNITY);
 		final List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);
 		final List<UnavailableBlock> unavBlocks = StorageService.getAllUnavailableBlocksWithinRange(tempStart, tempEnd);
 		final List<ITimeBlockable> allBlocks = TimeUtilities.zipTimeBlockLists(unavBlocks, asgnBlocks);
@@ -346,7 +354,7 @@ public class TimeModifier {
 		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
 		// get the entire block set from the db...
 		final Date tempStart = new Date(0);
-		final Date tempEnd = new Date(209769820398203L);
+		final Date tempEnd = new Date(ETERNITY);
 		final List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);
 		final List<UnavailableBlock> unavBlocks = StorageService.getAllUnavailableBlocksWithinRange(tempStart, tempEnd);
 		final List<ITimeBlockable> allBlocks = TimeUtilities.zipTimeBlockLists(unavBlocks, asgnBlocks);
@@ -557,16 +565,10 @@ public class TimeModifier {
 			}
 		}
 		
-		
-		//TODO: REMOVE THESE SYNTAX ERRORS
-		//TODO: IN TIMEALLOCATOR, use density of different block ranges to determine the range
-		//		over which to insert AssignmentBlocks.  This will be smart because it will prevent
-		//		the earlier blocks of a long assignment from being trapped by the First-Fit insertion policy.
+		//Save the new percent-complete of the Task that was just updated and 
+		//push to the StorageService
 		task.setPercentComplete(newPct);
 		StorageService.updateTask(task);
-		
-		// If the percent to-adjust-to is the same as the current amount done, there's
-		// nothing left to do
 	}
 	
 	/**

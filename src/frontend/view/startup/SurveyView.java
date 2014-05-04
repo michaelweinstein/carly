@@ -1,7 +1,7 @@
 package frontend.view.startup;
 
-import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -26,46 +26,35 @@ public class SurveyView extends JDialog {
 	
 	// TODO Don't let user close until data has been submitted.
 	
-	private static final long serialVersionUID = -3311099840458252581L;
+	private static final long			serialVersionUID	= -3311099840458252581L;
 	
-	/* Styling vars */
-	private static final Dimension minimum_size = new Dimension(650, 750);
-	// @params: top, left, bottom, right
-	private static final Insets insets = new Insets(10, 5, 10, 5);	
-	private static final int padding = 15;
-	// Font sizes
-	private static final float title_size = 52.0f;
-	
-	/* Text constants */
-	private static final String title_label = "Welcome to Carly!";
-	private static final String hours_label = 
-				"When do you prefer to work during the day?";
-	private static final String learner_label = 
-				"Would you like settings to be adjusted based on your behavior?";
-	private static final String time_label =
-				"Please drag for the times you are available during the average week.";
-	private static final String submit_label = "Submit survey";
+	private static final Dimension		minimum_size		= new Dimension(650, 750);
+	private static final Insets			insets				= new Insets(10, 5, 10, 5);
+	private static final int			padding				= 25;
+	private static final int			title_size			= 46;
+	private static final String			title_label			= "Welcome to Carly!";
+	private static final String			hours_label			= "When do you prefer to work during the day?";
+	private static final String			learner_label		= "Would you like settings to be adjusted based on your behavior?";
+	private static final String			time_label			= "Please drag for the times you are unavailable during the average week.";
+	private static final String			submit_label		= "Let's get started!";
 	
 	/* Input fields */
-	private JComboBox<TimeOfDay> _todPicker;
-	private JCheckBox _learnerCheck;
-	private SurveyWeekView _timeView;
+	private final JComboBox<TimeOfDay>	_todPicker;
+	private final JCheckBox				_learnerCheck;
+	private final SurveyWeekView		_timeView;
 	
 	public SurveyView() {
 		super();
-		// Lock minimum size, set starting size
-		this.setMinimumSize(minimum_size);
-		this.setPreferredSize(minimum_size);
-		// Theme and pad dialog's root pane
+		setMinimumSize(minimum_size);
+		this.setResizable(false);
+		setPreferredSize(minimum_size);
 		Utils.themeComponent(getRootPane());
 		Utils.padComponent(getRootPane(), padding, padding);
-		
-////	// TODO: Should I need to theme content pane? I don't in SettingsView
 		Utils.themeComponent(getContentPane());
 		
 		// Layout initialization
-		this.setLayout(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();
+		setLayout(new GridBagLayout());
+		final GridBagConstraints c = new GridBagConstraints();
 		c.insets = insets;
 		c.weightx = 1;
 		c.weighty = 0;
@@ -76,68 +65,78 @@ public class SurveyView extends JDialog {
 		int ycount = 0;
 		
 		/* "Welcome to Carly!" */
-		JLabel titleLabel = new JLabel(title_label);
+		final JLabel titleLabel = new JLabel(title_label);
 		Utils.themeComponent(titleLabel);
-		titleLabel.setFont(titleLabel.getFont().deriveFont(title_size));
-		titleLabel.setForeground(Color.ORANGE);
+		titleLabel.setFont(Utils.getFont(Font.BOLD, title_size));
+		titleLabel.setForeground(Utils.COLOR_ACCENT);
 		c.gridx = 0;
-		c.gridy = ycount += 1;	//0
-		c.gridwidth = 2;
+		c.gridy = ycount += 1; // 0
+		c.gridwidth = GridBagConstraints.REMAINDER;
 		this.add(titleLabel, c);
 		
 		/* "When do you prefer to work during the day?" */
-		JLabel todLabel = new JLabel(hours_label);
+		final JLabel todLabel = new JLabel(hours_label);
 		_todPicker = new JComboBox<>(TimeOfDay.values());
-		_todPicker.setEditable(false);	// TOD values never modified
+		_todPicker.setEditable(false); // TOD values never modified
 		Utils.themeComponent(todLabel);
 		c.gridx = 0;
-		c.gridy = ycount += 1;	// 2
+		c.gridy = ycount += 1; // 2
 		c.gridwidth = 1;
-		c.anchor = GridBagConstraints.EAST;
+		c.anchor = GridBagConstraints.WEST;
+		
+/// 	// TODO Pad left to lign up with _timePicker
+		// top left bottom right
+//		c.insets = new Insets(10, 30, 10, 5);
+
 		this.add(todLabel, c);
 		c.gridx = 1;
 		c.anchor = GridBagConstraints.WEST;
 		this.add(_todPicker, c);
 		
 		/* "Would you like settings to be adjusted based on your behavior?" */
-		JLabel learnerLabel = new JLabel(learner_label);
+		final JLabel learnerLabel = new JLabel(learner_label);
 		_learnerCheck = new JCheckBox();
-		_learnerCheck.setSelected(true);	// Starts as true
+		_learnerCheck.setSelected(true); // Starts as true
 		Utils.themeComponent(learnerLabel);
 		c.gridx = 0;
-		c.gridy = ycount += 1; 	// 3
-		c.anchor = GridBagConstraints.EAST;
+		c.gridy = ycount += 1; // 3
+		c.anchor = GridBagConstraints.WEST;
 		this.add(learnerLabel, c);
 		c.gridx = 1;
 		c.anchor = GridBagConstraints.WEST;
 		this.add(_learnerCheck, c);
 		
-		/* "Please drag for available times during average week" */
-		JLabel timeLabel = new JLabel(time_label);
+		/* "Please drag for unavailable times during average week" */
+		final JLabel timeLabel = new JLabel(time_label);
 		_timeView = new SurveyWeekView();
 		Utils.themeComponent(timeLabel);
 		c.gridx = 0;
-		c.gridy = ycount += 1; 	// 4
+		c.gridy = ycount += 1; // 4
 		c.gridwidth = 2;
-		c.anchor = GridBagConstraints.CENTER;
+		c.anchor = GridBagConstraints.WEST;
 		this.add(timeLabel, c);
 		c.gridx = 0;
-		c.gridy = ycount += 1;	// 5
+		c.gridy = ycount += 1; // 5
 		c.gridwidth = 2;
 		c.gridheight = 2;
+		c.anchor = GridBagConstraints.CENTER;
 		this.add(_timeView, c);
 		
+/////
+		c.insets = insets;
+		
 		// 'Submit survey' button
-		CButton submitBtn = new CButton(submit_label);
+		final CButton submitBtn = new CButton(submit_label);
 		submitBtn.setPreferredSize(new Dimension(300, 30));
 		submitBtn.addActionListener(new ActionListener() {
+			
 			@Override
-			public void actionPerformed(ActionEvent e) {
+			public void actionPerformed(final ActionEvent e) {
 				submitSurvey();
 			}
 		});
 		c.gridx = 0;
-		c.gridy = ycount += 2;	// 7
+		c.gridy = ycount += 2; // 7
 		c.gridwidth = 2;
 		c.gridheight = 1;
 		c.anchor = GridBagConstraints.CENTER;
@@ -148,28 +147,28 @@ public class SurveyView extends JDialog {
 	
 	/**
 	 * Stores all user-inputted settings by making calls to <code>StorageService</code>.<br>
-	 * Called when user submits start-up survey, from 'Submit' button <code>ActionListener</code>. </br>
-	 * Settings sent to StorageService:
+	 * Called when user submits start-up survey, from 'Submit' button <code>ActionListener</code>. </br> Settings sent
+	 * to StorageService:
 	 * <ul>
-	 * 	<li> <code>TimeOfDay</code> preference </li>
-	 * 	<li> Learner toggled preference </li>
-	 * 	<li> All <code>UnavailableBlock</code>s specified by user for the week template </li>
+	 * <li> <code>TimeOfDay</code> preference</li>
+	 * <li>Learner toggled preference</li>
+	 * <li>All <code>UnavailableBlock</code>s specified by user for the week template</li>
 	 * </ul>
 	 */
 	private void submitSurvey() {
 		// Add TOD preference
-		TimeOfDay todPref = (TimeOfDay) (_todPicker.getSelectedItem());
+		final TimeOfDay todPref = (TimeOfDay) (_todPicker.getSelectedItem());
 		StorageService.mergeSetting(SettingsConstants.TIMEOFDAY_SETTING, todPref.name());
 		
 		// Add Learner preference
-		Boolean learnerPref = _learnerCheck.isSelected();
+		final Boolean learnerPref = _learnerCheck.isSelected();
 		StorageService.mergeSetting(SettingsConstants.LEARNER_SETTING, learnerPref.toString());
 		
 		// Add UnavailableBlocks to StorageService
-		List<UnavailableBlock> uBlocks = _timeView.getUnavailableBlocks();
+		final List<UnavailableBlock> uBlocks = _timeView.getUnavailableBlocks();
 		StorageService.addAllDefaultUnavailableBlocks(uBlocks);
 		
 		// Close window on Submit
-		this.dispose();
+		dispose();
 	}
 }

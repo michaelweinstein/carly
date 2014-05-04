@@ -74,7 +74,7 @@ public class SettingsView extends JDialog {
 		this.add(inputPanel, BorderLayout.SOUTH);
 		// this.add(buttonPanel, BorderLayout.SOUTH);
 		
-		// TODO: Add scroll pane?
+		// TODO: Add scroll pane (using CScrollPane)
 	}
 	
 	// TODO: Comment and finish
@@ -115,12 +115,18 @@ public class SettingsView extends JDialog {
 		inputPanel.add(timeOfDayLabel);
 		
 		// Toggle learning algorithm Check Box
-		final JCheckBox learningCheckBox = new JCheckBox(toggle_learning, true);
-		Utils.themeComponent(learningCheckBox);
-		Utils.padComponent(learningCheckBox, 5, 5);
+		final JLabel learningLabel = new JLabel(toggle_learning);
 		c.gridx = 0;
 		c.gridy = 3;
-		c.gridwidth = 2;
+		c.gridwidth = 1;
+		inputPanel.add(learningLabel, c);
+		final JCheckBox learningCheckBox = new JCheckBox();
+		learningCheckBox.setSelected(true);
+		Utils.themeComponent(learningCheckBox);
+		Utils.padComponent(learningCheckBox, 5, 5);
+		c.gridx = 1;
+		c.gridy = 3;
+		c.gridwidth = 1;
 		// c.gridwidth = GridBagConstraints.REMAINDER;
 		inputPanel.add(learningCheckBox, c);
 		

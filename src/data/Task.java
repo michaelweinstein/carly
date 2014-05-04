@@ -2,54 +2,65 @@ package data;
 
 import java.util.Objects;
 
+/**
+ * Task class for concrete assignments
+ * 
+ * @author dgattey
+ */
 public class Task implements ITask {
 	
-	/* global vars */
-	
 	private String			_uniqueId;
-	// AssignmentName:StepName format
 	private final String	_name;
 	private double			_percentOfTotal;
 	private String			_assignmentId;
 	private double			_percentComplete;
-	// Optimal TimeOfDay to schedule Task
 	private TimeOfDay		_timeOfDay;
-	// Optimal length of blocks to complete Task
 	private double			_suggestedBlockLength;
-	private final int 		_taskNumber;
-	// TODO: Add _taskNumber to the constructor that Dylan uses, when creating Task from TemplateStep
+	private final int		_taskNumber;
 	
 	/**
-	 * Constructor without Assignment UID; _assignmentId is null
+	 * Constructor without Assignment UID, gets set later
+	 * 
+	 * @param name name of task
+	 * @param percentTotal the percent of total assignment
+	 * @param taskNumber the task number in order
 	 */
-	public Task(final String name, final double percentTotal) {
+	public Task(final String name, final double percentTotal, final int taskNumber) {
 		_name = name;
 		handlePercent(percentTotal);
-		/* _assignmentId is not set until Task is added to assignment */
 		_assignmentId = null;
-		// Set UID of this Task
 		_uniqueId = DataUtil.generateID() + _name.hashCode();
-		/* Sets _percentComplete, _timeOfDay, _suggestedBlockLength */
 		setInitialValues();
-		// TODO Set with constructor parameter
-		_taskNumber = 0;
+		_taskNumber = taskNumber;
 	}
 	
 	/**
 	 * Constructor with parent Assignment UID
+	 * 
+	 * @param name name of task
+	 * @param percentTotal the percent of total assignment
+	 * @param taskNumber the task number in order
+	 * @param assignmentUID the assignment ID
 	 */
-	public Task(final String name, final double percentTotal, final String assignmentUID) {
+	public Task(final String name, final double percentTotal, final int taskNumber, final String assignmentUID) {
 		_name = name;
 		handlePercent(percentTotal);
 		_assignmentId = assignmentUID;
 		_uniqueId = assignmentUID + _name.hashCode();
 		setInitialValues();
-		// TODO Set with constructor parameter
-		_taskNumber = 0;
+		_taskNumber = taskNumber;
 	}
 	
 	/**
 	 * Constructor used by StorageService to recreate the task object
+	 * 
+	 * @param id the id of the task itself
+	 * @param name the name of task
+	 * @param percentTotal the percent of total assignment
+	 * @param asgnId the assignment ID
+	 * @param percentComplete the percent complete (0 to 1)
+	 * @param timeOfDay the time of day we like working on this
+	 * @param suggestedBlockLength the suggested length of time to work on it
 	 */
 	public Task(final String id, final String name, final int taskNumber, final double percentTotal, 
 			final String asgnId, final double percentComplete, final TimeOfDay timeOfDay, 
@@ -80,7 +91,7 @@ public class Task implements ITask {
 	 * Sets _percentOfTotal to percent passed into constructor, IF the representation is valid. Else _percentOfTotal = 0
 	 * and message is printed.
 	 * 
-	 * @param 0 < percent <= 1
+	 * @param percent will always be > 0 and <= 1
 	 */
 	private void handlePercent(final double percent) {
 		if (DataUtil.percentRepOK(percent)) {
@@ -174,8 +185,7 @@ public class Task implements ITask {
 			return false;
 		}
 		final Task x = (Task) obj;
-		return _assignmentId.equals(x._assignmentId) && 
-				_name.equals(x._name) && _uniqueId.equals(x._uniqueId);
+		return _assignmentId.equals(x._assignmentId) && _name.equals(x._name) && _uniqueId.equals(x._uniqueId);
 	}
 	
 	@Override
