@@ -419,6 +419,11 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		g.setStroke(rect.getStroke());
 		g.draw(rect);
 		
+		// For unavailable blocks, doesn't draw them
+		if (t.getTask() == null) {
+			return;
+		}
+		
 		// Wrap titles and draw them
 		final Font aFont = Utils.getFont(Font.BOLD, 12);
 		final Font taskFont = Utils.getFont(Font.PLAIN | Font.ITALIC, 11);
