@@ -110,6 +110,12 @@ public abstract class Utilities {
 	 * Task SQL statements
 	 */
 	
+	protected static final String UPDATE_TASK = 
+			"UPDATE TASK " +
+	        "SET TASK_NAME = ?, TASK_PERCENT_TOTAL = ?, TASK_PERCENT_COMPLETE = ?, " +
+	        "TASK_TIME_OF_DAY = ?, TASK_SUGGESTED_LENGTH = ? " + 
+	        "WHERE TASK_ID = ? ";
+	
 	protected static final String INSERT_TASK = 
 			"INSERT INTO TASK " +
 	        "(ASGN_ID, TASK_ID, TASK_NAME, TASK_PERCENT_TOTAL, TASK_PERCENT_COMPLETE, " +

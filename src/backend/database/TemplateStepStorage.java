@@ -145,7 +145,13 @@ public class TemplateStepStorage {
 		return template;
 	}
 	
-	// TODO: testing
+	/**
+	 * Get Template corresponding to the provided name
+	 * 
+	 * @param name Name of the Template to be found
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
+	 * @return Found template
+	 */
 	protected static ITemplate getTemplateByName(final String name, final JdbcConnectionPool pool) {
 		PreparedStatement statement = null;
 		Connection con = null;

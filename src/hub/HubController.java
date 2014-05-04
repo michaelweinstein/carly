@@ -1,6 +1,7 @@
 package hub;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.swing.SwingUtilities;
 
@@ -13,6 +14,7 @@ import backend.time.TimeModifier;
 import data.Assignment;
 import data.ITask;
 import data.ITimeBlockable;
+import data.UnavailableBlock;
 import frontend.Utils;
 import frontend.app.GUIApp;
 
@@ -127,5 +129,10 @@ public class HubController {
 				_app.reload();
 			};
 		});
+	}
+	
+	public static void updateUnavailableBlocks(final Date startDate, final Date endDate, 
+			List<UnavailableBlock> blockList) {
+		
 	}
 }

@@ -18,10 +18,11 @@ public class TimeCompactor {
 	/**
 	 * This function currently compacts all movable blocks in the Date range [start, end]
 	 * in order to prevent "external fragmentation" along the client's time stream
-	 * @param allBlocks
-	 * @param start
-	 * @param end
-	 * @param lastTimePlaced
+	 * @param allBlocks A List of ITimeBlockables sorted by start Date
+	 * @param start The Date at which to begin compaction of the parameter List
+	 * @param end The Date at which to end compaction of the parameter List
+	 * @param lastTimePlaced A reference to a Date where the last successful insertion into
+	 * 						"allBlocks" was
 	 * @return a Date indicating where the block corresponding to the "lastTimePlaced" Date
 	 * 			has been moved -- so upon exiting this function, the reference to lastTimePlaced
 	 *			can be reset to the output of this function
@@ -74,6 +75,14 @@ public class TimeCompactor {
 	//This function uses several human-friendly heuristics to de-compact a schedule
 	//to allow (1) breaks between work, (2) a variety of assignments in succession,
 	//(3) work during the preferred time of day
+	/**
+	 * This function uses several human-friendly heuristics to de-compact a schedule
+	 * to allow (1) breaks between work, (2) a variety of assignments in succession,
+	 * (3) work during the preferred time of day
+	 * @param allBlocks A List of ITimeBlockables sorted by start Date
+	 * @param start The Date at which to begin de-compaction of the parameter List
+	 * @param end The Date at which to end de-compaction of the parameter List
+	 */
 	public static void decompact(List<ITimeBlockable> allBlocks, Date start, Date end) {
 
 		//Iterate over blocks.  If a block is movable, look at its preferred time of day.
@@ -238,6 +247,12 @@ public class TimeCompactor {
 	}
 	
 	
+	/**
+	 * Iterates over the parameter List and switches ITimeBlockables that are of the same
+	 * Assignment type, so that a variety of different Assignments appear in a row for
+	 * user-friendly work schedules.
+	 * @param allBlocks A List of ITimeBlockables, sorted by start Date
+	 */
 	private static void trySwitchBlockOrder(List<ITimeBlockable> allBlocks) {
 		//When iterating, look at the next and previous assignments, and make sure that there
 		//are no long successions of the same assignment (consecutive HOUR-wise, not necessarily
@@ -309,6 +324,10 @@ public class TimeCompactor {
 	}
 	
 	
+	/**
+	 * Moves blocks around in the list so that they are in their preferred time of day.
+	 * @param allBlocks A List of ITimeBlockables sorted by start Date
+	 */
 	private static void optimizePreferredTime(List<ITimeBlockable> allBlocks) {
 		//TODO: try to put blocks in their preferred time of day, if possible
 		
@@ -318,7 +337,14 @@ public class TimeCompactor {
 		
 	}
 	
-	
+	/**
+	 * 
+	 * @param block The ITimeBlockable to-be-inserted
+	 * @param unavailBlocks The List of UnavailableBlocks in range.
+	 * @param recommendedStart A Date indicating the recommended time for "block" to be inserted
+	 * @return Returns a long representing then number of milliseconds since January 1, 1970, which
+	 * 			is the recommended location to insert the parameter "block"
+	 */
 	private static long getBlockInsertLocation(ITimeBlockable block, List<ITimeBlockable> unavailBlocks, 
 			long recommendedStart) {
 		ITimeBlockable pred = null;

@@ -15,6 +15,15 @@ import data.UnavailableBlock;
 
 public class TimeModifier {
 	
+	/**
+	 * Takes in a block, and a new start/end time and updates the block in the database.  The types of 
+	 * operations that merit the use of this function are (1) lengthening a block, (2) shortening a 
+	 * block, and (3) dragging a block.
+	 * @param block The block to be updated in the database
+	 * @param newStart The new start time for the parameter block
+	 * @param newEnd The new end time for the parameter block
+	 * @return a boolean indicating whether or not the operation was successful
+	 */
 	public static boolean updateBlock(final ITimeBlockable block, final Date newStart, final Date newEnd) {
 		final Date now = new Date();
 		final Assignment asgn = StorageService.getAssignment(block.getTask().getAssignmentID());
@@ -142,6 +151,15 @@ public class TimeModifier {
 		return false;
 	}
 	
+	/**
+	 * Given the parameter list of all blocks, attempts to compact blocks that are before the parameter
+	 * "block" so that it can fit at the time "newStart"
+	 * @param allBlocks a list of all blocks (unavailable and assignment) for access
+	 * @param block The block to start from
+	 * @param now The time that the function the called this function began
+	 * @param newStart The new start time for the parameter block
+	 * @return a boolean indicating whether or not the operation was successful
+	 */
 	private static boolean pushBlocksBack(final List<ITimeBlockable> allBlocks, final ITimeBlockable block,
 			final Date now, final Date newStart) {
 		final int ind = TimeUtilities.indexOfFitLocn(allBlocks, newStart);
@@ -215,6 +233,17 @@ public class TimeModifier {
 		return false;
 	}
 	
+	
+	/**
+	 * Given the parameter list of all blocks, attempts to compact blocks that are after the parameter
+	 * "block" so that it can fit at the time "newEnd"
+	 * @param allBlocks a list of all blocks (unavailable and assignment) for access
+	 * @param block The block to start from
+	 * @param now The time that the function the called this function began
+	 * @param newStart The new start time for the parameter block
+	 * @param newEnd The new end time for the parameter block
+	 * @return a boolean indicating whether or not the operation was successful
+	 */
 	private static boolean pushBlocksForward(final List<ITimeBlockable> allBlocks, final ITimeBlockable block,
 			final Date now, final Date newStart, final Date newEnd) {
 		final int ind = TimeUtilities.indexOfFitLocn(allBlocks, newStart);
@@ -298,8 +327,14 @@ public class TimeModifier {
 		return false;
 	}
 	
-	// This function is called when a user pulls on a slider to convey the message that
-	// they are changing how much progress they have made on completing a particular Task.
+	/**
+	 * This function is called when a user pulls on a slider to convey the message that
+	 * they are changing how much progress they have made on completing a particular Task.
+	 * This function will modify blocks in the same task as the parameter "task" so that
+	 * extra time is added or removed to reflect the user change in percent-complete.
+	 * @param task The task whose blocks will be updated.
+	 * @param newPct The new percent-complete to-be-set in the parameter task.
+	 */
 	public static void updateBlocksInTask(final ITask task, final double newPct) {
 		
 		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
@@ -521,12 +556,25 @@ public class TimeModifier {
 				}
 			}
 		}
-				
+		
+		
+		//TODO: REMOVE THESE SYNTAX ERRORS
+		//TODO: IN TIMEALLOCATOR, use density of different block ranges to determine the range
+		//		over which to insert AssignmentBlocks.  This will be smart because it will prevent
+		//		the earlier blocks of a long assignment from being trapped by the First-Fit insertion policy.
+		task.setPercentComplete(percent);
+		StorageService.updateTask(task);
+		
 		// If the percent to-adjust-to is the same as the current amount done, there's 
 		// nothing left to do
 	}
 	
-	//Return the number of milliseconds between the end of "b1" and the start of "b2"
+	/**
+	 * Return the number of milliseconds between the end of "b1" and the start of "b2"
+	 * @param b1 An ITimeBlockable that ends before b2 starts
+	 * @param b2 An ITimeBlockable that starts after b1 ends
+	 * @return the number of milliseconds between the two parameter blocks.
+	 */
 	private static long getMillisBetween(ITimeBlockable b1, ITimeBlockable b2) {
 		return b2.getStart().getTime() - b1.getEnd().getTime();
 	}
