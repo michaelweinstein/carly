@@ -1,5 +1,6 @@
 package backend.database;
 
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -12,6 +13,7 @@ import java.util.List;
 
 import org.h2.jdbcx.JdbcConnectionPool;
 
+import data.ITask;
 import data.ITemplate;
 import data.ITemplateStep;
 import data.Template;
@@ -127,7 +129,8 @@ public class TemplateStepStorage {
 		} catch (final ClassNotFoundException e) {
 			Utilities.printException("TemplateStepStorage: getTemplate: db drive class not found", e);
 		} catch (final SQLException e) {
-			Utilities.printSQLException("TemplateStepStorage: getTemplate: " + "could not retrieve assignments", e);
+			Utilities.printSQLException("TemplateStepStorage: getTemplate: " + 
+					"could not retrieve assignments", e);
 		}
 		finally {
 			try {
@@ -138,7 +141,8 @@ public class TemplateStepStorage {
 					con.close();
 				}
 			} catch (final SQLException x) {
-				Utilities.printSQLException("TemplateStepStorage: getTemplate: " + "could not close resource", x);
+				Utilities.printSQLException("TemplateStepStorage: getTemplate: " + 
+						"could not close resource", x);
 			}
 		}
 		
@@ -340,7 +344,6 @@ public class TemplateStepStorage {
 			Utilities.setValues(templateStatement, temp.getName(), temp.getPreferredConsecutiveHours(), temp.getID());
 			templateStatement.execute();
 			
-			// TODO: test this component
 			// Get the tod counters and from the existing template steps
 			final HashMap<String, Double[]> stepIdToCounters = new HashMap<>();
 			todCountersStatement = con.prepareStatement(Utilities.SELECT_TEMPLATE_STEP_TOD_COUNTERS_BY_TEMPLATE_ID);
@@ -349,10 +352,17 @@ public class TemplateStepStorage {
 			
 			while (todCountersResults.next()) {
 				final String stepName = todCountersResults.getString("STEP_NAME");
-
-				// TODO: FIX THIS!
-				// final Double[] todCounters = (Double[])(todCountersResults.getArray("STEP_TOD_COUNTERS").getArray());
-				// stepIdToCounters.put(stepName, todCounters);
+				Array array = todCountersResults.getArray("STEP_TOD_COUNTERS"); 
+				Object[] objArray = (Object[])array.getArray(); 
+				
+				final ArrayList<Double> todCountersList = new ArrayList<>();  
+				for (Object obj : objArray) {
+					todCountersList.add((Double) obj);
+				}
+				
+				System.out.println(todCountersList);
+				Double[] todCounters = (Double[]) todCountersList.toArray(); 
+				stepIdToCounters.put(stepName, todCounters);
 			}
 			
 			// Delete all template steps from before
@@ -364,7 +374,6 @@ public class TemplateStepStorage {
 			insertStepStatement = con.prepareStatement(Utilities.INSERT_TEMPLATE_STEP);
 			for (final ITemplateStep step : temp.getAllSteps()) {
 				
-				// TODO: test this!
 				Double[] todCounters = { 0.0, 0.0, 0.0, 0.0 };
 				if (stepIdToCounters.containsKey(step.getName())) {
 					todCounters = stepIdToCounters.get(step.getName());
@@ -561,8 +570,13 @@ public class TemplateStepStorage {
 		return results;
 	}
 	
-	protected static TemplateStep getTemplateStepFromTaskId(final String taskId) {
+	//TODO: need to test
+	protected static void learnTemplateStepTimeOfDay(ITask task, String todKey, double todIncrement) {
 		
-		return null;
+	}
+	
+	//TODO: need to test
+	protected static void learnTemplateConsecutiveHours(ITask task, double consecutiveHours) {
+		
 	}
 }

@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,6 +18,11 @@ public class SettingStorageTest {
 		StorageService.initialize(true);
 	}
 
+	@After
+	public void cleanUp() {
+		StorageService.cleanup();
+	}
+	
 	/*
 	 * Testing Setting related functionality 
 	 */

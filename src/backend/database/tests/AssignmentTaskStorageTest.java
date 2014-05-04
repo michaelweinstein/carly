@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -24,8 +25,13 @@ import data.TemplateStep;
 public class AssignmentTaskStorageTest {
 	
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		StorageService.initialize(true);
+	}
+	
+	@After
+	public void cleanUp() {
+		StorageService.cleanup();
 	}
 	
 	/*
