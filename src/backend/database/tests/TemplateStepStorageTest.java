@@ -3,15 +3,19 @@ package backend.database.tests;
 import static org.junit.Assert.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import data.Assignment;
 import data.ITemplate;
+import data.Task;
 import data.Template;
 import data.TemplateStep;
+import data.TimeOfDay;
 import backend.database.StorageService;
 import backend.database.StorageServiceException;
 
@@ -26,6 +30,7 @@ public class TemplateStepStorageTest {
 	public void cleanUp() {
 		StorageService.cleanup();
 	}
+	
 	/*
 	 * Testing Template related functionality 
 	 */
@@ -150,5 +155,65 @@ public class TemplateStepStorageTest {
 			assertTrue(templates.contains(template));
 			templates.remove(template); 
 		}
+	}
+	
+	@Test
+	public void learnTemplateStepTimeOfDay() {
+		Template template1 = new Template("Template 1"); 		
+		template1.addStep(new TemplateStep("Step 1", 0.25, 1));
+		template1.addStep(new TemplateStep("Step 2", 0.25, 2)); 
+		template1.addStep(new TemplateStep("Step 3", 0.25, 3));
+		template1.addStep(new TemplateStep("Step 4", 0.25, 4));
+		
+		final Assignment assignment1 = new Assignment("Assignment 1", new Date(), template1);
+		
+		try {
+			StorageService.addTemplate(template1);
+			StorageService.addAssignment(assignment1);
+		} catch (StorageServiceException e) {
+			fail(e.getMessage()); 
+		}
+		
+		StorageService.learnTemplateStepTimeOfDay(assignment1.getTasks().get(0), TimeOfDay.MORNING.name(), 20.0);		
+		assertEquals(StorageService.getAssignment(assignment1.getID()).getTemplate().getStepByName("Step 1")
+				.getBestTimeToWork().name(), TimeOfDay.MORNING.name());
+		
+		StorageService.learnTemplateStepTimeOfDay(assignment1.getTasks().get(0), TimeOfDay.AFTERNOON.name(), 25.0);		
+		assertEquals(StorageService.getAssignment(assignment1.getID()).getTemplate().getStepByName("Step 1")
+				.getBestTimeToWork().name(), TimeOfDay.AFTERNOON.name());
+		
+		StorageService.learnTemplateStepTimeOfDay(assignment1.getTasks().get(0), TimeOfDay.AFTERNOON.name(), -10.0);		
+		assertEquals(StorageService.getAssignment(assignment1.getID()).getTemplate().getStepByName("Step 1")
+				.getBestTimeToWork().name(), TimeOfDay.MORNING.name());
+	}
+	
+	@Test
+	public void learnTemplateConsecutiveHours() {
+		Template template1 = new Template("Template 1", 5); 	
+		template1.addStep(new TemplateStep("Step 1", 0.25, 1));
+		template1.addStep(new TemplateStep("Step 2", 0.25, 2)); 
+		template1.addStep(new TemplateStep("Step 3", 0.25, 3));
+		template1.addStep(new TemplateStep("Step 4", 0.25, 4));
+		
+		final Assignment assignment1 = new Assignment("Assignment 1", new Date(), template1);
+		
+		try {
+			StorageService.addTemplate(template1);
+			StorageService.addAssignment(assignment1);
+		} catch (StorageServiceException e) {
+			fail(e.getMessage()); 
+		}
+		
+		StorageService.learnTemplateConsecutiveHours(assignment1.getTasks().get(0), 10);
+		assertTrue(StorageService.getTemplate(template1.getID()).getPreferredConsecutiveHours() == 
+				((5.0 + 10.0) / 2));
+		
+		StorageService.learnTemplateConsecutiveHours(assignment1.getTasks().get(0), 2);
+		assertTrue(StorageService.getTemplate(template1.getID()).getPreferredConsecutiveHours() == 
+				((5.0 + 10.0 + 2.0) / 3));
+		
+		StorageService.learnTemplateConsecutiveHours(assignment1.getTasks().get(0), 15);
+		assertTrue(StorageService.getTemplate(template1.getID()).getPreferredConsecutiveHours() == 
+				((5.0 + 10.0 + 2.0 + 15.0) / 4));
 	}
 }

@@ -896,7 +896,7 @@ public class AssignmentTaskStorage {
 	 * Helper methods
 	 */
 	
-	private static void sortTasks(IAssignment assignment) {
+	public static void sortTasks(IAssignment assignment) {
 		Collections.sort(assignment.getTasks(), new Comparator<ITask>() {
 			@Override
 			public int compare(ITask arg0, ITask arg1) {
