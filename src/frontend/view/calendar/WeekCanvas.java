@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -177,6 +178,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		final int hours = (int) Math.floor(hrsAndMin);
 		final int min = (snap ? 10 : 1) * (int) (Math.round(((hrsAndMin - hours) * (snap ? 6 : 60))));
 		
+		// Get the given time
 		final Calendar c = CalendarView.getCalendarInstance();
 		c.set(Calendar.WEEK_OF_YEAR, _cv.getCurrentWeek());
 		c.set(Calendar.YEAR, _cv.getCurrentYear());
@@ -184,7 +186,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		c.set(Calendar.HOUR_OF_DAY, hours);
 		c.set(Calendar.DAY_OF_WEEK, day);
 		
-		System.out.println(c.getTime());
+		// Adjusts for daylight savings and returns
 		return c.getTime();
 	}
 	
@@ -296,6 +298,39 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	}
 	
 	/**
+	 * Deals with daylight savings by taking a calendar and a date and normalizing them. The gist of it is that we only
+	 * care if it's DST if we're on a week that doesn't start and end in the same setting. If they're different, that
+	 * means drawing WILL fail because things are longer/shorter than they should be. So for the current week, just
+	 * adjust the display of the actual date and all should be well!
+	 * 
+	 * @param time the time we start with
+	 * @param c the calendar to adjust
+	 * @return the time adjusted for DS
+	 */
+	private Date adjustForDaylightSavings(Date time, final Calendar c) {
+		final TimeZone tz = TimeZone.getDefault();
+		final boolean startDS = tz.inDaylightTime(_weekStartDate);
+		final boolean endDS = tz.inDaylightTime(_weekEndDate);
+		if (startDS != endDS) {
+			final boolean currDS = tz.inDaylightTime(time);
+			c.setTime(time);
+			
+			// Fall back because beginning is not in DS
+			if (!startDS && currDS) {
+				c.add(Calendar.MINUTE, -60);
+				time = c.getTime();
+			}
+			
+			// Spring forward because the beginning is DS
+			else if (startDS && !currDS) {
+				c.add(Calendar.MINUTE, 60);
+				time = c.getTime();
+			}
+		}
+		return time;
+	}
+	
+	/**
 	 * Draws a block to canvas
 	 * 
 	 * @param brush the brush for the canvas
@@ -314,14 +349,14 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		final double dayWidth = (getWidth() - X_OFFSET) / DAYS;
 		final Calendar c = CalendarView.getCalendarInstance();
 		c.setTime(t.getStart());
-		Date startDate = c.getTime();
+		Date startDate = adjustForDaylightSavings(c.getTime(), c);
 		int startDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
 		c.setTime(t.getEnd());
-		Date endDate = c.getTime();
+		Date endDate = adjustForDaylightSavings(c.getTime(), c);
 		int endDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
 		
 		// Sets correct start bounds
-		c.setTime(t.getStart());
+		c.setTime(startDate);
 		int startX = getXPos(startDay);
 		int startY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
 		if (moving != null && moving.first.equals(t)) {
@@ -350,7 +385,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		}
 		
 		// Sets correct end bounds
-		c.setTime(t.getEnd());
+		c.setTime(endDate);
 		int endX = getXPos((int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS));
 		int endY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
 		if (moving != null && moving.first.equals(t)) {

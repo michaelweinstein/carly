@@ -206,13 +206,11 @@ public class CalendarView extends JPanel {
 		
 		final Font ft = Utils.getFont(Font.BOLD, 12);
 		
-		_dayLabelList.add(new DayLabel("Sun"));
-		_dayLabelList.add(new DayLabel("Mon"));
-		_dayLabelList.add(new DayLabel("Tues"));
-		_dayLabelList.add(new DayLabel("Wed"));
-		_dayLabelList.add(new DayLabel("Thurs"));
-		_dayLabelList.add(new DayLabel("Fri"));
-		_dayLabelList.add(new DayLabel("Sat"));
+		// Add new labels for all days
+		final String[] dayNames = { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+		for (final String day : dayNames) {
+			_dayLabelList.add(new DayLabel(day));
+		}
 		
 		// Theme all labels
 		int dayOfWeek = 1;

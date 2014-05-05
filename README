@@ -6,11 +6,13 @@ README
 Carly
 ---------------
 
-The Carly project is ....
+The Carly project is a schedule management application.  The Carly calendar is comprised of a series of time blocks, designated as either "Assignment" blocks or "Unavailable" blocks.  On first-time startup, users enter the ranges of time for which they are unavailable, as well as other preferences.  From this point on, a user may interact with the interface by scrolling through weeks, dragging blocks around, and lengthening and shortening blocks.
 
----------------
-Project Goals
----------------
+A user may create a new assignment with the "New Assignment" button.  The user is prompted to insert the expected number of hours for the assignment, as well as to break it down into different subtasks for the scheduler to manage.  After the user submits a new assignment, the Scheduler will examine the current schedule, then attempt to insert the assignment as a series of blocks.  These blocks will be inserted in chronological order by the user-specified subtasks. After an assignment is inserted, a user may edit it at any time by using the side bar containing all assignments, or they may delete it.
+
+If the schedule is too crowded for the blocks to be inserted, or if the scheduler encounters an unexpected error, an appropriate popup message will be displayed to the user, and the assignment will not be added to the calendar.
+
+When a user exits the program, all changes they have made are backed up to a file and managed by an in-memory database, so data is persistent between sessions.
 
 
 ---------------
@@ -18,25 +20,43 @@ Design and
 Implementation
 ---------------
 
+This program is designed based on the Model-View-Controller pattern.
 
 ---------------
 Division of
 Labor
 ---------------
 
+Eric was responsible for writing the database functions, which act as the central platform for organizing the data needed for the "Model" portion of the program.  The database runs in-memory, so there is no need to run a server in the background while the program is running.
+
+Evan was responsible for developing and implementing the scheduler algorithm, which represents some of the key functionality of the program, and is called by the "Controller" in order to produce interactions between the front and back end.
+
+Dylan was responsible for designing and implementing the user interface, which is a key part of the "View" portion of the program.  All interactions through buttons, scrolling, clicking, and dragging are handled by the event dispatch thread, then forwarded to the appropriate functions in the "Controller".
+
+Michael was responsible for implementing the user's custom preferences, settings, and template portfolio.  He also implemented the first-time startup survey.  All of his responsiblities are part of the "View" part of the program, and also use the "Controller" to back information up to the database.
+
 
 ---------------
 Difficulties
 ---------------
 
+Some of the largest difficulties we encountered with this project include:
+
+-Data persistence
+-Flow of control, extensible OO design
+-Working with different time standards (Greenwich Mean Time, Daylight Savings)
 
 ---------------
 How to Build
 ---------------
 
+From the command line, run "ant" to compile and jar the source code.  Run "ant create_exec" in order to create an executable file called "carly" in the "bin/" directory.  Finally, run "./bin/carly" from the top-level project directory in order to execute the program.
 
 ---------------
 Known Bugs
 ---------------
+
+There are currently no known bugs in this implementation of "Carly".  That being said, there are occasional fleeting bugs that appear in exceptional circumstances, but there are no significant impediments to the functionality of this program.
+
 
 

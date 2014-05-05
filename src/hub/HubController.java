@@ -14,7 +14,6 @@ import backend.time.TimeModifier;
 import data.Assignment;
 import data.ITask;
 import data.ITimeBlockable;
-import frontend.Utils;
 import frontend.app.GUIApp;
 
 /**
@@ -49,40 +48,33 @@ public class HubController {
 				
 				// TODO: Make learner act on this
 				
-				// Insert template into db if not already there
-				if (StorageService.getTemplate(tempId) == null) {
-					try {
+				try {
+					// Make sure the template and assignment are in the DB
+					if (StorageService.getTemplate(tempId) == null) {
 						StorageService.addTemplate(a.getTemplate());
-					} catch (final StorageServiceException sse) {
-						Utils.printError("SSE in addAssignmentToCalendar() - inserting ITemplate");
-						return;
 					}
-				}
-				
-				// Insert assignment into db
-				try {
 					StorageService.addAssignment(a);
-				} catch (final StorageServiceException sse) {
-					Utils.printError("SSE in addAssignmentToCalendar() - inserting Assignment");
-					return;
-				}
-				
-				final Date start = new Date();
-				final TimeAllocator talloc = new TimeAllocator(a);
-				try {
-					talloc.insertAsgn(start, a.getDueDate());
-				} catch (final NotEnoughTimeException net) {
-					Utils.printError(net.getMessage());
-				}
-				
-				StorageService.mergeAllTimeBlocks(talloc.getEntireBlockSet());
-				SwingUtilities.invokeLater(new Runnable() {
 					
-					@Override
-					public void run() {
-						_app.reload();
-					};
-				});
+					// Allocate time and then merge time blocks in DB
+					final Date start = new Date();
+					final TimeAllocator talloc = new TimeAllocator(a);
+					talloc.insertAsgn(start, a.getDueDate());
+					StorageService.mergeAllTimeBlocks(talloc.getEntireBlockSet());
+				} catch (final NotEnoughTimeException | StorageServiceException err) {
+					
+					// Not enough time to add or storage error, so present the error dialog after removing from DB
+					StorageService.removeAssignment(a);
+					SwingUtilities.invokeLater(new Runnable() {
+						
+						@Override
+						public void run() {
+							_app.presentErrorDialog(err);
+						}
+					});
+				}
+				
+				// Everything went well, so reload the app data
+				reloadApp();
 			}
 		}.start();
 	}
@@ -102,13 +94,7 @@ public class HubController {
 		if (TimeModifier.updateBlock(oldBlock, newStart, newEnd)) {
 			Learner.considerBlockUpdate(oldBlock, oldStart, oldEnd);
 		}
-		SwingUtilities.invokeLater(new Runnable() {
-			
-			@Override
-			public void run() {
-				_app.reload();
-			};
-		});
+		reloadApp();
 	}
 	
 	/**
@@ -118,19 +104,12 @@ public class HubController {
 	 * @param newCompletion a double between 0 and 1 inclusive to represent percent complete
 	 */
 	public static void changeTask(final ITask oldTask, final double newCompletion) {
-		final double oldCompletion = oldTask.getPercentComplete();
 		TimeModifier.updateBlocksInTask(oldTask, newCompletion);
 		
 		// TODO: Update learner using old percent and new percent
 		oldTask.setPercentComplete(newCompletion);
 		StorageService.updateTask(oldTask);
-		SwingUtilities.invokeLater(new Runnable() {
-			
-			@Override
-			public void run() {
-				_app.reload();
-			};
-		});
+		reloadApp();
 	}
 	
 	/**
@@ -144,6 +123,13 @@ public class HubController {
 			final List<ITimeBlockable> blockList) {
 		
 		// TODO: actually update all in backend
+		reloadApp();
+	}
+	
+	/**
+	 * Convenience method to reload the app
+	 */
+	private static void reloadApp() {
 		SwingUtilities.invokeLater(new Runnable() {
 			
 			@Override
