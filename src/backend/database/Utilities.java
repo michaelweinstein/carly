@@ -60,12 +60,12 @@ public abstract class Utilities {
 			"AND BLOCK_MOVABLE = TRUE " +
 			"ORDER BY TIME_BLOCK.BLOCK_START";
 	
-	protected static final String SELECT_UNAVAILABLE_BLOCKS_BY_DATE = 
+	protected static final String SELECT_CUSTOM_UNAVAILABLE_BLOCKS_BY_DATE = 
 			"SELECT * FROM TIME_BLOCK " + 
 			"WHERE ((BLOCK_END BETWEEN ? AND ?) OR " + 	//block ends in the range, OR 
 			"(BLOCK_START BETWEEN ? AND ?) OR " +		//block start in the range, OR
 			"(BLOCK_START <= ? AND BLOCK_END >= ?)) " +	//block contains the range
-			"AND BLOCK_MOVABLE = FALSE " +
+			"AND BLOCK_MOVABLE = FALSE AND BLOCK_DEFAULT = FALSE " +
 			"ORDER BY TIME_BLOCK.BLOCK_START";
 	
 	protected static final String SELECT_DEFAULT_UNAVAILABLE_BLOCKS = 
