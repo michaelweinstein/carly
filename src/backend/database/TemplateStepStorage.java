@@ -219,8 +219,8 @@ public class TemplateStepStorage {
 		} catch (final ClassNotFoundException e) {
 			Utilities.printException("TemplateStepStorage: getTemplateByName: db drive class not found", e);
 		} catch (final SQLException e) {
-			Utilities.printSQLException("TemplateStepStorage: getTemplateByName: " + "could not retrieve assignments",
-					e);
+			Utilities.printSQLException("TemplateStepStorage: getTemplateByName: " + 
+					"could not retrieve assignments", e);
 		}
 		finally {
 			try {
@@ -231,7 +231,8 @@ public class TemplateStepStorage {
 					con.close();
 				}
 			} catch (final SQLException x) {
-				Utilities.printSQLException("TemplateStepStorage: getTemplateByName: " + "could not close resource", x);
+				Utilities.printSQLException("TemplateStepStorage: getTemplateByName: " + 
+						"could not close resource", x);
 			}
 		}
 		
@@ -355,13 +356,11 @@ public class TemplateStepStorage {
 				Array array = todCountersResults.getArray("STEP_TOD_COUNTERS"); 
 				Object[] objArray = (Object[])array.getArray(); 
 				
-				final ArrayList<Double> todCountersList = new ArrayList<>();  
-				for (Object obj : objArray) {
-					todCountersList.add((Double) obj);
+				Double[] todCounters = new Double[objArray.length]; 
+				for (int i = 0; i < objArray.length; i++) {
+					todCounters[i] = (Double) objArray[i]; 
 				}
 				
-				System.out.println(todCountersList);
-				Double[] todCounters = (Double[]) todCountersList.toArray(); 
 				stepIdToCounters.put(stepName, todCounters);
 			}
 			
