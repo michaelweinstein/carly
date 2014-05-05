@@ -136,7 +136,7 @@ public class CScrollBarUI extends BasicScrollBarUI {
 				xPoints[1] = width / 2;
 				xPoints[2] = width - 2;
 				yPoints[0] = height - offset;
-				yPoints[1] = height - width - offset;
+				yPoints[1] = (int) (height - height * 0.5 - offset);
 				yPoints[2] = height - offset;
 				break;
 			case SOUTH:
@@ -150,7 +150,7 @@ public class CScrollBarUI extends BasicScrollBarUI {
 			case WEST:
 				offset = (int) (width * 0.2);
 				xPoints[0] = width - offset;
-				xPoints[1] = width - height - offset;
+				xPoints[1] = (int) (width - width * 0.5 - offset);
 				xPoints[2] = width - offset;
 				yPoints[0] = 2;
 				yPoints[1] = height / 2;
