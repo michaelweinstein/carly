@@ -201,6 +201,7 @@ public class SurveyView extends JDialog {
 		// Add Learner preference
 		final Boolean learnerPref = _learnerCheck.isSelected();
 		StorageService.mergeSetting(SettingsConstants.LEARNER_SETTING, learnerPref.toString());
+		// TODO Set boolean of Learner
 		
 		// Add UnavailableBlocks to StorageService
 		final List<UnavailableBlock> uBlocks = _timeView.getUnavailableBlocks();

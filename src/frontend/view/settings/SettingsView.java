@@ -176,6 +176,8 @@ public class SettingsView extends JDialog {
 				// TODO Test StorageService submission
 				final Boolean sel = _learnerToggle.isSelected();
 				StorageService.mergeSetting(SettingsConstants.LEARNER_SETTING, sel.toString());
+				// TODO Set Boolean of Learner
+				
 			}
 		});
 		c.gridx = 1;

@@ -16,6 +16,8 @@ public class Learner {
 	//How much to increment the ToD weight if the user directly adjusts the block in considerBlockUpdate
 	private static final double DIRECT_TOD_INCREMENT = 3.0; 
 	
+	private static boolean _isEnabled = true;
+	
 	public static ArrayList<ITask> optimizeTasks(List<ITask> taskList) {
 		return new ArrayList<ITask>(); 
 	}
@@ -71,5 +73,14 @@ public class Learner {
 		}
 		
 		return ""; 
+	}
+	
+	/**
+	 * Sets whether or not Learner is enabled.
+	 * 
+	 * @param enable true if Learner should run
+	 */
+	public static void setEnabled(boolean enable) {
+		_isEnabled = enable;
 	}
 }
