@@ -174,8 +174,8 @@ public class StepViewTable extends JTable implements MouseListener, MouseMotionL
 	public void mouseClicked(final MouseEvent e) {
 		if (_moveWithMouse && _mousePoint != null) {
 			final double percent = Math.max(Math.min(_mousePoint.getX() / (getWidth() - 10), 1.0), 0.0);
-			((ITask) getValueAt(_hoveredRow, 0)).setPercentComplete(percent);
 			HubController.changeTask(_assignment.getTasks().get(_hoveredRow), percent);
+			((ITask) getValueAt(_hoveredRow, 0)).setPercentComplete(percent);
 		}
 		_moveWithMouse = !_moveWithMouse;
 		repaint();

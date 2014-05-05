@@ -107,7 +107,7 @@ public class TimeAllocator {
 		// (2) spacing them out to have breaks, (3) variety between different types of
 		// assignments if there are several AssignmentBlocks in a row
 		
-		TimeCompactor.decompact(allBlocks, start, end);
+		TimeCompactor.decompact(allBlocks, start, end, m_asgn.getID());
 		
 		// Assign the value of this field so it may be accessed by the "getter"
 		// function in this class

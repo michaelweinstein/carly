@@ -345,7 +345,7 @@ public class TimeModifier {
 		
 		final Date now = new Date(); // this Date captures where the user is and how much work they've done
 		final Date due = StorageService.getAssignment(task.getAssignmentID()).getDueDate();
-		double currProgress = 0.0;
+		double currProgress = task.getPercentComplete();
 		double pctToAdjust = 0.0;
 		// This list contains all blocks that represent the current task, in order sorted by start date
 		final List<ITimeBlockable> taskBlocks = new ArrayList<ITimeBlockable>();
@@ -362,17 +362,17 @@ public class TimeModifier {
 		
 		// 2. Using the time in "now", figure out how much the user should have completed
 		// (in units of percentage) of that Task.
-		for (final ITimeBlockable bl : taskBlocks) {
-			// If a block is entirely in the past
-			if (bl.getStart().getTime() < now.getTime() && bl.getEnd().getTime() <= now.getTime()) {
-				currProgress += (double) bl.getLength() / taskLengthInMillis;
-			}
-			// If a block is currently being worked on
-			else if (bl.getStart().getTime() < now.getTime() && bl.getEnd().getTime() > now.getTime()) {
-				currProgress += (double) (now.getTime() - bl.getStart().getTime()) / taskLengthInMillis;
-			}
-		}
-		
+//		for (final ITimeBlockable bl : taskBlocks) {
+//			// If a block is entirely in the past
+//			if (bl.getStart().getTime() < now.getTime() && bl.getEnd().getTime() <= now.getTime()) {
+//				currProgress += (double) bl.getLength() / taskLengthInMillis;
+//			}
+//			// If a block is currently being worked on
+//			else if (bl.getStart().getTime() < now.getTime() && bl.getEnd().getTime() > now.getTime()) {
+//				currProgress += (double) (now.getTime() - bl.getStart().getTime()) / taskLengthInMillis;
+//			}
+//		}
+//		
 		// 3. Examine the actual percent complete (the parameter "newPct")
 		pctToAdjust = newPct - currProgress;
 		
@@ -397,6 +397,7 @@ public class TimeModifier {
 			while (currInd < allBlocks.size() && totalMillisToAdd > minLengthInMillis) {
 				// Ignore this edge case
 				if (currInd == 0) {
+					++currInd;
 					continue;
 				}
 				
@@ -408,13 +409,17 @@ public class TimeModifier {
 					break;
 				}
 				
-				// Exit the loop early if either b1 or b2 is on a Task that occurs
+				// Exit the loop early if either b1 or b2 is an AssignmentBlock on a Task that occurs
 				// after the current Task chronologically
-				final Assignment b1asgn = StorageService.getAssignment(b1.getTask().getAssignmentID());
-				if (b1asgn.getID().equals(task.getAssignmentID()) && b1asgn.getTasks().indexOf(task) > taskIndex) {
-					break;
+				ITask t = b1.getTask();
+				if(t != null) {
+					final Assignment b1asgn = StorageService.getAssignment(t.getAssignmentID());
+					if (b1asgn.getID().equals(task.getAssignmentID()) && b1asgn.getTasks().indexOf(task) > taskIndex) {
+						break;
+					}
 				}
 				
+
 				final long insLen = Math.min(blockLengthInMillis, totalMillisToAdd);
 				
 				// Determine if there is space for a block in between b1 and b2
@@ -480,7 +485,7 @@ public class TimeModifier {
 			}
 			
 			// Blocks were just inserted, so decompact them
-			TimeCompactor.decompact(allBlocks, now, tempEnd);
+			TimeCompactor.decompact(allBlocks, now, tempEnd, task.getAssignmentID());
 			
 		}
 		// 5b. The user is ahead, so remove a bit of time from each block

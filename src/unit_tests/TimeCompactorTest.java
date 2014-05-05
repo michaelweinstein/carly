@@ -76,7 +76,7 @@ public class TimeCompactorTest {
 		System.out.println(TimeUtilities.printSchedule(allBlocks));
 		System.out.println("----");
 		//Test de-compaction - the UnavailableBlock in the middle should not be moved
-		TimeCompactor.decompact(allBlocks, start, end);
+		//TimeCompactor.decompact(allBlocks, start, end);
 		
 		System.out.println(TimeUtilities.printSchedule(allBlocks));
 		System.out.println("******************************************");
@@ -109,7 +109,7 @@ public class TimeCompactorTest {
 		System.out.println(TimeUtilities.printSchedule(allBlocks));
 		System.out.println("----");
 		//Test de-compaction - the UnavailableBlock in the middle should not be moved
-		TimeCompactor.decompact(allBlocks, start, due);
+		//TimeCompactor.decompact(allBlocks, start, due);
 		
 		System.out.println(TimeUtilities.printSchedule(allBlocks));
 		System.out.println("******************************************");
