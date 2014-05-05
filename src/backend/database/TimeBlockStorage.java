@@ -63,7 +63,7 @@ public class TimeBlockStorage {
 			con = pool.getConnection();
 			
 			for (final DateRange range : ranges) {
-				modifiedStatement = con.prepareStatement(Utilities.SELECT_UNAVAILABLE_BLOCKS_BY_DATE);
+				modifiedStatement = con.prepareStatement(Utilities.SELECT_CUSTOM_UNAVAILABLE_BLOCKS_BY_DATE);
 				Utilities.setValues(modifiedStatement, range.start.getTime(), range.end.getTime(),
 						range.start.getTime(), range.end.getTime(), range.start.getTime(), range.end.getTime());
 				ResultSet blockResults = modifiedStatement.executeQuery();
@@ -84,27 +84,35 @@ public class TimeBlockStorage {
 					defaultStatement = con.prepareStatement(Utilities.SELECT_DEFAULT_UNAVAILABLE_BLOCKS);
 					blockResults = defaultStatement.executeQuery();
 					
+					// We need to bring the date of all of the default timeBlocks to this week
+					final Calendar cal = Calendar.getInstance();
+					cal.setFirstDayOfWeek(Calendar.SUNDAY);
+					cal.setTime(range.start);
+					cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+					cal.set(Calendar.HOUR_OF_DAY, 0);
+					cal.set(Calendar.MINUTE, 0);
+					cal.set(Calendar.SECOND, 0);
+					cal.set(Calendar.MILLISECOND, 0);
+					final long msWeekStartNow = cal.getTimeInMillis();
+					cal.setTime(new Date(0));
+					cal.add(Calendar.DAY_OF_YEAR, 3);
+					final long msWeekStartDefault = cal.getTimeInMillis();
+					final long msModifier = msWeekStartNow - msWeekStartDefault;
+					
 					while (blockResults.next()) {
-						// We need to the date of all of the default timeBlocks to this week
-						final Calendar cal = Calendar.getInstance();
-						cal.setFirstDayOfWeek(Calendar.SUNDAY);
-						cal.setTime(range.start);
-						cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-						cal.set(Calendar.HOUR_OF_DAY, 0);
-						cal.set(Calendar.MINUTE, 0);
-						cal.set(Calendar.SECOND, 0);
-						cal.set(Calendar.MILLISECOND, 0);
-						final long msWeekStartNow = cal.getTimeInMillis();
-						cal.setTime(new Date(0));
-						cal.add(Calendar.DAY_OF_YEAR, 3);
-						final long msWeekStartDefault = cal.getTimeInMillis();
-						final long msModifier = msWeekStartNow - msWeekStartDefault;
-						
 						// Getting all of the required fields to reconstruct the UnavailableBlock
 						final String blockId = blockResults.getString("BLOCK_ID");
+						
+						long blockStartTest = blockResults.getLong("BLOCK_START"); 
+						long blockEndTest = blockResults.getLong("BLOCK_END");
+						
 						final Date blockStart = new Date(blockResults.getLong("BLOCK_START") + msModifier);
 						final Date blockEnd = new Date(blockResults.getLong("BLOCK_END") + msModifier);
 						final boolean blockMovable = blockResults.getBoolean("BLOCK_MOVABLE");
+						
+						boolean test1 = (blockStart.compareTo(range.start) >= 0 && blockStart.compareTo(range.end) <= 0);
+						boolean test2 = (blockEnd.compareTo(range.start) >= 0 && blockEnd.compareTo(range.end) <= 0); 
+						boolean test3 = (blockStart.compareTo(range.start) <= 0 && blockEnd.compareTo(range.end) >= 0); 
 						
 						if ((blockStart.compareTo(range.start) >= 0 && blockStart.compareTo(range.end) <= 0)
 							|| (blockEnd.compareTo(range.start) >= 0 && blockEnd.compareTo(range.end) <= 0)
@@ -112,6 +120,8 @@ public class TimeBlockStorage {
 							results.add(new UnavailableBlock(blockId, blockStart, blockEnd, null, blockMovable));
 						}
 					}
+					
+					int i = 0; 
 				}
 			}
 		} catch (final ClassNotFoundException e) {
@@ -447,8 +457,6 @@ public class TimeBlockStorage {
 					} else {
 						blocksToAdd.add(block);
 					}
-				} else {
-					blocksToAdd.add(block);
 				}
 			}
 			
