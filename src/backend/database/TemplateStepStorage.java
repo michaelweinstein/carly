@@ -570,12 +570,195 @@ public class TemplateStepStorage {
 	}
 	
 	//TODO: need to test
-	protected static void learnTemplateStepTimeOfDay(ITask task, String todKey, double todIncrement) {
+	protected static void learnTemplateStepTimeOfDay(ITask task, String todKey, double deltaTod, 
+			final JdbcConnectionPool pool) {
+		PreparedStatement retrieveStatement = null;
+		PreparedStatement storeStatement = null;
+		Connection con = null;
 		
+		try {
+			Class.forName("org.h2.Driver");
+			con = pool.getConnection();
+			
+			con.setAutoCommit(false);
+			retrieveStatement = con.prepareStatement(Utilities.SELECT_TEMPLATE_STEP_BY_ASGN_ID_AND_STEP_NUM);
+			Utilities.setValues(retrieveStatement, task.getAssignmentID(), task.getTaskNumber());
+			ResultSet templateStepResult = retrieveStatement.executeQuery();
+			
+			//Skip the column headings
+			templateStepResult.next(); 
+			
+			//Recreate the necessary fields from the results 
+			String highestTodKey = templateStepResult.getString("STEP_TIME_OF_DAY");
+			Array array = templateStepResult.getArray("STEP_TOD_COUNTERS"); 
+			Object[] objArray = (Object[])array.getArray(); 
+			Double[] todCounters = new Double[objArray.length]; 
+			for (int i = 0; i < objArray.length; i++) {
+				todCounters[i] = (Double) objArray[i]; 
+			}
+			
+			//Modify tod with learnings
+			int countersIndex = TemplateStepStorage.todKeyToIndex(todKey);  
+			if (countersIndex != -1) {
+				todCounters[countersIndex] += deltaTod; 
+				highestTodKey = TemplateStepStorage.maxTodKey(todCounters);
+			} else {
+				System.err.println("TimeBlockStorage: learnTemplateStepTimeOfDay: "
+						+ "Could not resolve passed in todKey: " + todKey);
+			}
+			
+			
+//			protected static final String UPDATE_TEMPLATE_STEP_TOD =  
+//					"UPDATE TEMPLATE_STEP " +
+//					"SET STEP_TIME_OF_DAY = ?, STEP_TOD_COUNTERS = ? " + 
+//					"WHERE TEMPLATE_STEP = ? AND STEP_NAME = ? ";
+			
+			//Update the db with the new learnings
+//			storeStatement = con.prepareStatement(Utilities.UPDATE_TEMPLATE_STEP_TOD);
+//			Utilities.setValues(storeStatement, highestTodKey, todCounters, 
+//					);
+			storeStatement.execute(); 
+			
+			// commit to the database
+			con.commit();
+		} catch (final ClassNotFoundException e) {
+			Utilities.printException("TimeBlockStorage: learnTemplateStepTimeOfDay: db drive class not found", e);
+		} catch (final SQLException e) {
+			Utilities.printSQLException("TemplateStepStorage: learnTemplateStepTimeOfDay: " + 
+							"attempting to roll back transaction", e);
+			if (con != null) {
+				try {
+					con.rollback();
+				} catch (final SQLException x) {
+					Utilities.printSQLException("TemplateStepStorage: learnTemplateStepTimeOfDay: "
+						+ "could not roll back transaction", x);
+				}
+			}
+		}
+		finally {
+			try {
+				if (retrieveStatement != null) {
+					retrieveStatement.close();
+				}
+				if (storeStatement != null) {
+					storeStatement.close();
+				}
+				con.setAutoCommit(true);
+				if (con != null) {
+					con.close();
+				}
+			} catch (final SQLException x) {
+				Utilities.printSQLException("TemplateStepStorage: learnTemplateStepTimeOfDay: "
+						+ "could not close resource", x);
+			}
+		}
 	}
 	
 	//TODO: need to test
-	protected static void learnTemplateConsecutiveHours(ITask task, double consecutiveHours) {
+	protected static void learnTemplateConsecutiveHours(ITask task, double consecutiveHours, 
+			final JdbcConnectionPool pool) {
+		PreparedStatement retrieveStatement = null;
+		PreparedStatement storeStatement = null;
+		Connection con = null;
 		
+		try {
+			Class.forName("org.h2.Driver");
+			con = pool.getConnection();
+			
+			con.setAutoCommit(false);
+			retrieveStatement = con.prepareStatement(Utilities.SELECT_TEMPLATE_BY_ASGN_ID);
+			Utilities.setValues(retrieveStatement, task.getAssignmentID(), task.getTaskNumber());
+			ResultSet templateResult = retrieveStatement.executeQuery();
+			
+			//Skip the column headings
+			templateResult.next(); 
+			
+			//Recreate the necessary fields from the results 
+			double templateConsecutiveHours = templateResult.getDouble("TEMPLATE_CONSECUTIVE_HOURS");
+			int templateNumConsecutive= templateResult.getInt("TEMPLATE_NUM_CONSECUTIVE");
+			
+			templateConsecutiveHours = (templateConsecutiveHours * templateNumConsecutive + consecutiveHours) /
+					(templateNumConsecutive + 1); 
+			templateNumConsecutive++; 
+			
+			//Update the db with the new learnings
+			storeStatement = con.prepareStatement(Utilities.UPDATE_TEMPLATE_STEP_TOD);
+//			Utilities.setValues(storeStatement, highestTodKey, todCounters);
+			storeStatement.execute(); 			
+			
+			// commit to the database
+			con.commit();
+		} catch (final ClassNotFoundException e) {
+			Utilities.printException("TimeBlockStorage: learnTemplateStepTimeOfDay: db drive class not found", e);
+		} catch (final SQLException e) {
+			Utilities.printSQLException("TemplateStepStorage: learnTemplateStepTimeOfDay: " + 
+							"attempting to roll back transaction", e);
+			if (con != null) {
+				try {
+					con.rollback();
+				} catch (final SQLException x) {
+					Utilities.printSQLException("TemplateStepStorage: learnTemplateStepTimeOfDay: "
+						+ "could not roll back transaction", x);
+				}
+			}
+		}
+		finally {
+			try {
+				if (retrieveStatement != null) {
+					retrieveStatement.close();
+				}
+				if (storeStatement != null) {
+					storeStatement.close();
+				}
+				con.setAutoCommit(true);
+				if (con != null) {
+					con.close();
+				}
+			} catch (final SQLException x) {
+				Utilities.printSQLException("TemplateStepStorage: learnTemplateStepTimeOfDay: "
+						+ "could not close resource", x);
+			}
+		}
+	}
+	
+	/*
+	 * Helper methods
+	 */
+	
+	private static int todKeyToIndex(String todKey) {
+		int i = 0; 
+		for (TimeOfDay tod : TimeOfDay.values()) {
+			if (tod.name().equals(todKey)) {
+				return i; 
+			}
+			i++; 
+		}
+		return -1; 
+	}
+	
+	private static String countersIndexTotodKey(int countersIndex) {
+		int i = 0; 
+		for (TimeOfDay tod : TimeOfDay.values()) {
+			if (i == countersIndex) {
+				return tod.name(); 
+			}
+			i++; 
+		}
+		return ""; 
+	}
+	
+	
+	private static String maxTodKey(Double[] todCounters) {
+		int maxIndex = 0;
+		double maxValue = 0.0;
+		int i = 0; 
+		for (Double count : todCounters) {
+			if (count > maxValue) {
+				maxValue = count;
+				maxIndex = i;  
+			}
+			i++; 
+		}
+		return TemplateStepStorage.countersIndexTotodKey(maxIndex); 
 	}
 }
