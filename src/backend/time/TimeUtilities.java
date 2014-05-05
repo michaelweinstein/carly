@@ -127,7 +127,6 @@ public class TimeUtilities {
 		}
 		
 		final double numFreeHours = TimeUnit.HOURS.convert(amtFreeTime, TimeUnit.MILLISECONDS);
-		System.out.println("Trying to find possible fit: num free hours = " + numFreeHours);
 		return (numFreeHours >= asgn.getExpectedHours());
 	}
 	
@@ -145,14 +144,7 @@ public class TimeUtilities {
 		int unavailInd = 0;
 		int asgnInd = 0;
 		
-		// DEBUG added by Eric
-		System.out.println("\nTimeAllocator: zipTimeBlockLists: printing out assignment blocks");
-		for (final AssignmentBlock block : curr_asgns) {
-			System.out.println("\t" + block.toString());
-		}
-		System.out.println("");
-		// DEBUG
-		
+
 		// Iterate over the contents of these two arrays, then return a zipped list containing
 		// the contents of both lists, in sorted order
 		UnavailableBlock[] unavail = new UnavailableBlock[unavailable.size()];

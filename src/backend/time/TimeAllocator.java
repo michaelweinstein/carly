@@ -101,39 +101,17 @@ public class TimeAllocator {
 			
 		}
 		
-		// TODO: Then, decompact all AssignmentBlocks so that a user may have a break
+		// Then, decompact all AssignmentBlocks so that a user may have a break
 		// from his/her work time. This decompact() function will consider several
 		// heuristics including (1) putting assignments in their preferred time-of-day
 		// (2) spacing them out to have breaks, (3) variety between different types of
 		// assignments if there are several AssignmentBlocks in a row
 		
-		System.out.println("[Start, End] : [" + start + ", " + end + "]");
-		System.out.println("Debug, allBlocks list before decompaction");
-		for (int i = 0; i < allBlocks.size(); ++i) {
-			final ITimeBlockable itb = allBlocks.get(i);
-			System.out.println("Start: " + itb.getStart() + " || End: " + itb.getEnd());
-		}
-		
 		TimeCompactor.decompact(allBlocks, start, end);
-		
-		System.out.println("DEBUG - printing out the time ranges of all blocks");
-		for (int i = 0; i < allBlocks.size(); ++i) {
-			final ITimeBlockable itb = allBlocks.get(i);
-			System.out.println("Start: " + itb.getStart() + " || End: " + itb.getEnd() + itb.isMovable());
-		}
 		
 		// Assign the value of this field so it may be accessed by the "getter"
 		// function in this class
 		m_localChangesToBlocks = allBlocks;
-		
-		// DEBUG added by Eric
-		System.out.println("END: TimeAllocator: getting contents of allBlocks");
-		for (final ITimeBlockable block : allBlocks) {
-			System.out.println("\t" + block.toString());
-		}
-		System.out.println("");
-		// DEBUG
-		
 	}
 	
 	/**

@@ -13,9 +13,7 @@ import data.ITimeBlockable;
 import data.UnavailableBlock;
 
 public class TimeModifier {
-	
-	private static final long ETERNITY = 209769820398203L;
-	
+		
 	/**
 	 * Takes in a block, and a new start/end time and updates the block in the database. The types of operations that
 	 * merit the use of this function are (1) lengthening a block, (2) shortening a block, and (3) dragging a block.
@@ -40,14 +38,7 @@ public class TimeModifier {
 			}
 		}
 
-		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
-		// get the entire block set from the db...
-		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
-		// get the entire block set from the db...
-		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
-		// get the entire block set from the db...
-		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
-		// get the entire block set from the db...
+		//Get all blocks from now until the end of the user's calendar
 		final Date tempStart = new Date();
 		final Date tempEnd = TimeUtilities.getLastDueDate();
 		final List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);
@@ -110,7 +101,7 @@ public class TimeModifier {
 						StorageService.updateTimeBlock(block);
 						return true;
 					} catch (final StorageServiceException sse) {
-						System.err.println("OH NOES");
+						sse.printStackTrace();
 						return false;
 					}
 				}
@@ -131,7 +122,7 @@ public class TimeModifier {
 						StorageService.updateTimeBlock(block);
 						return true;
 					} catch (final StorageServiceException sse) {
-						System.err.println("OH NOES");
+						sse.printStackTrace();
 						return false;
 					}
 				}
@@ -173,8 +164,7 @@ public class TimeModifier {
 		final ITimeBlockable prev = (ind > 0 ? allBlocks.get(ind - 1) : null);
 		final ITimeBlockable curr = (ind < allBlocks.size() ? allBlocks.get(ind) : null);
 		
-		// TODO: FOR NOW, IF PREV IS NULL, RETURN FOR SAFETY CONCERNS
-		// --If I end up getting the entire block set when calling this function, then there is no concern here
+		//If either is null, return immediately for safety concerns
 		if (prev == null || curr == null) {
 			return false;
 		}
@@ -258,8 +248,7 @@ public class TimeModifier {
 		final ITimeBlockable curr = (ind < allBlocks.size() ? allBlocks.get(ind) : null);
 		final ITimeBlockable next = (ind < allBlocks.size() - 1 ? allBlocks.get(ind + 1) : null);
 		
-		// TODO: FOR NOW, IF NEXT IS NULL, RETURN FOR SAFETY CONCERNS
-		// --If I end up getting the entire block set when calling this function, then there is no concern here
+		//If either is null, return for safety concerns 
 		if (next == null || curr == null) {
 			return false;
 		}
@@ -345,14 +334,7 @@ public class TimeModifier {
 	 */
 	public static void updateBlocksInTask(final ITask task, final double newPct) {
 		
-		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
-		// get the entire block set from the db...
-		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
-		// get the entire block set from the db...
-		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
-		// get the entire block set from the db...
-		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
-		// get the entire block set from the db...
+		//Get all blocks from now until the end of the user's calendar
 		final Date tempStart = new Date();
 		final Date tempEnd = TimeUtilities.getLastDueDate();
 		final List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);

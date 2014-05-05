@@ -253,7 +253,6 @@ public class TimeCompactor {
 
 		//Try to move assignments to their preferred time-of-day if possible
 		//optimizePreferredTime(allBlocks);
-
 	}
 	
 	
@@ -290,42 +289,23 @@ public class TimeCompactor {
 			
 			//Check for curr.template == next.template != prev.template
 			if (!prevID.equals(currID) && currID.equals(nextID)) {
-				
 				//Don't switch them if there is a sizable gap between them
 				if(next.getStart().getTime() - curr.getEnd().getTime() > lim)
 					continue;
 				
-
-				//TODO: What do I want to do with the output of this function?
-				//		Note: this function tries several different ways of switching
-				//		blocks, regardless of their lengths
-				if(TimeUtilities.switchTimeBlocks(allBlocks, prev, curr)) {
-					System.out.println("hooray!");
-				}
-				else {
-					System.out.println("block switch failed");
-				}
-				
+				//Note: this function tries several different ways of switching blocks, regardless of their lengths
+				TimeUtilities.switchTimeBlocks(allBlocks, prev, curr);
 				
 				//Increment i so that this doesn't get repeated
 				++i;
 			}
 			if (prevID.equals(currID) && !currID.equals(nextID)) {
-				
 				//Don't switch them if there is a sizable gap between them
 				if(curr.getStart().getTime() - prev.getEnd().getTime() > lim)
 					continue;
 				
-
-				//TODO: What do I want to do with the output of this function?
-				//		Note: this function tries several different ways of switching
-				//		blocks, regardless of their lengths
-				if(TimeUtilities.switchTimeBlocks(allBlocks, curr, next)) {
-					System.out.println("hooray!");
-				}
-				else {
-					System.out.println("block switch failed");
-				}
+				//Note: this function tries several different ways of switching blocks, regardless of their lengths
+				TimeUtilities.switchTimeBlocks(allBlocks, curr, next);
 				
 				//Increment i so that this doesn't get repeated
 				++i;
@@ -333,19 +313,6 @@ public class TimeCompactor {
 		}
 	}
 	
-	
-	/**
-	 * Moves blocks around in the list so that they are in their preferred time of day.
-	 * @param allBlocks A List of ITimeBlockables sorted by start Date
-	 */
-	private static void optimizePreferredTime(List<ITimeBlockable> allBlocks) {
-		//TODO: try to put blocks in their preferred time of day, if possible
-		
-		for(int i = 0; i < allBlocks.size(); ++i) {
-			
-		}
-		
-	}
 	
 	/**
 	 * 
