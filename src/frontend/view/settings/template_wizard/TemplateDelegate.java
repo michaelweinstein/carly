@@ -19,6 +19,12 @@ import frontend.Utils;
 
 public class TemplateDelegate {
 	
+	public static void removeTemplate(final ITemplate t) {
+		ITemplate returned = StorageService.removeTemplate(t);
+/////	TODO printline
+		System.out.println("removeTemplate returned: " + returned);
+	}
+	
 	/**
 	 * Add Template to the database via StorageService. In case of StorageServiceException, prints error message.
 	 * 
