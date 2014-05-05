@@ -15,7 +15,6 @@ import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
-import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -30,11 +29,7 @@ import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import javax.swing.AbstractAction;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.KeyStroke;
-import javax.swing.Scrollable;
+import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
 
 import backend.database.StorageService;
@@ -42,6 +37,7 @@ import data.ITimeBlockable;
 import data.Tuple;
 import frontend.Utils;
 import frontend.view.CanvasUtils;
+import frontend.view.ScrollablePanel;
 import frontend.view.calendar.CalendarView.DragType;
 
 /**
@@ -49,7 +45,7 @@ import frontend.view.calendar.CalendarView.DragType;
  * 
  * @author dgattey
  */
-public class WeekCanvas extends JPanel implements MouseListener, MouseMotionListener, Scrollable {
+public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseMotionListener {
 	
 	private static final long							serialVersionUID	= 1L;
 	private static final int							CURSOR_CUST			= Cursor.N_RESIZE_CURSOR;
@@ -65,8 +61,10 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	 * Constructor
 	 * 
 	 * @param cv the calendar view containing this
+	 * @param scroller the scroll pane this is added to
 	 */
-	public WeekCanvas(final CalendarView cv) {
+	public WeekCanvas(final CalendarView cv, final JScrollPane scroller) {
+		super(scroller);
 		_cv = cv;
 		_allBlocks = new HashMap<>();
 		_timer = new Timer();
@@ -85,32 +83,6 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		}, 5000, 60000); // Once a minute, repaint (after 5 seconds)
 		addMouseListener(this);
 		addMouseMotionListener(this);
-		
-		// Scrolls the view up and down with arrows
-		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("UP"), "up");
-		getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("DOWN"), "down");
-		getActionMap().put("up", new AbstractAction() {
-			
-			private static final long	serialVersionUID	= 1L;
-			
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				final Rectangle newR = getVisibleRect();
-				newR.translate(0, -30);
-				scrollRectToVisible(newR);
-			}
-		});
-		getActionMap().put("down", new AbstractAction() {
-			
-			private static final long	serialVersionUID	= 1L;
-			
-			@Override
-			public void actionPerformed(final ActionEvent e) {
-				final Rectangle newR = getVisibleRect();
-				newR.translate(0, 30);
-				scrollRectToVisible(newR);
-			}
-		});
 	}
 	
 	/**
@@ -742,32 +714,5 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 	@Override
 	public Dimension getPreferredSize() {
 		return new Dimension(100, 2000);
-	}
-	
-	// All dimension code below sets information to be better scrollable
-	
-	@Override
-	public Dimension getPreferredScrollableViewportSize() {
-		return getPreferredSize();
-	}
-	
-	@Override
-	public int getScrollableUnitIncrement(final Rectangle visibleRect, final int orientation, final int direction) {
-		return 10;
-	}
-	
-	@Override
-	public int getScrollableBlockIncrement(final Rectangle visibleRect, final int orientation, final int direction) {
-		return 10;
-	}
-	
-	@Override
-	public boolean getScrollableTracksViewportWidth() {
-		return true;
-	}
-	
-	@Override
-	public boolean getScrollableTracksViewportHeight() {
-		return false;
 	}
 }
