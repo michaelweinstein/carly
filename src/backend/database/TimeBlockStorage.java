@@ -695,6 +695,7 @@ public class TimeBlockStorage {
 	 * @param startDate
 	 * @param endDate
 	 * @param blockList
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 */
 	public static void replaceUnavailableBlocks(final Date startDate, final Date endDate,
 			final List<ITimeBlockable> blockList, final JdbcConnectionPool pool) {
