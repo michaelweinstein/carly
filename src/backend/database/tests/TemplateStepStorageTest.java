@@ -160,10 +160,10 @@ public class TemplateStepStorageTest {
 	@Test
 	public void learnTemplateStepTimeOfDay() {
 		Template template1 = new Template("Template 1"); 		
-		template1.addStep(new TemplateStep("Step 1", 0.25, 1));
-		template1.addStep(new TemplateStep("Step 2", 0.25, 2)); 
-		template1.addStep(new TemplateStep("Step 3", 0.25, 3));
-		template1.addStep(new TemplateStep("Step 4", 0.25, 4));
+		template1.addStep(new TemplateStep("Step 1", 0.25, 0));
+		template1.addStep(new TemplateStep("Step 2", 0.25, 1)); 
+		template1.addStep(new TemplateStep("Step 3", 0.25, 2));
+		template1.addStep(new TemplateStep("Step 4", 0.25, 3));
 		
 		final Assignment assignment1 = new Assignment("Assignment 1", new Date(), template1);
 		

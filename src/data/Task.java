@@ -198,8 +198,8 @@ public class Task implements ITask {
 	
 	@Override
 	public String fullString() {
-		return String.format("[Task: id: %s; name: %s; percentOfTotal: %s; assignmentId: %s; "
-			+ "percentComplete: %s; timeOfDay: %s; suggestedBlockLength: %s]", _uniqueId, _name, _percentOfTotal,
+		return String.format("[Task: id: %s; name: %s; taskNumber: %s; percentOfTotal: %s; assignmentId: %s; "
+			+ "percentComplete: %s; timeOfDay: %s; suggestedBlockLength: %s]", _uniqueId, _name, _taskNumber, _percentOfTotal,
 				_assignmentId, _percentComplete, _timeOfDay.name(), _suggestedBlockLength);
 	}
 }

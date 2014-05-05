@@ -22,8 +22,8 @@ import data.TimeOfDay;
 
 public class Learner {
 	//How much to increment the ToD weight if the user directly adjusts the block in considerBlockUpdate
-	private static final double DIRECT_TOD_INCREMENT = 5.0;
-	private static final double INDIRECT_TOD_FACTOR = 10.0; 
+	private static final double DIRECT_TOD_INCREMENT = 3.0;
+	private static final double INDIRECT_TOD_FACTOR = 1.0; 
 	private static boolean _isEnabled = true;
 	
 	public static void optimizeTasks(IAssignment assignment) {
@@ -38,6 +38,9 @@ public class Learner {
 		for (ITemplateStep step : template.getAllSteps()) {
 			stepNumberToStep.put(step.getStepNumber(), step); 
 		}
+		System.out.println("assignment: " + assignment);
+		System.out.println("template: " + template);
+		System.out.println("stepNumberToStep: " + stepNumberToStep);
 		
 		for (ITask task : assignment.getTasks()) {
 			ITemplateStep step = stepNumberToStep.get(task.getTaskNumber()); 
@@ -46,18 +49,28 @@ public class Learner {
 		}
 	}
 	
-	public static void considerBlockUpdate(final ITimeBlockable newBlock) {
+	public static void considerBlockUpdate(final ITimeBlockable newBlock, final Date oldStart, 
+			final Date oldEnd) {
 		//Don't do any learning if the Learner is disabled
 		if (_isEnabled == false) {
 			return; 
 		}
-		Date start = newBlock.getStart(); 
-		Date end = newBlock.getEnd();
 		
-		final Date earlier = (start.compareTo(end) < 0) ? start : end;
-		final Date later = (end.compareTo(start) > 0) ? end : start;
+		System.out.println("Learner: considerBlockUpdate");
+		final Date start = newBlock.getStart(); 
+		final Date end = newBlock.getEnd();
+		final Date earlier = (oldStart.compareTo(oldEnd) < 0) ? oldStart : oldEnd;
+		final Date later = (oldEnd.compareTo(oldStart) > 0) ? oldEnd : oldStart;
 		
-		StorageService.learnTemplateConsecutiveHours(newBlock.getTask(), Learner.getHoursBetween(earlier, later));
+		System.out.println("\tstart: " + start);
+		System.out.println("\tend: " + end);
+		System.out.println("\tearlier: " + earlier);
+		System.out.println("\tlater: " + later);
+		
+		//if the block length isn't exactly the same length
+		if (Learner.getHoursBetween(start, end) != Learner.getHoursBetween(earlier, later)) {
+			StorageService.learnTemplateConsecutiveHours(newBlock.getTask(), Learner.getHoursBetween(earlier, later));
+		}
 		StorageService.learnTemplateStepTimeOfDay(newBlock.getTask(), Learner.extrapolateTimeOfDay(earlier), 
 				Learner.DIRECT_TOD_INCREMENT);
 	}
@@ -67,9 +80,9 @@ public class Learner {
 		if (_isEnabled == false) {
 			return; 
 		}
-		
+		System.out.println("Learner: considerTaskUpdate");
 		StorageService.learnTemplateStepTimeOfDay(oldTask, Learner.extrapolateTimeOfDay(adjustmentTime), 
-				magnitudeChange / Learner.INDIRECT_TOD_FACTOR);
+				magnitudeChange * Learner.INDIRECT_TOD_FACTOR);
 	}
 	
 	/**
@@ -86,7 +99,9 @@ public class Learner {
 	 */
 	
 	private static double getHoursBetween(final Date earlier, final Date later) { 
-		return TimeUnit.HOURS.convert(later.getTime() - earlier.getTime(), TimeUnit.MILLISECONDS); 
+		//Decided against using TimeUnit to convert because it rounds results down
+		//We need to find the exact length even if the hours between is less than 1
+		return (double)(later.getTime() - earlier.getTime()) / (1000 * 60 * 60); 
 	}
 	
 	private static String extrapolateTimeOfDay(final Date earlier) {

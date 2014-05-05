@@ -129,6 +129,7 @@ public class TemplateStep implements ITemplateStep {
 	
 	@Override
 	public String fullString() {
-		return "Task: [" + _name + ", " + (_percentOfTotal * 100) + ", " + _stepNumber + ", " + _timeOfDay.name() + "]";
+		return "TemplateStep: [name: " + _name + ", percentOfTotal: " + (_percentOfTotal * 100) + 
+					", stepNumber: " + _stepNumber + ", timeOfDay: " + _timeOfDay.name() + "]";
 	}
 }

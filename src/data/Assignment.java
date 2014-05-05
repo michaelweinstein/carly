@@ -100,7 +100,7 @@ public class Assignment implements IAssignment {
 				final String taskName = step.getName();
 				
 				// Create a task from the given information
-				final ITask task = new Task(taskName, step.getPercentOfTotal(), i + 1, _uniqueId);
+				final ITask task = new Task(taskName, step.getPercentOfTotal(), i, _uniqueId);
 				task.setPreferredTimeOfDay(step.getBestTimeToWork());
 				task.setSuggestedBlockLength(template.getPreferredConsecutiveHours());
 				tasks.add(task);

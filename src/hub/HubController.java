@@ -40,20 +40,25 @@ public class HubController {
 	 * @param a the assignment to add
 	 */
 	public static void addAssignmentToCalendar(final Assignment a) {
+		System.out.println("addAssignmentToCalendar: assignment: " + a.fullString());
+		
 		new Thread() {
 			
 			@Override
 			public void run() {
 				final String tempId = a.getTemplate().getID();
 				
-				Learner.optimizeTasks(a);
-				
 				try {
 					// Make sure the template and assignment are in the DB
 					if (StorageService.getTemplate(tempId) == null) {
 						StorageService.addTemplate(a.getTemplate());
 					}
+					//Learner requires that the template be in the db
+					Learner.optimizeTasks(a);
+					
 					StorageService.addAssignment(a);
+					
+					
 					
 					// Allocate time and then merge time blocks in DB
 					final Date start = new Date();
@@ -81,9 +86,13 @@ public class HubController {
 	 * @param newEnd the new end time
 	 */
 	public static void changeTimeBlock(final ITimeBlockable oldBlock, final Date newStart, final Date newEnd) {		
+		
+		final Date oldStart = new Date(oldBlock.getStart().getTime());
+		final Date oldEnd = new Date(oldBlock.getEnd().getTime());
+		
 		// Time modifier updates old block with newStart and newEnd so by the time the learner acts on it, it's "new"
 		if (TimeModifier.updateBlock(oldBlock, newStart, newEnd)) {
-			Learner.considerBlockUpdate(oldBlock);
+			Learner.considerBlockUpdate(oldBlock, oldStart, oldEnd);
 		}
 		reloadApp();
 	}

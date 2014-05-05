@@ -13,6 +13,7 @@ import java.util.List;
 
 import org.h2.jdbcx.JdbcConnectionPool;
 
+import data.IAssignment;
 import data.ITask;
 import data.ITemplate;
 import data.ITemplateStep;
@@ -107,24 +108,6 @@ public class TemplateStepStorage {
 			// Null check in case the template with the corresponding id is not found
 			if (template != null) {
 				templates.insert(id, template);
-				for (final ArrayList<ITemplateStep> list : listOfStepLists) {
-					Collections.sort(list, new Comparator<ITemplateStep>() {
-						
-						@Override
-						public int compare(final ITemplateStep arg0, final ITemplateStep arg1) {
-							final int stepNum1 = arg0.getStepNumber();
-							final int stepNum2 = arg1.getStepNumber();
-							
-							if (stepNum1 > stepNum2) {
-								return 1;
-							} else if (stepNum1 < stepNum2) {
-								return -1;
-							} else {
-								return 0;
-							}
-						}
-					});
-				}
 			}
 		} catch (final ClassNotFoundException e) {
 			Utilities.printException("TemplateStepStorage: getTemplate: db drive class not found", e);
@@ -146,6 +129,9 @@ public class TemplateStepStorage {
 			}
 		}
 		
+		if (template != null) {
+			TemplateStepStorage.sortSteps(template);
+		}
 		return template;
 	}
 	
@@ -196,26 +182,6 @@ public class TemplateStepStorage {
 					template.addStep(step);
 				}
 			}
-			
-			// Null check in case the template with the corresponding id is not found
-			if (template != null) {
-				Collections.sort(stepList, new Comparator<ITemplateStep>() {
-					
-					@Override
-					public int compare(final ITemplateStep arg0, final ITemplateStep arg1) {
-						final int stepNum1 = arg0.getStepNumber();
-						final int stepNum2 = arg1.getStepNumber();
-						
-						if (stepNum1 > stepNum2) {
-							return 1;
-						} else if (stepNum1 < stepNum2) {
-							return -1;
-						} else {
-							return 0;
-						}
-					}
-				});
-			}
 		} catch (final ClassNotFoundException e) {
 			Utilities.printException("TemplateStepStorage: getTemplateByName: db drive class not found", e);
 		} catch (final SQLException e) {
@@ -236,6 +202,9 @@ public class TemplateStepStorage {
 			}
 		}
 		
+		if (template != null) {
+			TemplateStepStorage.sortSteps(template);
+		}
 		return template;
 	}
 	
@@ -545,27 +514,10 @@ public class TemplateStepStorage {
 			}
 		}
 		
-		// Sort the steps in the step list so that they are in the correct order
-		for (final ArrayList<ITemplateStep> list : listOfTaskLists) {
-			Collections.sort(list, new Comparator<ITemplateStep>() {
-				
-				@Override
-				public int compare(final ITemplateStep arg0, final ITemplateStep arg1) {
-					final int stepNum1 = arg0.getStepNumber();
-					final int stepNum2 = arg1.getStepNumber();
-					
-					if (stepNum1 > stepNum2) {
-						return 1;
-					} else if (stepNum1 < stepNum2) {
-						return -1;
-					} else {
-						return 0;
-					}
-				}
-			});
-		}
-		
 		results.addAll(idToTemplate.values());
+		for (ITemplate template : results) {
+			TemplateStepStorage.sortSteps(template);
+		}
 		return results;
 	}
 	
@@ -584,6 +536,11 @@ public class TemplateStepStorage {
 		if (todKey.equals("")) {
 			return; 
 		}
+		
+		System.out.println("learnTemplateStepTimeOfDay");
+		System.out.println("\ttask: " + task.fullString());
+		System.out.println("\ttodKey: " + todKey);
+		System.out.println("\tdeltaTod: " + deltaTod);
 		
 		PreparedStatement retrieveStatement = null;
 		PreparedStatement storeStatement = null;
@@ -613,6 +570,13 @@ public class TemplateStepStorage {
 				todCounters[i] = (Double) objArray[i]; 
 			}
 			
+//			System.out.println("\tBEFORE timeOfDay: " + highestTodKey);
+//			System.out.println("\tBEFORE todCounters: [");
+//			for (Double count : todCounters) {
+//				System.out.print(count + ", ");
+//			}
+//			System.out.println("]");
+			
 			//Modify tod with learnings
 			int countersIndex = TemplateStepStorage.todKeyToIndex(todKey);  
 			if (countersIndex != -1) {
@@ -622,6 +586,13 @@ public class TemplateStepStorage {
 				System.err.println("TimeBlockStorage: learnTemplateStepTimeOfDay: "
 						+ "Could not resolve passed in todKey: " + todKey);
 			}
+			
+//			System.out.println("\tAFTER timeOfDay: " + highestTodKey);
+//			System.out.println("\tAFTER todCounters: [");
+//			for (Double count : todCounters) {
+//				System.out.print(count + ", ");
+//			}
+//			System.out.println("]");
 			
 			//Update the db with the new learnings
 			storeStatement = con.prepareStatement(Utilities.UPDATE_TEMPLATE_STEP_TOD);
@@ -684,6 +655,10 @@ public class TemplateStepStorage {
 		PreparedStatement storeStatement = null;
 		Connection con = null;
 		String templateId = "";
+		
+		System.out.println("learnTemplateConsecutiveHours");
+		System.out.println("\ttask: " + task.fullString());
+		System.out.println("\tconsecutiveHours: " + consecutiveHours);
 		
 		try {
 			Class.forName("org.h2.Driver");
@@ -791,5 +766,23 @@ public class TemplateStepStorage {
 			i++; 
 		}
 		return TemplateStepStorage.countersIndexTotodKey(maxIndex); 
+	}
+	
+	public static void sortSteps(ITemplate template) {
+		Collections.sort(template.getAllSteps(), new Comparator<ITemplateStep>() {
+			@Override
+			public int compare(ITemplateStep arg0, ITemplateStep arg1) {
+				final int stepNum1 = arg0.getStepNumber();
+				final int stepNum2 = arg1.getStepNumber();
+				
+				if (stepNum1 > stepNum2) {
+					return 1;
+				} else if (stepNum1 < stepNum2) {
+					return -1;
+				} else {
+					return 0;
+				}
+			}
+		});;
 	}
 }
