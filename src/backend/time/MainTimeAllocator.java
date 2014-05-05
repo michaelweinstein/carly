@@ -12,6 +12,7 @@ import data.ITimeBlockable;
 import data.Template;
 import data.TemplateStep;
 import data.UnavailableBlock;
+import frontend.Utils;
 
 public class MainTimeAllocator {
 	
@@ -26,7 +27,7 @@ public class MainTimeAllocator {
 		try {
 			StorageService.initialize(true);
 		} catch (final StorageServiceException e) {
-			System.err.println("FAILED TO INITIALIZE");
+			Utils.printError("FAILED TO INITIALIZE");
 			return;
 		}
 		
@@ -61,7 +62,7 @@ public class MainTimeAllocator {
 		try {
 			talloc.insertAsgn(start, due);
 		} catch (final NotEnoughTimeException net) {
-			System.err.println("INSERTION FAILED");
+			Utils.printError("INSERTION FAILED");
 			return;
 		}
 		
@@ -69,21 +70,21 @@ public class MainTimeAllocator {
 		List<ITimeBlockable> results = talloc.getEntireBlockSet();
 		List<ITimeBlockable> errs = StorageService.mergeAllTimeBlocks(results);
 		if (errs.size() != 0) {
-			System.err.println(":(");
+			Utils.printError(":(");
 		}
 		
 		talloc = new TimeAllocator(asgn2);
 		try {
 			talloc.insertAsgn(start, due2);
 		} catch (final NotEnoughTimeException net) {
-			System.err.println("INSERTION FAILED");
+			Utils.printError("INSERTION FAILED");
 			return;
 		}
 		// Push to db
 		results = talloc.getEntireBlockSet();
 		errs = StorageService.mergeAllTimeBlocks(results);
 		if (errs.size() != 0) {
-			System.err.println(":( 2");
+			Utils.printError(":( 2");
 		}
 		
 		// Try to insert a 3rd assignment
@@ -112,7 +113,7 @@ public class MainTimeAllocator {
 		try {
 			talloc.insertAsgn(start, due3);
 		} catch (final NotEnoughTimeException net) {
-			System.err.println("INSERTION FAILED");
+			Utils.printError("INSERTION FAILED");
 			return;
 		}
 		
@@ -120,21 +121,21 @@ public class MainTimeAllocator {
 		results = talloc.getEntireBlockSet();
 		errs = StorageService.mergeAllTimeBlocks(results);
 		if (errs.size() != 0) {
-			System.err.println(":( 3");
+			Utils.printError(":( 3");
 		}
 		
 		talloc = new TimeAllocator(asgn4);
 		try {
 			talloc.insertAsgn(start, due4);
 		} catch (final NotEnoughTimeException net) {
-			System.err.println("INSERTION FAILED");
+			Utils.printError("INSERTION FAILED");
 			return;
 		}
 		// Push to db
 		results = talloc.getEntireBlockSet();
 		errs = StorageService.mergeAllTimeBlocks(results);
 		if (errs.size() != 0) {
-			System.err.println(":( 4");
+			Utils.printError(":( 4");
 		}
 		
 		// TODO: ensure that the results from the db are a valid calendar

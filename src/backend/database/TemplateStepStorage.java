@@ -19,6 +19,7 @@ import data.ITemplateStep;
 import data.Template;
 import data.TemplateStep;
 import data.TimeOfDay;
+import frontend.Utils;
 
 public class TemplateStepStorage {
 	
@@ -567,7 +568,7 @@ public class TemplateStepStorage {
 				todCounters[countersIndex] += deltaTod;
 				highestTodKey = TemplateStepStorage.maxTodKey(todCounters);
 			} else {
-				System.err.println("TimeBlockStorage: learnTemplateStepTimeOfDay: "
+				Utils.printError("TimeBlockStorage: learnTemplateStepTimeOfDay: "
 					+ "Could not resolve passed in todKey: " + todKey);
 			}
 			

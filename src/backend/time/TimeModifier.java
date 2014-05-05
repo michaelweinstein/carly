@@ -11,9 +11,10 @@ import data.AssignmentBlock;
 import data.ITask;
 import data.ITimeBlockable;
 import data.UnavailableBlock;
+import frontend.Utils;
 
 public class TimeModifier {
-		
+	
 	/**
 	 * Takes in a block, and a new start/end time and updates the block in the database. The types of operations that
 	 * merit the use of this function are (1) lengthening a block, (2) shortening a block, and (3) dragging a block.
@@ -26,10 +27,10 @@ public class TimeModifier {
 	public static boolean updateBlock(final ITimeBlockable block, final Date newStart, final Date newEnd) {
 		final Date now = new Date();
 		
-		ITask task = block.getTask();
+		final ITask task = block.getTask();
 		
-		//If a block is an AssignmentBlock, then the task will NOT be null
-		if(task != null) {
+		// If a block is an AssignmentBlock, then the task will NOT be null
+		if (task != null) {
 			final Assignment asgn = StorageService.getAssignment(task.getAssignmentID());
 			
 			// Ensure that a user cannot lengthen, shorten, or drag a block outside of the valid time range
@@ -37,8 +38,8 @@ public class TimeModifier {
 				return false;
 			}
 		}
-
-		//Get all blocks from now until the end of the user's calendar
+		
+		// Get all blocks from now until the end of the user's calendar
 		final Date tempStart = new Date();
 		final Date tempEnd = TimeUtilities.getLastDueDate();
 		final List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);
@@ -164,7 +165,7 @@ public class TimeModifier {
 		final ITimeBlockable prev = (ind > 0 ? allBlocks.get(ind - 1) : null);
 		final ITimeBlockable curr = (ind < allBlocks.size() ? allBlocks.get(ind) : null);
 		
-		//If either is null, return immediately for safety concerns
+		// If either is null, return immediately for safety concerns
 		if (prev == null || curr == null) {
 			return false;
 		}
@@ -248,7 +249,7 @@ public class TimeModifier {
 		final ITimeBlockable curr = (ind < allBlocks.size() ? allBlocks.get(ind) : null);
 		final ITimeBlockable next = (ind < allBlocks.size() - 1 ? allBlocks.get(ind + 1) : null);
 		
-		//If either is null, return for safety concerns 
+		// If either is null, return for safety concerns
 		if (next == null || curr == null) {
 			return false;
 		}
@@ -334,7 +335,7 @@ public class TimeModifier {
 	 */
 	public static void updateBlocksInTask(final ITask task, final double newPct) {
 		
-		//Get all blocks from now until the end of the user's calendar
+		// Get all blocks from now until the end of the user's calendar
 		final Date tempStart = new Date();
 		final Date tempEnd = TimeUtilities.getLastDueDate();
 		final List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);
@@ -345,7 +346,7 @@ public class TimeModifier {
 		
 		final Date now = new Date(); // this Date captures where the user is and how much work they've done
 		final Date due = StorageService.getAssignment(task.getAssignmentID()).getDueDate();
-		double currProgress = task.getPercentComplete();
+		final double currProgress = task.getPercentComplete();
 		double pctToAdjust = 0.0;
 		// This list contains all blocks that represent the current task, in order sorted by start date
 		final List<ITimeBlockable> taskBlocks = new ArrayList<ITimeBlockable>();
@@ -362,17 +363,17 @@ public class TimeModifier {
 		
 		// 2. Using the time in "now", figure out how much the user should have completed
 		// (in units of percentage) of that Task.
-//		for (final ITimeBlockable bl : taskBlocks) {
-//			// If a block is entirely in the past
-//			if (bl.getStart().getTime() < now.getTime() && bl.getEnd().getTime() <= now.getTime()) {
-//				currProgress += (double) bl.getLength() / taskLengthInMillis;
-//			}
-//			// If a block is currently being worked on
-//			else if (bl.getStart().getTime() < now.getTime() && bl.getEnd().getTime() > now.getTime()) {
-//				currProgress += (double) (now.getTime() - bl.getStart().getTime()) / taskLengthInMillis;
-//			}
-//		}
-//		
+		// for (final ITimeBlockable bl : taskBlocks) {
+		// // If a block is entirely in the past
+		// if (bl.getStart().getTime() < now.getTime() && bl.getEnd().getTime() <= now.getTime()) {
+		// currProgress += (double) bl.getLength() / taskLengthInMillis;
+		// }
+		// // If a block is currently being worked on
+		// else if (bl.getStart().getTime() < now.getTime() && bl.getEnd().getTime() > now.getTime()) {
+		// currProgress += (double) (now.getTime() - bl.getStart().getTime()) / taskLengthInMillis;
+		// }
+		// }
+		//
 		// 3. Examine the actual percent complete (the parameter "newPct")
 		pctToAdjust = newPct - currProgress;
 		
@@ -411,15 +412,14 @@ public class TimeModifier {
 				
 				// Exit the loop early if either b1 or b2 is an AssignmentBlock on a Task that occurs
 				// after the current Task chronologically
-				ITask t = b1.getTask();
-				if(t != null) {
+				final ITask t = b1.getTask();
+				if (t != null) {
 					final Assignment b1asgn = StorageService.getAssignment(t.getAssignmentID());
 					if (b1asgn.getID().equals(task.getAssignmentID()) && b1asgn.getTasks().indexOf(task) > taskIndex) {
 						break;
 					}
 				}
 				
-
 				final long insLen = Math.min(blockLengthInMillis, totalMillisToAdd);
 				
 				// Determine if there is space for a block in between b1 and b2
@@ -478,7 +478,7 @@ public class TimeModifier {
 			// were successfully added). This is a pretty extreme edge case that
 			// the schedule would be so tight that no blocks could be added anyway...
 			if (totalMillisToAdd > minLengthInMillis) {
-				System.err.println("Total Millis To Add > 0 - sleeping for 5 seconds as punishment :(");
+				Utils.printError("Total Millis To Add > 0 - sleeping for 5 seconds as punishment :(");
 				try {
 					Thread.sleep(5000);
 				} catch (final InterruptedException ie) {}
@@ -552,8 +552,8 @@ public class TimeModifier {
 			}
 		}
 		
-		//Save the new percent-complete of the Task that was just updated and 
-		//push to the StorageService
+		// Save the new percent-complete of the Task that was just updated and
+		// push to the StorageService
 		task.setPercentComplete(newPct);
 		StorageService.updateTask(task);
 	}

@@ -265,7 +265,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			} catch (final NumberFormatException e) {
 				throw new IllegalArgumentException("percent of total not a number");
 			}
-			total += stepPercent;
+			total += stepPercent / 100.0;
 			t.addStep(new TemplateStep(stepName, stepPercent / 100.0, i));
 		}
 		if (total < 0.999999999 || total > 1.0000000001) {

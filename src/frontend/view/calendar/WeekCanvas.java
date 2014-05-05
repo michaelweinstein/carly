@@ -82,7 +82,7 @@ public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseM
 					}
 				});
 			}
-		}, 5000, 60000); // Once a minute, repaint (after 5 seconds)
+		}, 5000, 60000); // Once a minute, reload (after 5 seconds)
 		addMouseListener(this);
 		addMouseMotionListener(this);
 	}

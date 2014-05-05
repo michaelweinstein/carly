@@ -40,8 +40,6 @@ public class HubController {
 	 * @param a the assignment to add
 	 */
 	public static void addAssignmentToCalendar(final Assignment a) {
-		System.out.println("addAssignmentToCalendar: assignment: " + a.fullString());
-		
 		new Thread() {
 			
 			@Override
