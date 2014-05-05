@@ -659,7 +659,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 							unavailable.add(t);
 						}
 					}
-					HubController.updateUnavailableBlocks(start, end, unavailable);
+					HubController.replaceUnavailableBlocks(start, end, unavailable);
 				}
 			}
 		}

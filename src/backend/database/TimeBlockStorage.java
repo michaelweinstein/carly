@@ -90,7 +90,7 @@ public class TimeBlockStorage {
 	            	while (blockResults.next()) {
 	            		//We need to the date of all of the default timeBlocks to this week
 	            		Calendar cal = Calendar.getInstance();
-	            		cal.setTime(earlier);
+	            		cal.setTime(range.start);
 	            		cal.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
 	            		cal.set(Calendar.HOUR_OF_DAY, 0);
 	            		cal.set(Calendar.MINUTE, 0);
@@ -690,12 +690,15 @@ public class TimeBlockStorage {
 	    	
 	        con.setAutoCommit(false);
 	        
+	        //TODO: make sure test accounts for this change
+	        blockStatement = con.prepareStatement(Utilities.INSERT_TIME_BLOCK);
 	        for (final ITimeBlockable block: blockList) {
-	        	blockStatement = con.prepareStatement(Utilities.INSERT_TIME_BLOCK); 
 	            Utilities.setValues(blockStatement, block.getId(), block.getTaskId(), block.getStart().getTime(),
 	            		block.getEnd().getTime(), block.isMovable(), true);
-	            blockStatement.execute();
+	            blockStatement.addBatch();
 	        }
+	        
+	        blockStatement.executeBatch(); 
 	        
             //commit to the database
             con.commit();
@@ -731,6 +734,83 @@ public class TimeBlockStorage {
                 		"could not close resource", x);
             }
 	    }
+	}
+	
+	/**
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param blockList
+	 */
+	public static void replaceUnavailableBlocks(final Date startDate, final Date endDate,
+			final List<ITimeBlockable> blockList, final JdbcConnectionPool pool) {
+		PreparedStatement deleteBlockStatement = null;
+		PreparedStatement blockStatement = null;
+	    Connection con = null;
+	    
+	    Date earlier = (startDate.compareTo(endDate) < 0) ? startDate : endDate; 
+	    Date later = (endDate.compareTo(startDate) > 0) ? endDate : startDate; 
+
+	    try {
+	    	Class.forName("org.h2.Driver");
+	    	con = pool.getConnection();
+	    	
+	        con.setAutoCommit(false);
+	        
+	        //Delete all the blocks in the range 
+	        deleteBlockStatement = con.prepareStatement(Utilities.DELETE_UNAVAILABLE_BLOCKS_BY_DATE); 
+	        Utilities.setValues(deleteBlockStatement, earlier.getTime(), later.getTime(),
+	        		earlier.getTime(), later.getTime(),
+	        		earlier.getTime(), later.getTime());
+	        deleteBlockStatement.execute(); 
+	        
+	        //Insert all of the custom time blocks for that period
+	        blockStatement = con.prepareStatement(Utilities.INSERT_TIME_BLOCK);
+	        for (final ITimeBlockable block: blockList) {
+	            Utilities.setValues(blockStatement, block.getId(), block.getTaskId(), block.getStart().getTime(),
+	            		block.getEnd().getTime(), block.isMovable(), false);
+	            blockStatement.addBatch();
+	        }
+	        
+	        blockStatement.executeBatch(); 
+	        
+            //commit to the database
+            con.commit();
+	    } 
+	    catch (final ClassNotFoundException e) {
+			Utilities.printException("TimeBlockStorage: replaceUnavailableBlocks: db drive class not found", e);
+		} 
+	    catch (final SQLException e) {
+	        Utilities.printSQLException("TimeBlockStorage: replaceUnavailableBlocks: " +
+	        		"attempting to roll back transaction", e);
+	        if (con != null) {
+	            try {
+	                con.rollback();
+	            } 
+	            catch(SQLException x) {
+	                Utilities.printSQLException("TimeBlockStorage: replaceUnavailableBlocks: " +
+	                		"could not roll back transaction", x);
+	            }
+	        }
+	    } 
+	    finally {
+	    	try {
+	    		if (deleteBlockStatement != null) {
+	    			deleteBlockStatement.close();
+		        }
+	    		if (blockStatement != null) {
+		            blockStatement.close();
+		        }
+		        con.setAutoCommit(true);
+		        if (con != null) {
+	    			con.close(); 
+	    		}
+	    	}
+	    	catch(final SQLException x) {
+                Utilities.printSQLException("TimeBlockStorage: replaceUnavailableBlocks: " +
+                		"could not close resource", x);
+            }
+	    }		
 	}
 	
 	

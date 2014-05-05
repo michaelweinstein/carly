@@ -309,6 +309,17 @@ public class StorageService {
 		TimeBlockStorage.addAllDefaultUnavailableBlocks(blockList, _pool); 
 	}
 	
+	/**
+	 * 
+	 * @param startDate
+	 * @param endDate
+	 * @param blockList
+	 */
+	public static void replaceUnavailableBlocks(final Date startDate, final Date endDate,
+			final List<ITimeBlockable> blockList) {
+		TimeBlockStorage.replaceUnavailableBlocks(startDate, endDate, blockList, _pool);
+	}
+	
 	/*
 	 * ================================================
 	 * CRUD and dynamic queries for Templates and Steps
