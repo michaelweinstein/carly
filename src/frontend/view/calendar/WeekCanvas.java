@@ -690,11 +690,11 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 				} else {
 					final List<ITimeBlockable> unavailable = new ArrayList<>();
 					for (final ITimeBlockable t : getAllBlocks().keySet()) {
-						if (!t.isMovable()) {
+						if (t != null && !t.isMovable()) {
 							unavailable.add(t);
 						}
 					}
-					HubController.replaceUnavailableBlocks(start, end, unavailable);
+					HubController.replaceUnavailableBlocks(_weekStartDate, _weekEndDate, unavailable);
 				}
 			}
 		}

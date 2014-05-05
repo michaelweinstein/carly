@@ -58,7 +58,7 @@ public class ErrorDialog extends JDialog {
 		Utils.themeComponent(_text);
 		
 		// Create button
-		final JButton cancel = new CButton("Cancel");
+		final JButton cancel = new CButton("Close");
 		cancel.setAlignmentX(RIGHT_ALIGNMENT);
 		cancel.addActionListener(new ActionListener() {
 			
