@@ -41,6 +41,7 @@ import frontend.view.assignments.StepViewTable;
 public class TemplateWizardView extends JPanel {
 	
 	// TODO Bug: When expanding window horizontally, elements/layout stretch out all weird
+	// TODO When you switch to existing Template, it hides automatically...?
 	
 	private static final long					serialVersionUID		= 4215933185975151935L;
 	
@@ -90,7 +91,6 @@ public class TemplateWizardView extends JPanel {
 		super();
 		// Set theme and layout of wizard
 		Utils.themeComponent(this);
-		// // // TODO: Get rid of border if I can get it to look similar for entire SettingsView
 		Utils.padComponent(this, padding, padding);
 				
 		// ====== Instantiating Elements ======
@@ -124,6 +124,7 @@ public class TemplateWizardView extends JPanel {
 		final int numItems = _templatePicker.getItemCount();
 		_templatePicker.setSelectedIndex(numItems > 0 ? numItems - 1 : 0);
 		
+
 		/* Name: (code in newNamePanel()) */
 		_namePanel = newNamePanel(template_name);
 		
@@ -219,16 +220,23 @@ public class TemplateWizardView extends JPanel {
 			@Override
 			public void itemStateChanged(final ItemEvent e) {
 				final ITemplate t = (ITemplate) _templatePicker.getSelectedItem();
-				// Populate fields data based on current selected item
-				populateFields();
-				// Set element states if 'New Template' or not
-				toggleCustom(t.getName().equals(new_template));		
-				// Repaint wizard panel
-				TemplateWizardView.this.repaint();
+				// t is null temporarily during updateData
+				if (t != null) {
+					// Populate fields data based on current selected item
+					populateFields();
+					// Set element states if 'New Template' or not
+					toggleCustom(t.getName().equals(new_template));		
+					// Repaint wizard panel
+					TemplateWizardView.this.repaint();
+				}
 			}
 		});
 		
 		// ============= End of Listeners =============
+		
+//////////////
+		// TODO ScrollPane
+		
 		
 		// === Adding Elements ===
 		this.add(_editBtn);
@@ -371,7 +379,7 @@ public class TemplateWizardView extends JPanel {
 		final JLabel nameLabel = new JLabel(name + ": ");
 		Utils.themeComponentAlt(nameLabel);
 		final JTextField nameInput = new JTextField();
-		nameInput.setPreferredSize(new Dimension(100, 20));
+		nameInput.setPreferredSize(new Dimension(150, 20));
 		namePanel.add(nameLabel);
 		namePanel.add(nameInput);
 		namePanel.setVisible(false);
@@ -387,7 +395,7 @@ public class TemplateWizardView extends JPanel {
 		final JLabel hoursLabel = new JLabel(name + ": ");
 		Utils.themeComponentAlt(hoursLabel);
 		final JTextField hoursInput = new JTextField();
-		hoursInput.setPreferredSize(new Dimension(40, 20));
+		hoursInput.setPreferredSize(new Dimension(60, 20));
 		hoursPanel.add(hoursLabel);
 		hoursPanel.add(hoursInput);
 		hoursPanel.setVisible(false);
@@ -429,21 +437,23 @@ public class TemplateWizardView extends JPanel {
 	private void populateFields() {
 		// Populate based on data from current selected Template
 		final ITemplate t = (ITemplate) _templatePicker.getSelectedItem();
-		// Set name and preferred consecutive hours fields
-		String name = t.getName();
-		String hours = t.getPreferredConsecutiveHours() + "";
-		final boolean custom = name.equals(new_template);
-		// If 'Custom Template', set fields to blank
-		if (custom) {
-			name = "";
-			hours = "";
+		if (t != null) {
+			// Set name and preferred consecutive hours fields
+			String name = t.getName();
+			String hours = t.getPreferredConsecutiveHours() + "";
+			final boolean custom = name.equals(new_template);
+			// If 'Custom Template', set fields to blank
+			if (custom) {
+				name = "";
+				hours = "";
+			}
+			// Set 'Name', 'Hours' fields using _inputMap
+			_inputMap.get(template_name).setText(name);
+			_inputMap.get(template_hours).setText(hours);
+			
+			// Load template data into StepsViewTable; clear all if 'Custom'
+			populateStepsViewTable(t, custom);
 		}
-		// Set 'Name', 'Hours' fields using _inputMap
-		_inputMap.get(template_name).setText(name);
-		_inputMap.get(template_hours).setText(hours);
-		
-		// Load template data into StepsViewTable; clear all if 'Custom'
-		populateStepsViewTable(t, custom);
 	}
 	
 	/**
@@ -572,6 +582,23 @@ public class TemplateWizardView extends JPanel {
 		_templatePicker.removeItemAt(index);
 		_templatePicker.insertItemAt(t, index);
 		_templatePicker.setSelectedIndex(index);
+	}
+	
+	/**
+	 * Resets JComboBox _templatePicker according
+	 * to what is in the database. 
+	 */
+	public void updateTemplatesInPicker() {
+		// Clear JComboBox
+		_templatePicker.removeAllItems();
+		// Add back 'New Template' template
+		_templatePicker.addItem(new Template(new_template));
+		final int numItems = _templatePicker.getItemCount();
+		_templatePicker.setSelectedIndex(numItems > 0 ? numItems - 1 : 0);
+		// Add all new Templates from database
+		for (ITemplate t: TemplateDelegate.getExistingTemplates()) {
+			this.addTemplateToPicker(t);
+		}
 	}
 	
 	// ============= END Data Structures Methods ==============
