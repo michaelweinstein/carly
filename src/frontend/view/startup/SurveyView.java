@@ -30,7 +30,9 @@ public class SurveyView extends JDialog {
 	
 	/* Styling vars */
 	private static final Dimension		minimum_size		= new Dimension(625, 670);
-	private static final Insets			insets				= new Insets(6, 5, 6, 5);
+	private static final Insets			insets				= new Insets(6, 2, 6, 2);
+	private static final Insets			leftInsets			= new Insets(8, 30, 8, 0);
+	private static final Insets			rightInsets			= new Insets(8, 0, 8, 30);
 	private static final int			padding				= 15;
 	private static final int			title_size			= 46;
 	
@@ -89,14 +91,11 @@ public class SurveyView extends JDialog {
 		c.gridy = ycount += 1; // 2
 		c.gridwidth = 1;
 		c.anchor = GridBagConstraints.WEST;
-		
-		// / // TODO Pad left to lign up with _timePicker
-		// top left bottom right
-		// c.insets = new Insets(10, 30, 10, 5);
-		
+		c.insets = leftInsets;
 		this.add(todLabel, c);
 		c.gridx = 1;
 		c.anchor = GridBagConstraints.WEST;
+		c.insets = rightInsets;
 		this.add(_todPicker, c);
 		
 		/* "Would you like settings to be adjusted based on your behavior?" */
@@ -107,9 +106,11 @@ public class SurveyView extends JDialog {
 		c.gridx = 0;
 		c.gridy = ycount += 1; // 3
 		c.anchor = GridBagConstraints.WEST;
+		c.insets = leftInsets;
 		this.add(learnerLabel, c);
 		c.gridx = 1;
 		c.anchor = GridBagConstraints.WEST;
+		c.insets = rightInsets;
 		this.add(_learnerCheck, c);
 		
 		/* "Please drag for unavailable times during average week" */
@@ -120,12 +121,14 @@ public class SurveyView extends JDialog {
 		c.gridy = ycount += 1; // 4
 		c.gridwidth = 2;
 		c.anchor = GridBagConstraints.WEST;
+		c.insets = leftInsets;
 		this.add(timeLabel, c);
 		c.gridx = 0;
 		c.gridy = ycount += 1; // 5
 		c.gridwidth = 2;
 		c.gridheight = 2;
 		c.anchor = GridBagConstraints.CENTER;
+		c.insets = insets;
 		this.add(_timeView, c);
 		
 		/* 'Submit survey' button */
