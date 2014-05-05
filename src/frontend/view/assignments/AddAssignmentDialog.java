@@ -51,7 +51,7 @@ import data.TemplateStep;
 import frontend.Utils;
 import frontend.app.GUIApp;
 import frontend.view.CButton;
-import frontend.view.CScrollBarUI;
+import frontend.view.ScrollablePanel;
 
 /**
  * Class for the dialog box that pops up when adding a new assignment
@@ -119,16 +119,10 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		setMinimumSize(getMinimumSize()); // Silly but required
 		
 		_dialogTitle = createDialogTitle();
-		final JPanel centerPane = createFieldsAndLabels();
-		final JScrollPane scroller = new JScrollPane(centerPane);
-		scroller.getVerticalScrollBar().setUI(new CScrollBarUI());
-		scroller.getHorizontalScrollBar().setUI(new CScrollBarUI());
+		final JScrollPane scroller = new JScrollPane();
+		final JPanel centerPane = createFieldsAndLabels(scroller);
+		scroller.setViewportView(centerPane);
 		final JPanel bottom = createButtonsAndStatusPane();
-		
-		Utils.themeComponent(scroller);
-		Utils.themeComponent(scroller.getViewport());
-		Utils.themeComponent(scroller.getVerticalScrollBar());
-		Utils.padComponent(scroller, 0, 0);
 		
 		// Addition of all items to dialog
 		add(_dialogTitle, BorderLayout.NORTH);
@@ -373,10 +367,11 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	/**
 	 * Creates all fields and labels in a center panel
 	 * 
+	 * @param scroller the scroll panel to encapsulate the result
 	 * @return a new JPanel for the center full of labels and fields
 	 */
-	private JPanel createFieldsAndLabels() {
-		final JPanel pane = new JPanel();
+	private JPanel createFieldsAndLabels(final JScrollPane scroller) {
+		final JPanel pane = new ScrollablePanel(scroller);
 		final GridBagConstraints c = new GridBagConstraints();
 		pane.setLayout(new GridBagLayout());
 		c.fill = GridBagConstraints.HORIZONTAL;

@@ -65,7 +65,7 @@ public class ErrorDialog extends JDialog {
 			
 			@Override
 			public void actionPerformed(final ActionEvent e) {
-				setVisible(false);
+				dispose();
 			}
 		});
 		final JPanel buttonPanel = new JPanel();

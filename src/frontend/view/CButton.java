@@ -62,6 +62,11 @@ public class CButton extends JButton implements MouseListener {
 	}
 	
 	@Override
+	protected void paintBorder(final Graphics g) {
+		// Don't draw border (resolves Linux bug)
+	}
+	
+	@Override
 	public void mouseClicked(final MouseEvent e) {}
 	
 	@Override
