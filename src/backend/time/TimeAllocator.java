@@ -59,7 +59,7 @@ public class TimeAllocator {
 		// If there are not enough free hours in the range specified by the new Assignment,
 		// exit this function
 		if (!TimeUtilities.existsPossibleFit(allBlocks, m_asgn, start)) {
-			throw new NotEnoughTimeException("Not enough free time available by the specified due date");
+			throw new NotEnoughTimeException("Oops! There is not enough free time available by that due date.");
 		}
 		
 		// Get the number of subtasks for this assignment, determine how many chunks to break into
@@ -84,7 +84,7 @@ public class TimeAllocator {
 			//For the purposes of extensibility, we could try another insertion policy here.
 			//Currently, we choose to throw an exception instead to indicate failure.
 			if (!success) {
-				throw new NotEnoughTimeException("Uniform insertion policy failed");
+				throw new NotEnoughTimeException("Oops! Carly was unable to insert the assignment.");
 			}
 			
 			//Now, insert the remaining time as a smaller block
@@ -96,7 +96,7 @@ public class TimeAllocator {
 			//For the purposes of extensibility, we could try another insertion policy here.
 			//Currently, we choose to throw an exception instead to indicate failure.
 			if (!success) {
-				throw new NotEnoughTimeException("Uniform insertion policy failed");
+				throw new NotEnoughTimeException("Oops! Carly was unable to insert the assignment.");
 			}
 			
 		}
