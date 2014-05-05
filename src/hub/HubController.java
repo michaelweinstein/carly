@@ -64,13 +64,7 @@ public class HubController {
 					
 					// Not enough time to add or storage error, so present the error dialog after removing from DB
 					StorageService.removeAssignment(a);
-					SwingUtilities.invokeLater(new Runnable() {
-						
-						@Override
-						public void run() {
-							_app.presentErrorDialog(err, "Close");
-						}
-					});
+					showError(err, "Close");
 				}
 				
 				// Everything went well, so reload the app data
@@ -138,6 +132,22 @@ public class HubController {
 			public void run() {
 				_app.reload();
 			};
+		});
+	}
+	
+	/**
+	 * Convenience method to show an error
+	 * 
+	 * @param err the exception to use
+	 * @param buttonText the text of the button
+	 */
+	private static void showError(final Exception err, final String buttonText) {
+		SwingUtilities.invokeLater(new Runnable() {
+			
+			@Override
+			public void run() {
+				_app.presentErrorDialog(err, buttonText);
+			}
 		});
 	}
 }

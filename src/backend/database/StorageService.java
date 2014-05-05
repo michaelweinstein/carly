@@ -37,35 +37,37 @@ public class StorageService {
 	 * Called each time application starts up
 	 * 
 	 * @param dropTables If true, recreates new blank tables; if false, persists data from last time
-	 * @return boolean True if first start, false if not first start 
+	 * @return boolean True if first start, false if not first start
+	 * @throws StorageServiceException if there was an error
 	 */
-	public static boolean initialize(final boolean dropTables) {
+	public static boolean initialize(final boolean dropTables) throws StorageServiceException {
 		_templates = new Cache<>();
 		final Properties props = new Properties();
 		try {
 			props.loadFromXML(new FileInputStream(new File("config/db.properties")));
 		} catch (final IOException x) {
-			Utilities.printException("StorageService: initialize: could not load database properties", x);
+			throw new StorageServiceException("StorageService: initialize: could not load database properties"
+				+ x.getMessage());
 		}
 		_pool = JdbcConnectionPool.create(props.getProperty("DB_URL"), props.getProperty("DB_USER"),
 				props.getProperty("DB_PWD"));
 		
-		boolean firstStart = false; 	
+		boolean firstStart = false;
 		// Create tables in the database
 		try (Connection con = _pool.getConnection()) {
 			Class.forName("org.h2.Driver");
 			
-			int tableNum = 0; 
-			String startupQuery = "SHOW TABLES";
+			int tableNum = 0;
+			final String startupQuery = "SHOW TABLES";
 			try (Statement stmt = con.createStatement()) {
 				final ResultSet rs = stmt.executeQuery(startupQuery);
 				while (rs.next()) {
-					tableNum++; 
+					tableNum++;
 				}
 			}
 			
 			if (tableNum < 6) {
-				firstStart = true; 
+				firstStart = true;
 			}
 			
 			if (dropTables) {
@@ -87,11 +89,12 @@ public class StorageService {
 				stmt.executeBatch();
 			}
 		} catch (final ClassNotFoundException e) {
-			Utilities.printException("StorageService: initialize: db drive class not found", e);
+			throw new StorageServiceException("StorageService: initialize: db drive class not found: " + e.getMessage());
 		} catch (final SQLException e) {
-			Utilities.printSQLException("StorageService: initialize: could not create all tables", e);
+			throw new StorageServiceException("StorageService: initialize: could not create all tables: "
+				+ e.getMessage());
 		}
-		return firstStart; 
+		return firstStart;
 	}
 	
 	/**
@@ -118,8 +121,7 @@ public class StorageService {
 	}
 	
 	/*
-	 * ================================================
-	 * CRUD and dynamic queries for Assignments & Tasks
+	 * ================================================ CRUD and dynamic queries for Assignments & Tasks
 	 * ================================================
 	 */
 	
@@ -173,7 +175,7 @@ public class StorageService {
 	 * @return List of all Assignments stored in the db
 	 */
 	public static List<IAssignment> getAllAssignments() {
-		return AssignmentTaskStorage.getAllAssignments(_templates, _pool); 
+		return AssignmentTaskStorage.getAllAssignments(_templates, _pool);
 	}
 	
 	/**
@@ -191,10 +193,10 @@ public class StorageService {
 	 * Update a task that already exists in the db.
 	 * 
 	 * @param task Task to be updated
-	 * @return Task that was updated, for chaining calls 
+	 * @return Task that was updated, for chaining calls
 	 */
-	public static ITask updateTask(ITask task) {
-		return AssignmentTaskStorage.updateTask(task, _pool); 
+	public static ITask updateTask(final ITask task) {
+		return AssignmentTaskStorage.updateTask(task, _pool);
 	}
 	
 	/**
@@ -210,8 +212,7 @@ public class StorageService {
 	}
 	
 	/*
-	 * =======================================
-	 * CRUD and dynamic queries for TimeBlocks
+	 * ======================================= CRUD and dynamic queries for TimeBlocks
 	 * =======================================
 	 */
 	
@@ -305,12 +306,11 @@ public class StorageService {
 	 * 
 	 * @param blockList List of default unavailable blocks to add
 	 */
-	public static void addAllDefaultUnavailableBlocks(List<UnavailableBlock> blockList) {
-		TimeBlockStorage.addAllDefaultUnavailableBlocks(blockList, _pool); 
+	public static void addAllDefaultUnavailableBlocks(final List<UnavailableBlock> blockList) {
+		TimeBlockStorage.addAllDefaultUnavailableBlocks(blockList, _pool);
 	}
 	
 	/**
-	 * 
 	 * @param startDate
 	 * @param endDate
 	 * @param blockList
@@ -321,8 +321,7 @@ public class StorageService {
 	}
 	
 	/*
-	 * ================================================
-	 * CRUD and dynamic queries for Templates and Steps
+	 * ================================================ CRUD and dynamic queries for Templates and Steps
 	 * ================================================
 	 */
 	
@@ -339,11 +338,11 @@ public class StorageService {
 	/**
 	 * Get Template corresponding to the provided name
 	 * 
-	 * @param name Name of the Template to be found 
+	 * @param name Name of the Template to be found
 	 * @return Found template
 	 */
 	public static ITemplate getTemplateByName(final String name) {
-		return TemplateStepStorage.getTemplateByName(name, _pool); 
+		return TemplateStepStorage.getTemplateByName(name, _pool);
 	}
 	
 	/**
@@ -387,20 +386,18 @@ public class StorageService {
 		return TemplateStepStorage.removeTemplate(temp, _pool);
 	}
 	
-	//TODO: finish and comment!
-	public static void learnTemplateStepTimeOfDay(ITask task, String todKey, double todIncrement) {
+	// TODO: finish and comment!
+	public static void learnTemplateStepTimeOfDay(final ITask task, final String todKey, final double todIncrement) {
 		TemplateStepStorage.learnTemplateStepTimeOfDay(task, todKey, todIncrement);
 	}
 	
-	//TODO: finish and comment!
-	public static void learnTemplateConsecutiveHours(ITask task, double consecutiveHours) {
+	// TODO: finish and comment!
+	public static void learnTemplateConsecutiveHours(final ITask task, final double consecutiveHours) {
 		TemplateStepStorage.learnTemplateConsecutiveHours(task, consecutiveHours);
 	}
 	
 	/*
-	 * =====================================
-	 * CRUD and dynamic queries for Settings
-	 * =====================================
+	 * ===================================== CRUD and dynamic queries for Settings =====================================
 	 */
 	
 	/**
@@ -443,9 +440,7 @@ public class StorageService {
 	}
 	
 	/*
-	 * ==============
-	 * Helper methods
-	 * ==============
+	 * ============== Helper methods ==============
 	 */
 	
 	protected static String concatColumn(final String columnName, final String dataType) {

@@ -21,6 +21,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import backend.database.StorageService;
+import backend.database.StorageServiceException;
 
 public class StorageServiceTest {
 	
@@ -68,7 +69,7 @@ public class StorageServiceTest {
 			validateTables();
 			StorageService.initialize(true);
 			validateTables();
-		} catch (final SQLException e) {
+		} catch (final SQLException | StorageServiceException e) {
 			fail("StorageServiceTest: createTablesWithDrop: could not create all tables" + e.getMessage());
 		}
 	}
@@ -79,7 +80,7 @@ public class StorageServiceTest {
 			validateTables();
 			StorageService.initialize(false);
 			validateTables();
-		} catch (final SQLException e) {
+		} catch (final SQLException | StorageServiceException e) {
 			fail("StorageServiceTest: createTablesNoDrop: could not create all tables" + e.getMessage());
 		}
 	}

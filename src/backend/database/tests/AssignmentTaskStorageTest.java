@@ -26,7 +26,11 @@ public class AssignmentTaskStorageTest {
 	
 	@Before
 	public void setUp() {
-		StorageService.initialize(true);
+		try {
+			StorageService.initialize(true);
+		} catch (final StorageServiceException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	@After
