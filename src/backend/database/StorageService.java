@@ -22,7 +22,6 @@ import data.AssignmentBlock;
 import data.IAssignment;
 import data.ITask;
 import data.ITemplate;
-import data.ITemplateStep;
 import data.ITimeBlockable;
 import data.Template;
 import data.TemplateStep;
@@ -106,17 +105,16 @@ public class StorageService {
 				final BufferedReader reader = new BufferedReader(new FileReader("config/templates.txt"));
 				String line;
 				Template currTemplate = null;
-				final List<ITemplateStep> steps = new ArrayList<>();
 				while ((line = reader.readLine()) != null) {
 					if (line.startsWith("START")) {
 						final String[] arr = line.split(";");
-						steps.clear();
 						currTemplate = new Template(arr[1], Double.parseDouble(arr[2]));
 					} else if (line.startsWith("END") && currTemplate != null) {
 						StorageService.addTemplate(currTemplate);
 					} else if (currTemplate != null) {
 						final String[] arr = line.split(";");
-						currTemplate.addStep(new TemplateStep(arr[0], Double.parseDouble(arr[1]), steps.size()));
+						currTemplate.addStep(new TemplateStep(arr[0], Double.parseDouble(arr[1]), currTemplate
+								.getAllSteps().size()));
 					}
 				}
 				reader.close();
@@ -152,8 +150,7 @@ public class StorageService {
 	}
 	
 	/*
-	 * ================================================ 
-	 * CRUD and dynamic queries for Assignments & Tasks
+	 * ================================================ CRUD and dynamic queries for Assignments & Tasks
 	 * ================================================
 	 */
 	
@@ -244,8 +241,7 @@ public class StorageService {
 	}
 	
 	/*
-	 * ======================================= 
-	 * CRUD and dynamic queries for TimeBlocks
+	 * ======================================= CRUD and dynamic queries for TimeBlocks
 	 * =======================================
 	 */
 	
@@ -354,8 +350,7 @@ public class StorageService {
 	}
 	
 	/*
-	 * ================================================ 
-	 * CRUD and dynamic queries for Templates and Steps
+	 * ================================================ CRUD and dynamic queries for Templates and Steps
 	 * ================================================
 	 */
 	
@@ -370,13 +365,13 @@ public class StorageService {
 	}
 	
 	/**
-	 * Get Template corresponding to the provided Id
-	 * Option to forceUpdate for use by learning functions in TemplateStepStorage
+	 * Get Template corresponding to the provided Id Option to forceUpdate for use by learning functions in
+	 * TemplateStepStorage
 	 * 
 	 * @param id Id of the template to be found
 	 * @return Found template
 	 */
-	protected static ITemplate getTemplate(final String id, boolean forceUpdate) {
+	protected static ITemplate getTemplate(final String id, final boolean forceUpdate) {
 		return TemplateStepStorage.getTemplate(id, _templates, _pool, forceUpdate);
 	}
 	
@@ -453,9 +448,7 @@ public class StorageService {
 	}
 	
 	/*
-	 * ===================================== 
-	 * CRUD and dynamic queries for Settings 
-	 * =====================================
+	 * ===================================== CRUD and dynamic queries for Settings =====================================
 	 */
 	
 	/**
@@ -498,9 +491,7 @@ public class StorageService {
 	}
 	
 	/*
-	 * ============== 
-	 * Helper methods 
-	 * ==============
+	 * ============== Helper methods ==============
 	 */
 	
 	protected static String concatColumn(final String columnName, final String dataType) {

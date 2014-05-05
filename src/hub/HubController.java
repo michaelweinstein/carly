@@ -53,12 +53,9 @@ public class HubController {
 					if (StorageService.getTemplate(tempId) == null) {
 						StorageService.addTemplate(a.getTemplate());
 					}
-					//Learner requires that the template be in the db
+					// Learner requires that the template be in the db
 					Learner.optimizeTasks(a);
-					
 					StorageService.addAssignment(a);
-					
-					
 					
 					// Allocate time and then merge time blocks in DB
 					final Date start = new Date();
@@ -85,7 +82,7 @@ public class HubController {
 	 * @param newStart the new start time
 	 * @param newEnd the new end time
 	 */
-	public static void changeTimeBlock(final ITimeBlockable oldBlock, final Date newStart, final Date newEnd) {		
+	public static void changeTimeBlock(final ITimeBlockable oldBlock, final Date newStart, final Date newEnd) {
 		
 		final Date oldStart = new Date(oldBlock.getStart().getTime());
 		final Date oldEnd = new Date(oldBlock.getEnd().getTime());
@@ -104,10 +101,10 @@ public class HubController {
 	 * @param newCompletion a double between 0 and 1 inclusive to represent percent complete
 	 */
 	public static void changeTask(final ITask oldTask, final double newCompletion) {
-		double magnitudeChange = newCompletion - oldTask.getPercentComplete(); 
+		final double magnitudeChange = newCompletion - oldTask.getPercentComplete();
 		TimeModifier.updateBlocksInTask(oldTask, newCompletion);
 		Learner.considerTaskUpdate(oldTask, new Date(System.currentTimeMillis()), magnitudeChange);
-
+		
 		oldTask.setPercentComplete(newCompletion);
 		StorageService.updateTask(oldTask);
 		reloadApp();
