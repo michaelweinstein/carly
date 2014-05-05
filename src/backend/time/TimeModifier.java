@@ -48,7 +48,7 @@ public class TimeModifier {
 		// get the entire block set from the db...
 		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
 		// get the entire block set from the db...
-		final Date tempStart = new Date(0);
+		final Date tempStart = new Date();
 		final Date tempEnd = TimeUtilities.getLastDueDate();
 		final List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);
 		final List<UnavailableBlock> unavBlocks = StorageService.getAllUnavailableBlocksWithinRange(tempStart, tempEnd);
@@ -353,7 +353,7 @@ public class TimeModifier {
 		// get the entire block set from the db...
 		// TODO: Figure out with Eric -- what is the acceptable range of blocks here? Maybe should I
 		// get the entire block set from the db...
-		final Date tempStart = new Date(0);
+		final Date tempStart = new Date();
 		final Date tempEnd = TimeUtilities.getLastDueDate();
 		final List<AssignmentBlock> asgnBlocks = StorageService.getAllAssignmentBlocksWithinRange(tempStart, tempEnd);
 		final List<UnavailableBlock> unavBlocks = StorageService.getAllUnavailableBlocksWithinRange(tempStart, tempEnd);
