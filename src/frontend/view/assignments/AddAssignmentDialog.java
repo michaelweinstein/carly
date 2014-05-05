@@ -281,7 +281,6 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		try {
 			final Assignment a = parseFields();
 			HubController.addAssignmentToCalendar(a);
-			_app.reload();
 			clearContents();
 			dispose();
 		} catch (final IllegalArgumentException e1) {
