@@ -448,4 +448,13 @@ public class CalendarView extends JPanel {
 	public void reloadApp() {
 		_app.reload();
 	}
+	
+	/**
+	 * Getter for the app
+	 * 
+	 * @return the GUIApp for this
+	 */
+	public GUIApp getApp() {
+		return _app;
+	}
 }

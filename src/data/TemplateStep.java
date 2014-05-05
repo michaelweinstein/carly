@@ -79,8 +79,7 @@ public class TemplateStep implements ITemplateStep {
 		if (index >= 0) {
 			_stepNumber = index;
 		} else {
-			System.out.println("ERROR: Step number must " + // print line
-				"be positive integer (TemplateStep.setStepNumber)");
+			Utils.printError("Step number must be positive integer (TemplateStep.setStepNumber)");
 		}
 	}
 	

@@ -60,7 +60,7 @@ public class TimeRect extends Rectangle2D.Double {
 	 */
 	public Color getColor() {
 		if (!_t.isMovable()) {
-			return new Color(60, 60, 60);
+			return new Color(30, 30, 30);
 		} else if (equalsMovingBlock()) {
 			return new Color(_c.getRed(), _c.getGreen(), _c.getBlue(), 100);
 		} else if (_t.getEnd().before(new Date())) {
@@ -79,7 +79,7 @@ public class TimeRect extends Rectangle2D.Double {
 	 */
 	public Color getStrokeColor() {
 		if (!_t.isMovable()) {
-			return Utils.COLOR_BACKGROUND;
+			return Utils.COLOR_BACKGROUND.brighter().brighter();
 		}
 		return equalsMovingBlock() ? Utils.COLOR_FOREGROUND : Utils.COLOR_FOREGROUND.darker();
 	}
@@ -90,7 +90,7 @@ public class TimeRect extends Rectangle2D.Double {
 	 * @return the stroke to set around the block
 	 */
 	public Stroke getStroke() {
-		if (equalsMovingBlock()) {
+		if (equalsMovingBlock() && _t.getTask() != null) {
 			final float dash1[] = { 4.0f };
 			return new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER, 1, dash1, 0);
 		}
