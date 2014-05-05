@@ -1,11 +1,13 @@
 package unit_tests;
 
+import java.util.Calendar;
+import java.util.Date;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import backend.database.StorageService;
-
 import frontend.view.startup.SurveyView;
 
 /**
@@ -33,6 +35,29 @@ public class SettingsTest {
 		SurveyView surveyDialog = new SurveyView();
 		surveyDialog.setVisible(true);
 		while(true);
+	}
+	
+	@Test
+	public void calendarTest() 
+	{
+		Calendar c = Calendar.getInstance();
+		c.set(Calendar.YEAR, 1970);
+		c.set(Calendar.DAY_OF_YEAR, 1);
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		
+		System.out.println("I set(2): " + c.getTime());
+		
+		Calendar c2 = Calendar.getInstance();
+		c2.setTime(new Date(0));
+		
+		System.out.println("II setTime(Date): " + c2.getTime());
+		
+		Calendar c3 = Calendar.getInstance();
+		c3.set(1970, Calendar.JANUARY, 1, 0, 0, 0);
+		
+		System.out.println("III set(4-5): " + c3.getTime());
 	}
 	
 /*	@Test

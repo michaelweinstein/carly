@@ -113,14 +113,11 @@ public class TemplateWizardView extends JPanel {
 		
 		/* 'Delete' button (Listener below) */
 		_deleteBtn.setFocusPainted(false);
-		_deleteBtn.setPreferredSize(btnSize);
+		_deleteBtn.setPreferredSize(new Dimension(btnSize.width+8, btnSize.height));
 		_deleteBtn.setEnabled(false);
 		_deleteBtn.setVisible(true);
-		
-////////		
-		// TODO 
-		Utils.padComponentWithBorder(_deleteBtn, 5, 3);
-		
+		_deleteBtn.setForeground(Color.RED);
+
 		/* JComboBox TemplatePicker (ItemListener below) */
 		// Populate with any existing templates
 		_templatePicker = new JComboBox<>(TemplateDelegate.getExistingTemplates());

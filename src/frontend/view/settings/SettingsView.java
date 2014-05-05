@@ -33,7 +33,7 @@ public class SettingsView extends JDialog {
 	/* Styling vars */
 	private static final Dimension	minimum_size		= new Dimension(400, 500);
 	private static final int		title_padding		= 10;
-	private static final int		padding				= 15;
+	private static final int		padding				= 25;
 	private static final int		title_font_size		= 30;
 	
 	/* Strings */
