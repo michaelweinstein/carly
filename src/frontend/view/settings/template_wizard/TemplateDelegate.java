@@ -19,10 +19,22 @@ import frontend.Utils;
 
 public class TemplateDelegate {
 	
+	/**
+	 * Removes specified Template from database. 
+	 * If Template is not in database, returns null.
+	 * Else returns the Template removed.
+	 * 
+	 * @param t Template to remove
+	 */
 	public static void removeTemplate(final ITemplate t) {
-		ITemplate returned = StorageService.removeTemplate(t);
-/////	TODO printline
-		System.out.println("removeTemplate returned: " + returned);
+		if (t != null) {
+			ITemplate removed = StorageService.removeTemplate(t);
+			if (removed == null) {
+				Utils.printError("Template to be removed, " + t + 
+						" is not in database  (TemplateDelegate.removeTemplate)");
+			}
+		}
+		else Utils.printError("Cannot remove a null Template!  (TemplateDelegate.removeTemplate)");
 	}
 	
 	/**
@@ -81,7 +93,6 @@ public class TemplateDelegate {
 		}
 		ITemplate[] templates = new ITemplate[filteredTemps.size()];
 		templates = filteredTemps.toArray(templates);
-		
 		return templates;
 	}
 	

@@ -16,6 +16,7 @@ import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 
+import backend.Learner;
 import backend.database.StorageService;
 import data.TimeOfDay;
 import data.UnavailableBlock;
@@ -201,7 +202,8 @@ public class SurveyView extends JDialog {
 		// Add Learner preference
 		final Boolean learnerPref = _learnerCheck.isSelected();
 		StorageService.mergeSetting(SettingsConstants.LEARNER_SETTING, learnerPref.toString());
-		// TODO Set boolean of Learner
+		// Set boolean of Learner
+		Learner.setEnabled(learnerPref);
 		
 		// Add UnavailableBlocks to StorageService
 		final List<UnavailableBlock> uBlocks = _timeView.getUnavailableBlocks();

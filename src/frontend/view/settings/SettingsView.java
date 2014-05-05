@@ -19,11 +19,14 @@ import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.KeyStroke;
 
+import backend.Learner;
 import backend.database.StorageService;
 import data.TimeOfDay;
 import frontend.Utils;
+import frontend.view.CScrollBarUI;
 import frontend.view.settings.template_wizard.TemplateWizardView;
 
 public class SettingsView extends JDialog {
@@ -46,11 +49,14 @@ public class SettingsView extends JDialog {
 	/* Data Structure vars */
 	private static JComboBox<TimeOfDay>	_todPicker;
 	private static JCheckBox			_learnerToggle;
+	private TemplateWizardView			_templateWizard;
 	
 	public SettingsView() {
 		super();
 		setPreferredSize(minimum_size);
 		setMinimumSize(minimum_size);
+		//TODO BUG: TemplateWizardView spaces weird when resized
+		setResizable(false);
 		Utils.themeComponent(getRootPane());
 		Utils.padComponent(getRootPane(), 15, 15);
 		
@@ -72,14 +78,25 @@ public class SettingsView extends JDialog {
 		
 		final JLabel titlePanel = createSettingsTitle();
 		final JPanel inputPanel = createInputPanel();
-		final JPanel templateWizardPanel = new TemplateWizardView();
+		_templateWizard = new TemplateWizardView();
 		// final JPanel bottomPanel = createBottomPanel();
 		
 		/* Adding Elements to MainPanel */
 		
+//////	TODO Scroll block
+		JScrollPane scroller =  new JScrollPane(_templateWizard);
+		scroller.getVerticalScrollBar().setUI(new CScrollBarUI());
+		scroller.getHorizontalScrollBar().setUI(new CScrollBarUI());
+		Utils.themeComponent(scroller);
+		Utils.themeComponent(scroller.getViewport());
+		Utils.themeComponent(scroller.getVerticalScrollBar());
+		Utils.padComponent(scroller, 0, 0);
+///////^^^^^^
+		
 		this.add(titlePanel, BorderLayout.NORTH);
-		this.add(templateWizardPanel, BorderLayout.CENTER);
+		this.add(_templateWizard, BorderLayout.CENTER);
 		this.add(inputPanel, BorderLayout.SOUTH);
+		
 		
 		/* Window Listener */
 		addWindowListener(new WindowListener() {
@@ -110,6 +127,26 @@ public class SettingsView extends JDialog {
 		});
 		
 		// TODO: Add scroll pane (using CScrollPane)
+	}
+	
+	/**
+	 * Partial override. Calls super.setVisible,
+	 * and then reloads JComboBox in TemplateWizardView.
+	 */
+	@Override
+	public void setVisible(boolean visible) {
+		super.setVisible(visible);
+		reloadData();
+	}
+	
+	//TODO
+	/**
+	 * Reloads all data from Database.
+	 */
+	private void reloadData() {
+		_templateWizard.updateTemplatesInPicker();
+		populateSettings();
+		repaint();
 	}
 	
 	/**
@@ -176,8 +213,8 @@ public class SettingsView extends JDialog {
 				// TODO Test StorageService submission
 				final Boolean sel = _learnerToggle.isSelected();
 				StorageService.mergeSetting(SettingsConstants.LEARNER_SETTING, sel.toString());
-				// TODO Set Boolean of Learner
-				
+				// Set _isEnabled boolean of Learner
+				Learner.setEnabled(sel);
 			}
 		});
 		c.gridx = 1;
