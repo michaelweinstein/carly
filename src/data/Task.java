@@ -2,6 +2,8 @@ package data;
 
 import java.util.Objects;
 
+import frontend.Utils;
+
 /**
  * Task class for concrete assignments
  * 
@@ -56,14 +58,15 @@ public class Task implements ITask {
 	 * 
 	 * @param id the id of the task itself
 	 * @param name the name of task
+	 * @param taskNumber the task number in order
 	 * @param percentTotal the percent of total assignment
 	 * @param asgnId the assignment ID
 	 * @param percentComplete the percent complete (0 to 1)
 	 * @param timeOfDay the time of day we like working on this
 	 * @param suggestedBlockLength the suggested length of time to work on it
 	 */
-	public Task(final String id, final String name, final int taskNumber, final double percentTotal, 
-			final String asgnId, final double percentComplete, final TimeOfDay timeOfDay, 
+	public Task(final String id, final String name, final int taskNumber, final double percentTotal,
+			final String asgnId, final double percentComplete, final TimeOfDay timeOfDay,
 			final double suggestedBlockLength) {
 		_uniqueId = id;
 		_name = name;
@@ -97,8 +100,8 @@ public class Task implements ITask {
 		if (DataUtil.percentRepOK(percent)) {
 			_percentOfTotal = percent;
 		} else {
-			System.out.println("ERROR: Percent representation invalid " + percent + ". "
-				+ "Expecting format: 0 < percent <= 1  (Task.handlePercent)");
+			Utils.printError("Percent representation invalid " + percent
+				+ ". Expecting format: 0 < percent <= 1  (Task.handlePercent)");
 		}
 	}
 	

@@ -4,6 +4,8 @@ import hub.HubController;
 
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
@@ -26,6 +28,7 @@ public class GUIApp extends App {
 	private MainFrame			_window;
 	private boolean				_runStartUp;
 	private final ErrorDialog	_error;
+	private Set<String>			_shownErrors;
 	
 	/**
 	 * Uses the App constructor plus gui specific stuff
@@ -39,6 +42,7 @@ public class GUIApp extends App {
 		try {
 			_runStartUp = StorageService.initialize(false);
 			_window = new MainFrame(this);
+			_shownErrors = new HashSet<>();
 		} catch (final StorageServiceException e) {
 			_error.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
 			presentErrorDialog(e, "Quit");
@@ -136,6 +140,19 @@ public class GUIApp extends App {
 	}
 	
 	/**
+	 * Shows a one-time error dialog
+	 * 
+	 * @param id the unique ID to identify this message
+	 * @param message the actual message
+	 */
+	public void presentOneTimeErrorDialog(final String id, final String message) {
+		if (!_shownErrors.contains(id)) {
+			_shownErrors.add(id);
+			presentErrorDialog(new IllegalArgumentException(message), "Close");
+		}
+	}
+	
+	/**
 	 * Shows a dialog when there's an error - present here rather than somewhere else because it may be application
 	 * specific and thus can't be shown from the MainFrame
 	 * 
@@ -150,4 +167,5 @@ public class GUIApp extends App {
 		_error.pack();
 		_error.setVisible(true);
 	}
+	
 }

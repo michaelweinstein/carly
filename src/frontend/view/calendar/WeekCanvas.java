@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.JScrollPane;
 import javax.swing.SwingUtilities;
@@ -392,6 +393,9 @@ public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseM
 			endX = getXPos(endDay);
 		}
 		
+		// Sets the nearest 5 min to not make it too short
+		capTo15Min(startDate, endDate);
+		
 		// Dragging in the wrong direction, won't draw
 		if (moving != null && endDate.before(startDate)) {
 			return;
@@ -420,15 +424,31 @@ public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseM
 	 * @param t the block itself
 	 * @param rect where this block should be drawn
 	 */
-	private static void drawBlock(final Graphics2D g, final ITimeBlockable t, final TimeRect rect) {
-		g.setColor(rect.getColor());
-		g.fill(rect);
-		g.setColor(t.getEnd().before(new Date()) ? rect.getStrokeColor().darker() : rect.getStrokeColor());
+	private void drawBlock(final Graphics2D g, final ITimeBlockable t, final TimeRect rect) {
+		g.setClip(rect.createIntersection(getVisibleRect()));
 		g.setStroke(rect.getStroke());
-		g.draw(rect);
+		g.setPaint(rect.getColor());
+		g.fill(rect);
 		
-		// For unavailable blocks, doesn't draw the titles
-		if (t.getTask() == null) {
+		// If assignment, draw stroke and done - if in past, darker stroke
+		if (t.getTask() != null) {
+			g.setClip(getVisibleRect());
+			g.setPaint(t.getEnd().before(new Date()) ? rect.getStrokeColor().darker() : rect.getStrokeColor());
+			g.draw(rect);
+		}
+		
+		// If unavailable block, draw diagonal lines and return
+		else {
+			g.setPaint(rect.getStrokeColor());
+			
+			// Draws stripes
+			for (double x = rect.x, y2 = rect.y; y2 - rect.height < (rect.y * 2 + rect.height * 2 + rect.width * 2);) {
+				g.draw(new Line2D.Double(x, y2, x + rect.width, y2 - rect.width));
+				y2 += 5;
+			}
+			g.setClip(getVisibleRect());
+			g.setPaint(rect.getStrokeColor());
+			g.draw(rect);
 			return;
 		}
 		
@@ -483,7 +503,7 @@ public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseM
 			final String toDraw = i < assT.size() ? assT.get(i) : taskT.get(i - assT.size());
 			g.drawString(nextY >= rect.getMaxY() ? "..." : toDraw, xPos + 5, yPos);
 		}
-		
+		g.setClip(getVisibleRect());
 	}
 	
 	/**
@@ -567,11 +587,15 @@ public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseM
 		_dragCurrPoint = e.getPoint();
 		final TimeRect rect = getRectForPoint(e.getPoint());
 		
-		// Doesn't allow editing of blocks before the current time
+		// Not even in view
 		if (rect == null) {
 			return;
 		}
+		
+		// Doesn't allow editing of blocks before the current time
 		if (convertPointToTime(new Point((int) rect.getMinX(), (int) rect.getMaxY()), false).before(new Date())) {
+			_cv.getApp().presentOneTimeErrorDialog("EDIT",
+					"Oops, you can't edit anything in the past! Try again on a block that ends in the future");
 			_cv.repaint();
 			return;
 		}
@@ -656,8 +680,24 @@ public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseM
 				break;
 			}
 			
-			// Toss it in the database if in the right order and no overlap
-			if (!end.before(start) && !checkBlockForOverlap(start, end, oldTask)) {
+			// Sets the nearest 5 min to not make it too short
+			capTo15Min(start, end);
+			
+			// Shows a one time error if trying to overlap blocks
+			if (checkBlockForOverlap(start, end, oldTask)) {
+				_cv.getApp().presentOneTimeErrorDialog("OVERLAP",
+						"Oops, can't drag a block onto another! Blocks must be non-overlapping.");
+			} else if (start.before(new Date())) {
+				_cv.getApp().presentOneTimeErrorDialog(
+						"PAST",
+						"Looks like you're trying to put something in the past. Blocks can't be moved into the past. "
+							+ "To update your progess, set a task's progress by using the sidebar.");
+			}
+			
+			// Toss it in the database if in the right order
+			else if (!end.before(start)) {
+				
+				// Updates the block in the DB differently depending on AssignmentBlock vs. UnavailableBlock
 				if (oldTask.getTask() != null) {
 					HubController.changeTimeBlock(oldTask, start, end);
 				} else {
@@ -681,6 +721,21 @@ public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseM
 		_cv.clearMovingBlock();
 		_cv.reloadData();
 		_cv.repaint();
+	}
+	
+	/**
+	 * Caps start/end date to be 5 minutes even if under that
+	 * 
+	 * @param start the start date
+	 * @param end the end date
+	 */
+	private static void capTo15Min(final Date start, final Date end) {
+		if (end.getTime() - start.getTime() < TimeUnit.MILLISECONDS.convert(15, TimeUnit.MINUTES)) {
+			final Calendar c = CalendarView.getCalendarInstance();
+			c.setTime(start);
+			c.add(Calendar.MINUTE, 5);
+			end.setTime(c.getTimeInMillis());
+		}
 	}
 	
 	@Override
