@@ -22,9 +22,10 @@ public class Learner {
 		return new ArrayList<ITask>(); 
 	}
 	
-	public static void considerBlockUpdate(final ITimeBlockable oldBlock, final Date newStart, final Date newEnd) {
-		final Date earlier = (newStart.compareTo(newEnd) < 0) ? newStart : newEnd;
-		final Date later = (newEnd.compareTo(newStart) > 0) ? newEnd : newStart;
+	public static void considerBlockUpdate(final ITimeBlockable newBlock, final Date oldStart, 
+			final Date oldEnd) {
+		final Date earlier = (oldStart.compareTo(oldEnd) < 0) ? oldStart : oldEnd;
+		final Date later = (oldEnd.compareTo(oldStart) > 0) ? oldEnd : oldStart;
 //		StorageService.learnTemplateConsecutiveHours(Learner.getHoursBetween(earlier, later));
 		
 		String todKey = Learner.extrapolateTimeOfDay(earlier); 

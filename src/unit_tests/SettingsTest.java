@@ -5,6 +5,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import backend.database.StorageService;
+import backend.database.StorageServiceException;
 import frontend.view.startup.SurveyView;
 
 /**
@@ -19,7 +20,11 @@ public class SettingsTest {
 	// TODO: Delete GUI test runs; maybe the whole class
 	@Before
 	public void startUp() {
-		StorageService.initialize(true);
+		try {
+			StorageService.initialize(true);
+		} catch (StorageServiceException e) {
+			System.err.println("SettingsTest: startUp: Failed to initialize StorageService");
+		}
 	}
 	@After 
 	public void cleanUp() {

@@ -388,12 +388,12 @@ public class StorageService {
 	
 	// TODO: finish and comment!
 	public static void learnTemplateStepTimeOfDay(final ITask task, final String todKey, final double todIncrement) {
-		TemplateStepStorage.learnTemplateStepTimeOfDay(task, todKey, todIncrement);
+		TemplateStepStorage.learnTemplateStepTimeOfDay(task, todKey, todIncrement, _pool);
 	}
 	
 	// TODO: finish and comment!
 	public static void learnTemplateConsecutiveHours(final ITask task, final double consecutiveHours) {
-		TemplateStepStorage.learnTemplateConsecutiveHours(task, consecutiveHours);
+		TemplateStepStorage.learnTemplateConsecutiveHours(task, consecutiveHours, _pool);
 	}
 	
 	/*

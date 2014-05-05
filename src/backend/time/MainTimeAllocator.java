@@ -26,7 +26,12 @@ public class MainTimeAllocator {
 		due2.setTime(due.getTime() + TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS));
 		
 		//Initialize the db
-		StorageService.initialize(true);
+		try {
+			StorageService.initialize(true);
+		} catch (StorageServiceException e) {
+			System.err.println("FAILED TO INITIALIZE");
+			return;
+		}
 		
 		//Create some sample assignments
 		Assignment asgn = new Assignment("Test name", due, createBasicTemplate(), 30);
