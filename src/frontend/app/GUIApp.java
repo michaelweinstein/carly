@@ -130,6 +130,7 @@ public class GUIApp extends App {
 	public void presentErrorDialog(final Exception e) {
 		_error.setTitle("Error");
 		_error.setText(e.getMessage() == null ? "Something went wrong" : e.getMessage());
+		_error.setLocationRelativeTo(_window);
 		_error.setVisible(true);
 	}
 }
