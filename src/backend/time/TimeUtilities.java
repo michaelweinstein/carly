@@ -402,4 +402,21 @@ public class TimeUtilities {
 		// If this line is reached, all types of switches failed, so return false
 		return false;
 	}
+	
+	
+	public static Date getLastDueDate() {
+		List<IAssignment> list = StorageService.getAllAssignments();
+		
+		Date lastDue = new Date();
+		
+		for(int i = 0; i < list.size(); ++i) {
+			IAssignment asgn = list.get(i);
+			
+			if(asgn.getDueDate().after(lastDue))
+				lastDue = new Date(asgn.getDueDate().getTime());
+		}
+		
+		return lastDue;
+	}
+	
 }
