@@ -36,6 +36,7 @@ import javax.swing.SwingUtilities;
 import backend.database.StorageService;
 import data.ITimeBlockable;
 import data.Tuple;
+import data.UnavailableBlock;
 import frontend.Utils;
 import frontend.view.CanvasUtils;
 import frontend.view.ScrollablePanel;
@@ -393,8 +394,13 @@ public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseM
 			endX = getXPos(endDay);
 		}
 		
-		// Sets the nearest 5 min to not make it too short
+		// Sets the nearest 15 min to not make it too short
 		capTo15Min(startDate, endDate);
+		
+		// For a movable block, draws large enough to not truncate the text
+		if (!t.isMovable() && moving != null && moving.first.equals(t) && endY - startY < 50) {
+			endY = startY + 50;
+		}
 		
 		// Dragging in the wrong direction, won't draw
 		if (moving != null && endDate.before(startDate)) {
@@ -449,7 +455,9 @@ public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseM
 			g.setClip(getVisibleRect());
 			g.setPaint(rect.getStrokeColor());
 			g.draw(rect);
-			return;
+			if (_cv.getMovingBlock() == null || t != _cv.getMovingBlock().first) {
+				return;
+			}
 		}
 		
 		// Wrap titles and draw them
@@ -457,8 +465,14 @@ public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseM
 		final Font taskFont = Utils.getFont(Font.PLAIN | Font.ITALIC, 11);
 		final List<String> taskT = new ArrayList<>(4);
 		final List<String> assT = new ArrayList<>(2);
-		taskT.add(t.getTask().getName());
-		assT.add(StorageService.getAssignment(t.getTask().getAssignmentID()).getName());
+		String text = "Drag off the view to delete";
+		String text2 = "Unavailable";
+		if (t.isMovable()) {
+			text = t.getTask().getName();
+			text2 = StorageService.getAssignment(t.getTask().getAssignmentID()).getName();
+		}
+		taskT.add(text);
+		assT.add(text2);
 		int i = 0;
 		
 		// Wrap the assignment title
@@ -585,11 +599,23 @@ public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseM
 	public void mousePressed(final MouseEvent e) {
 		_cv.clearMovingBlock();
 		_dragCurrPoint = e.getPoint();
-		final TimeRect rect = getRectForPoint(e.getPoint());
+		TimeRect rect = getRectForPoint(e.getPoint());
 		
-		// Not even in view
+		// Trying to add a new unavailable block
 		if (rect == null) {
-			return;
+			// Start a block at the drag point, then adding 15 min to it to end
+			final Date start = convertPointToTime(_dragCurrPoint, false);
+			final Calendar c = CalendarView.getCalendarInstance();
+			c.setTime(start);
+			c.add(Calendar.MINUTE, 30);
+			final Date end = c.getTime();
+			final UnavailableBlock u = new UnavailableBlock(start, end);
+			
+			// Get locations and make a new rect (constructor puts it in this automatically
+			c.setTime(start);
+			final int x = getXPos((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
+			final int y = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
+			rect = new TimeRect(x, y, (getWidth() - X_OFFSET) / DAYS, 100, u, this);
 		}
 		
 		// Doesn't allow editing of blocks before the current time
@@ -602,10 +628,10 @@ public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseM
 		
 		// Drag type is either top, bottom, or full (default full)
 		DragType drag = DragType.FULL;
-		if (CanvasUtils.atBottomEdge(e, rect, getHeight() - Y_PAD)) {
-			drag = DragType.BOTTOM;
-		} else if (CanvasUtils.atTopEdge(e, rect, Y_PAD)) {
+		if (CanvasUtils.atTopEdge(e, rect, Y_PAD)) {
 			drag = DragType.TOP;
+		} else if (CanvasUtils.atBottomEdge(e, rect, getHeight() - Y_PAD)) {
+			drag = DragType.BOTTOM;
 		}
 		
 		// Add to highlighted stuff and repaint
@@ -621,8 +647,8 @@ public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseM
 		_dragCurrPoint = e.getPoint();
 		final Rectangle visible = getVisibleRect();
 		
-		// Scroll to view if need be
-		if (_cv.getMovingBlock() != null) {
+		// Scroll to view if need be for available blocks
+		if (_cv.getMovingBlock() != null && _cv.getMovingBlock().first.isMovable()) {
 			
 			// Backward a week
 			if (e.getX() < visible.getX() && System.currentTimeMillis() - _cv.getTimeChanged() > 500) {
@@ -683,8 +709,15 @@ public class WeekCanvas extends ScrollablePanel implements MouseListener, MouseM
 			// Sets the nearest 5 min to not make it too short
 			capTo15Min(start, end);
 			
+			// Delete block if unavailable
+			if (!oldTask.isMovable()
+				&& (_dragCurrPoint.x < 0 || _dragCurrPoint.x > getWidth()
+					|| _dragCurrPoint.y < getVisibleRect().getMinY() || _dragCurrPoint.y > getVisibleRect().getMaxY())) {
+				StorageService.removeTimeBlock(oldTask);
+			}
+			
 			// Shows a one time error if trying to overlap blocks
-			if (checkBlockForOverlap(start, end, oldTask)) {
+			else if (checkBlockForOverlap(start, end, oldTask)) {
 				_cv.getApp().presentOneTimeErrorDialog("OVERLAP",
 						"Oops, can't drag a block onto another! Blocks must be non-overlapping.");
 			} else if (start.before(new Date())) {

@@ -123,7 +123,7 @@ public class SurveyWeekView extends JPanel {
 			if (b.isSelected()) {
 				final Date[] times = b.getRange();
 				// Create UnavailableBlock and add to returned list
-				ublockslist.add(new UnavailableBlock(times[0], times[1], null));
+				ublockslist.add(new UnavailableBlock(times[0], times[1]));
 			}
 		}
 		return ublockslist;
@@ -136,7 +136,7 @@ public class SurveyWeekView extends JPanel {
 	 * <code>draw(Graphics2D)</code>.
 	 */
 	@Override
-	public void paintComponent(final Graphics g) {		
+	public void paintComponent(final Graphics g) {
 		final Graphics2D g2 = (Graphics2D) g;
 		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);

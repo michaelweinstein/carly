@@ -11,11 +11,11 @@ public class UnavailableBlock implements ITimeBlockable {
 	private ITask			m_task;
 	private final boolean	m_isMovable;
 	
-	public UnavailableBlock(final Date start, final Date end, final ITask task) {
+	public UnavailableBlock(final Date start, final Date end) {
 		m_uniqueId = DataUtil.generateID() + start.getTime() / 10000;
 		m_start = start;
 		m_end = end;
-		m_task = task;
+		m_task = null;
 		m_isMovable = false;
 	}
 	

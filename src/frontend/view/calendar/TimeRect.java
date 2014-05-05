@@ -44,6 +44,11 @@ public class TimeRect extends Rectangle2D.Double {
 		_c = CanvasUtils.getColor(_t);
 		_canvas = c;
 		
+		// Skip canvas being null
+		if (c == null) {
+			return;
+		}
+		
 		// Adds to all blocks for use later
 		List<TimeRect> currBlocks = _canvas.getAllBlocks().get(t);
 		if (currBlocks == null) {
