@@ -17,6 +17,7 @@ import java.util.Map;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
@@ -29,6 +30,7 @@ import data.Template;
 import data.TemplateStep;
 import frontend.Utils;
 import frontend.view.CButton;
+import frontend.view.ScrollablePanel;
 import frontend.view.assignments.StepModel;
 import frontend.view.assignments.StepViewTable;
 
@@ -38,7 +40,7 @@ import frontend.view.assignments.StepViewTable;
  * @author miweinst
  */
 
-public class TemplateWizardView extends JPanel {
+public class TemplateWizardView extends ScrollablePanel {
 	
 	// TODO Bug: When expanding window horizontally, elements/layout stretch out all weird
 	// TODO When you switch to existing Template, it hides automatically...?
@@ -87,8 +89,8 @@ public class TemplateWizardView extends JPanel {
 	 * 
 	 * @param settings
 	 */
-	public TemplateWizardView() {
-		super();
+	public TemplateWizardView(JScrollPane scroller) {
+		super(scroller);
 		// Set theme and layout of wizard
 		Utils.themeComponent(this);
 		Utils.padComponent(this, padding, padding);
@@ -236,7 +238,7 @@ public class TemplateWizardView extends JPanel {
 		
 //////////////
 		// TODO ScrollPane
-		
+//		ScrollablePanel scroller = new ScrollablePanel(new JScrollPane());
 		
 		// === Adding Elements ===
 		this.add(_editBtn);

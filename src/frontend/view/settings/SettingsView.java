@@ -78,7 +78,12 @@ public class SettingsView extends JDialog {
 		
 		final JLabel titlePanel = createSettingsTitle();
 		final JPanel inputPanel = createInputPanel();
-		_templateWizard = new TemplateWizardView();
+		
+		// TODO 
+		JScrollPane scrollPane = new JScrollPane();
+		_templateWizard = new TemplateWizardView(scrollPane);
+		scrollPane.setViewportView(_templateWizard);
+		
 		// final JPanel bottomPanel = createBottomPanel();
 		
 		/* Adding Elements to MainPanel */
