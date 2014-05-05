@@ -8,10 +8,12 @@ import java.awt.event.WindowListener;
 import javax.swing.SwingUtilities;
 import javax.swing.WindowConstants;
 
+import backend.Learner;
 import backend.database.StorageService;
 import backend.database.StorageServiceException;
 import frontend.view.MainFrame;
 import frontend.view.calendar.CalendarView;
+import frontend.view.settings.SettingsConstants;
 import frontend.view.startup.SurveyView;
 
 /**
@@ -52,6 +54,9 @@ public class GUIApp extends App {
 			runSurvey();
 		} else {
 			showMain();
+			// If no start-up survey, enables Learner to previously stored setting
+			String learnerStr = StorageService.getSetting(SettingsConstants.LEARNER_SETTING);
+			Learner.setEnabled(Boolean.parseBoolean(learnerStr));
 		}
 	}
 	

@@ -33,6 +33,7 @@ import frontend.view.CButton;
 import frontend.view.ScrollablePanel;
 import frontend.view.assignments.StepModel;
 import frontend.view.assignments.StepViewTable;
+import frontend.view.settings.SettingsView;
 
 /**
  * This is the front-end class for the Template Wizard panel that is on the Settings page (not the Dialogue View).
@@ -43,9 +44,10 @@ import frontend.view.assignments.StepViewTable;
 public class TemplateWizardView extends ScrollablePanel {
 	
 	// TODO Bug: When expanding window horizontally, elements/layout stretch out all weird
-	// TODO When you switch to existing Template, it hides automatically...?
 	
 	private static final long					serialVersionUID		= 4215933185975151935L;
+	
+	private 									SettingsView 			_settingsView;
 	
 	/* Styling Vars */
 	// private static final int title_size = 19;
@@ -53,6 +55,8 @@ public class TemplateWizardView extends ScrollablePanel {
 	// Button colors
 	private static final Color					submitNewColor			= Color.RED;
 	private static final Color					submitUpdatedColor		= Color.BLUE;
+	// TODO: # of steps capped at 15 -- Should we do more? Or have any cap?
+	private static final int					max_steps				= 33;
 	
 	/* User Input Label Strings */
 	private static final String					new_template			= "New template";
@@ -80,7 +84,6 @@ public class TemplateWizardView extends ScrollablePanel {
 	private JPanel								_hoursPanel				= new JPanel();
 	private JPanel								_stepPanel				= new JPanel();
 	private final CButton						_submitTemplateBtn		= new CButton(submit_updated_template);
-	
 	// Easy access to TextComponent input fields ('name', 'preferred consecutive hours')
 	private final Map<String, JTextComponent>	_inputMap				= new HashMap<>();
 	
@@ -89,12 +92,12 @@ public class TemplateWizardView extends ScrollablePanel {
 	 * 
 	 * @param settings
 	 */
-	public TemplateWizardView(JScrollPane scroller) {
+	public TemplateWizardView(JScrollPane scroller, SettingsView sview) {
 		super(scroller);
 		// Set theme and layout of wizard
 		Utils.themeComponent(this);
 		Utils.padComponent(this, padding, padding);
-				
+		_settingsView = sview;
 		// ====== Instantiating Elements ======
 		
 		// Size of Edit/Hide buttons
@@ -235,11 +238,7 @@ public class TemplateWizardView extends ScrollablePanel {
 		});
 		
 		// ============= End of Listeners =============
-		
-//////////////
-		// TODO ScrollPane
-//		ScrollablePanel scroller = new ScrollablePanel(new JScrollPane());
-		
+
 		// === Adding Elements ===
 		this.add(_editBtn);
 		this.add(_hideBtn);
@@ -260,7 +259,7 @@ public class TemplateWizardView extends ScrollablePanel {
 	 * name panel, hours panel, steps table and "Submit/Update Template" button. Disables/Enables 'Edit'/'Hide; buttons
 	 * according to whether elements are visible or not, because one of the button's functionality will be pointless.
 	 * 
-	 * @param show, setVisible(show)
+	 * @param show setVisible(show)
 	 */
 	private void toggleVisibility(final boolean show) {
 		// Show/hide four elements
@@ -281,7 +280,9 @@ public class TemplateWizardView extends ScrollablePanel {
 	 * @param show whether 'New Template' is currently selected
 	 */
 	private void toggleCustom(final boolean show) {
-		toggleVisibility(show);
+		// Don't set visibility false for all non-custom templates
+		if (show)
+			toggleVisibility(true);
 		_submitTemplateBtn.setText(show ? submit_new_template : submit_updated_template);
 		_submitTemplateBtn.setForeground(show ? submitNewColor : submitUpdatedColor);
 		_deleteBtn.setEnabled(!show);
@@ -318,17 +319,24 @@ public class TemplateWizardView extends ScrollablePanel {
 			// --- Step Table Listener ---
 			@Override
 			public void tableChanged(final TableModelEvent e) {
-				// Create new row if last row is entirely filled
-				if (e.getLastRow() == model.getRowCount() - 1) {
-					if (model.getRowAt(e.getLastRow()).length == 2) {
-						model.addBlankItem();
+				int numRows = model.getRowCount();
+				// Steps capped
+				if (numRows < max_steps) {
+					// Create new row if last row is entirely filled
+					if (e.getLastRow() == numRows - 1) {
+						if (model.getRowAt(e.getLastRow()).length == 2) {
+							model.addBlankItem();
+						}
 					}
+					// Remove any empty rows
+					model.deleteRowsIfEmpty(e.getFirstRow(), e.getLastRow());
+					// TemplateWizardView panel calls
+					revalidate();
+					TemplateWizardView.this.repaint();
 				}
-				// Remove any empty rows
-				model.deleteRowsIfEmpty(e.getFirstRow(), e.getLastRow());
-				// TemplateWizardView panel calls
-				revalidate();
-				TemplateWizardView.this.repaint();
+				else {
+					alertUser("Number of steps capped at " + max_steps);
+				}
 			}
 			// --- End of Step Table Listener ---
 		});
@@ -343,9 +351,7 @@ public class TemplateWizardView extends ScrollablePanel {
 		c.gridy = 0;
 		c.gridwidth = 1;
 		innerPanel.add(stepLabel, c);
-		
-		// TODO: Use Scroll Pane, and set bar to CScrollBarUI; Table needs to have max height and start scrolling
-		
+				
 		// Instantiate StepViewTable
 		final StepViewTable stepTable = new StepViewTable(model, false);
 		// Create Header
@@ -371,8 +377,8 @@ public class TemplateWizardView extends ScrollablePanel {
 	 * Factored out code to create a panel with a label and text field for inputting the name. Called for both Template
 	 * Name and the TemplateStep Name.
 	 * 
-	 * @param name
-	 * @return
+	 * @param name String to label input field
+	 * @return JPanel for name input
 	 */
 	private JPanel newNamePanel(final String name) {
 		final JPanel namePanel = new JPanel();
@@ -390,6 +396,13 @@ public class TemplateWizardView extends ScrollablePanel {
 		return namePanel;
 	}
 	
+	/**
+	 * Factored out code from constructor to create a panel
+	 * with a JLabel and JTextField. 
+	 * 
+	 * @param name String to label number input field
+	 * @return JPanel for hours input
+	 */
 	private JPanel newNumberPanel(final String name) {
 		final JPanel hoursPanel = new JPanel();
 		Utils.themeComponent(hoursPanel);
@@ -465,7 +478,7 @@ public class TemplateWizardView extends ScrollablePanel {
 	 * and StepsTableModel with each step from specified ITemplate t. Then alerts listener that rows have been updated.
 	 * Listener automatically deletes empty rows and adds empty row at end.
 	 * 
-	 * @param ITemplate t, boolean clear
+	 * @param ITemplate t boolean clear
 	 */
 	private void populateStepsViewTable(final ITemplate t, final boolean clear) {
 		// Clear StepsViewTable for repopulation
@@ -531,10 +544,10 @@ public class TemplateWizardView extends ScrollablePanel {
 	 * Template with ID of selected Template, sends to StorageService as an 'update', and replaces selected Template
 	 * with new Template in JComboBox.
 	 * 
-	 * @param name, name of template to submit
-	 * @param hours, preferredConsecutiveHours of template to submit
-	 * @param currSteps, TemplateSteps List of template to submit
-	 * @param currIndex, currIndex of _templatePicker
+	 * @param name name of template to submit
+	 * @param hours preferredConsecutiveHours of template to submit
+	 * @param currSteps TemplateSteps List of template to submit
+	 * @param currIndex currIndex of _templatePicker
 	 */
 	private void submitTemplateToDatabase(final String name, final double hours, final List<ITemplateStep> currSteps) {
 		// Determine item in _templatePicker user is submitting data for
@@ -565,7 +578,7 @@ public class TemplateWizardView extends ScrollablePanel {
 	 * Inserts the specified ITemplate object to JComboBox at second-to-last index (last index reserved for 'Custom').
 	 * Then sets currently selected item to newly added Template.
 	 * 
-	 * @param t, ITemplate to add and set selected
+	 * @param t ITemplate to add and set selected
 	 */
 	private void addTemplateToPicker(final ITemplate t) {
 		final int index = _templatePicker.getItemCount() - 1;
@@ -577,7 +590,7 @@ public class TemplateWizardView extends ScrollablePanel {
 	 * Replaces the ITemplate stored at specified index in JComboBox _templatePicker. First removes old item at that
 	 * index. Then inserts new ITemplate t to that index, and sets selected index to newly added item.
 	 * 
-	 * @param t, Template to add
+	 * @param t Template to add
 	 * @param index of Template to replace
 	 */
 	private void replaceTemplateInPickerAt(final ITemplate t, final int index) {
@@ -595,12 +608,13 @@ public class TemplateWizardView extends ScrollablePanel {
 		_templatePicker.removeAllItems();
 		// Add back 'New Template' template
 		_templatePicker.addItem(new Template(new_template));
-		final int numItems = _templatePicker.getItemCount();
-		_templatePicker.setSelectedIndex(numItems > 0 ? numItems - 1 : 0);
 		// Add all new Templates from database
 		for (ITemplate t: TemplateDelegate.getExistingTemplates()) {
 			this.addTemplateToPicker(t);
 		}
+		// Set selected to 'New template'
+		final int numItems = _templatePicker.getItemCount();
+		_templatePicker.setSelectedIndex(numItems > 0 ? numItems - 1 : 0);
 	}
 	
 	// ============= END Data Structures Methods ==============
@@ -609,12 +623,14 @@ public class TemplateWizardView extends ScrollablePanel {
 	
 	/**
 	 * Alerts the user of a message or error in console.
+	 * Calls SettingsView container's method to set 
+	 * a label at the bottom of the screen, to alert
+	 * user in GUI
 	 * 
-	 * @param message, String to print
+	 * @param message String to print
 	 */
 	private void alertUser(final String message) {
-		// TODO Find a way to alert user in GUI?
-		System.out.println("User: " + message);
+		_settingsView.alertUser(message);
 	}
 	
 	/**
@@ -623,7 +639,7 @@ public class TemplateWizardView extends ScrollablePanel {
 	 * using alertUser calls. Does NOT verify StepViewTable data (optimization so that getStepsFromTable does not have
 	 * to be called twice on Submit).
 	 * 
-	 * @return true if all fields valid, else false
+	 * @return true if all fields valid else false
 	 */
 	private boolean verifyTemplateData() {
 		// Set up validity booleans
@@ -650,15 +666,14 @@ public class TemplateWizardView extends ScrollablePanel {
 					if (h > 0) {
 						validHours = true;
 					} else {
-						alertUser("Invalid Input: " + "Please enter a positive number in consecutive hours field.");
+						alertUser("Invalid Input: " + "Please enter positive number of consecutive hours.");
 					}
 				} catch (final NumberFormatException e) {
 					validHours = false;
-					alertUser("Invalid Input: Please enter a valid number in consecutive hours field.");
+					alertUser("Invalid Input: Please enter valid number of consecutive hours.");
 				}
 			} else {
-				alertUser("Invalid Input: Please enter preferred number "
-					+ "of consecutive hours you would like to work on template.");
+				alertUser("Invalid Input: Please entera number of consecutive hours.");
 			}
 		}
 		return validName && validHours;
@@ -668,8 +683,8 @@ public class TemplateWizardView extends ScrollablePanel {
 	 * Verifies TemplateStep data in specified List steps, which should be generated from getStepsFromTable. Checks that
 	 * step data exists. Has List parameter so getStepsFromTable does not need to be called twice.
 	 * 
-	 * @param steps, List of TemplateSteps from StepViewTable
-	 * @return boolean, whether or not step data is valid
+	 * @param steps List of TemplateSteps from StepViewTable
+	 * @return boolean whether or not step data is valid
 	 */
 	private boolean verifyStepData(final List<ITemplateStep> steps) {
 		// Check that steps not empty

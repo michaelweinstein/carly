@@ -26,10 +26,11 @@ import backend.Learner;
 import backend.database.StorageService;
 import data.TimeOfDay;
 import frontend.Utils;
-import frontend.view.CScrollBarUI;
 import frontend.view.settings.template_wizard.TemplateWizardView;
 
 public class SettingsView extends JDialog {
+	
+	// TODO Display messages to user
 	
 	private static final long			serialVersionUID	= 836555231204678487L;
 	
@@ -50,16 +51,16 @@ public class SettingsView extends JDialog {
 	private static JComboBox<TimeOfDay>	_todPicker;
 	private static JCheckBox			_learnerToggle;
 	private TemplateWizardView			_templateWizard;
+	private JLabel						_alertLabel;
 	
 	public SettingsView() {
 		super();
+		// Dialog settings
 		setPreferredSize(minimum_size);
 		setMinimumSize(minimum_size);
-		//TODO BUG: TemplateWizardView spaces weird when resized
 		setResizable(false);
 		Utils.themeComponent(getRootPane());
-		Utils.padComponent(getRootPane(), 15, 15);
-		
+		Utils.padComponent(getRootPane(), 15, 15);	
 		// Keyboard shortcut
 		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "escape");
 		getRootPane().getActionMap().put("escape", new AbstractAction() {
@@ -73,65 +74,71 @@ public class SettingsView extends JDialog {
 			}
 			
 		});
+		this.setLayout(new BorderLayout());
 		
-		setLayout(new BorderLayout());
+		/* === Main Panel === */
+		
+		JPanel mainPanel = new JPanel();		
+		// Main stylings
+		Utils.themeComponent(mainPanel);
+		mainPanel.setLayout(new BorderLayout());
+		mainPanel.setVisible(true);
 		
 		final JLabel titlePanel = createSettingsTitle();
 		final JPanel inputPanel = createInputPanel();
 		
-		// TODO 
 		JScrollPane scrollPane = new JScrollPane();
-		_templateWizard = new TemplateWizardView(scrollPane);
+		_templateWizard = new TemplateWizardView(scrollPane, this);
 		scrollPane.setViewportView(_templateWizard);
-		
-		// final JPanel bottomPanel = createBottomPanel();
-		
+		scrollPane.setVisible(true);
+		_templateWizard.setPreferredSize(new Dimension(250, 1000));
+				
 		/* Adding Elements to MainPanel */
+		mainPanel.add(titlePanel, BorderLayout.NORTH);
+		mainPanel.add(scrollPane, BorderLayout.CENTER);
+		mainPanel.add(inputPanel, BorderLayout.SOUTH);
 		
-//////	TODO Scroll block
-		JScrollPane scroller =  new JScrollPane(_templateWizard);
-		scroller.getVerticalScrollBar().setUI(new CScrollBarUI());
-		scroller.getHorizontalScrollBar().setUI(new CScrollBarUI());
-		Utils.themeComponent(scroller);
-		Utils.themeComponent(scroller.getViewport());
-		Utils.themeComponent(scroller.getVerticalScrollBar());
-		Utils.padComponent(scroller, 0, 0);
-///////^^^^^^
+		/* === Alert Panel === */
 		
-		this.add(titlePanel, BorderLayout.NORTH);
-		this.add(_templateWizard, BorderLayout.CENTER);
-		this.add(inputPanel, BorderLayout.SOUTH);
+		JPanel alertPanel = new JPanel();
+		Utils.themeComponent(alertPanel);
+		alertPanel.setPreferredSize(new Dimension(0, 30));
 		
+		_alertLabel = new JLabel();
+		Utils.themeComponent(_alertLabel);
+		_alertLabel.setFont(_alertLabel.getFont().deriveFont(10.0f));
 		
-		/* Window Listener */
+		alertPanel.add(_alertLabel);
+		
+		this.setLayout(new BorderLayout());
+		this.add(mainPanel, BorderLayout.CENTER);
+		this.add(alertPanel, BorderLayout.SOUTH);
+		
+		/* Dialog Window Listener */
 		addWindowListener(new WindowListener() {
-			
 			@Override
 			public void windowOpened(final WindowEvent e) {
 				// Populates settings whenever Settings Dialog is opened
 				populateSettings();
-			}
-			
-			@Override
-			public void windowClosing(final WindowEvent e) {}
-			
-			@Override
-			public void windowClosed(final WindowEvent e) {}
-			
-			@Override
-			public void windowIconified(final WindowEvent e) {}
-			
-			@Override
-			public void windowDeiconified(final WindowEvent e) {}
-			
-			@Override
+			}		
+			public void windowClosing(final WindowEvent e) {}		
+			public void windowClosed(final WindowEvent e) {}		
+			public void windowIconified(final WindowEvent e) {}			
+			public void windowDeiconified(final WindowEvent e) {}			
 			public void windowActivated(final WindowEvent e) {}
-			
-			@Override
 			public void windowDeactivated(final WindowEvent e) {}
-		});
-		
-		// TODO: Add scroll pane (using CScrollPane)
+		});		
+	}
+	
+	/**
+	 * Displays a message to user in the alertPanel
+	 * using setText _alertLabel. Prints in small font
+	 * at the bottom of the SettingsView. 
+	 * 
+	 * @param message to display to user in GUI
+	 */
+	public void alertUser(String message) {
+		_alertLabel.setText(message);
 	}
 	
 	/**
@@ -144,7 +151,6 @@ public class SettingsView extends JDialog {
 		reloadData();
 	}
 	
-	//TODO
 	/**
 	 * Reloads all data from Database.
 	 */
@@ -190,7 +196,6 @@ public class SettingsView extends JDialog {
 			
 			@Override
 			public void itemStateChanged(final ItemEvent e) {
-				// TODO Test StorageService submission
 				final TimeOfDay item = (TimeOfDay) _todPicker.getSelectedItem();
 				StorageService.mergeSetting(SettingsConstants.TIMEOFDAY_SETTING, item.name());
 			}
@@ -215,7 +220,6 @@ public class SettingsView extends JDialog {
 			
 			@Override
 			public void itemStateChanged(final ItemEvent e) {
-				// TODO Test StorageService submission
 				final Boolean sel = _learnerToggle.isSelected();
 				StorageService.mergeSetting(SettingsConstants.LEARNER_SETTING, sel.toString());
 				// Set _isEnabled boolean of Learner
@@ -239,7 +243,6 @@ public class SettingsView extends JDialog {
 	 */
 	private static void populateSettings() {
 		// Set TimeOfDay item
-		// TODO
 		final String todString = StorageService.getSetting(SettingsConstants.TIMEOFDAY_SETTING);
 		final TimeOfDay tod = TimeOfDay.valueOf(todString);
 		_todPicker.setSelectedItem(tod);
