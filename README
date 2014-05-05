@@ -20,7 +20,14 @@ Design and
 Implementation
 ---------------
 
-This program is designed based on the Model-View-Controller pattern.
+This program is designed based on the Model-View-Controller pattern.  Calendar data (in the form of Assignment Blocks and Unavailable Blocks) and User Preferences are stored in an in-memory database (H2), which entirely represents the "Model" portion of the program.  The database only allows a single client to connect to at once, so multiple clients may not connect to and modify the same database at the same time.
+
+The user interface is written using the Java Swing library.  Whenever a user interacts with the interface by clicking a button, using a scroll bar, dragging a time block, or anything of this nature, the event dispatch thread forwards the handling to the appropriate functions in the Controller.  These events are handled in asynchronous Runnables.
+
+A user may access their settings at any time by clicking a button from the main window of Carly.  These settings consist of a few simple preferences regarding preferred time of day to work and whether to toggle the use of the learning algorithm.  Additionally, a user may maintain a portfolio of Templates from which they can create assignments during the "New Assignment".  These templates are stored in the database.
+
+The scheduler acts as a "consultant" for modifying the calendar data currently stored in the database.  In other words, the scheduler generally does not maintain state; when a user requests a particular calendar operation, the appropriate functions are called, and then the scheduler object will be garbage collected after it has returned to the user.
+
 
 ---------------
 Division of
