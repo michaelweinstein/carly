@@ -92,9 +92,7 @@ public class TemplateWizardView extends JPanel {
 		Utils.themeComponent(this);
 		// // // TODO: Get rid of border if I can get it to look similar for entire SettingsView
 		Utils.padComponent(this, padding, padding);
-		
-		// TODO: Removing Templates -- user needs a way to delete an existing Template!
-		
+				
 		// ====== Instantiating Elements ======
 		
 		// Size of Edit/Hide buttons
@@ -121,14 +119,10 @@ public class TemplateWizardView extends JPanel {
 		/* JComboBox TemplatePicker (ItemListener below) */
 		// Populate with any existing templates
 		_templatePicker = new JComboBox<>(TemplateDelegate.getExistingTemplates());
-		// TODO Should it always start on 'New Template,' or only when there are none
-		// If no existing Templates in database, _templatePicker starts on 'Custom'
-//		final boolean custom = (_templatePicker.getItemCount() == 0);
 		// Add empty Template with name 'Custom' (never actually submitted)
 		_templatePicker.addItem(new Template(new_template));
 		final int numItems = _templatePicker.getItemCount();
 		_templatePicker.setSelectedIndex(numItems > 0 ? numItems - 1 : 0);
-//		toggleVisibility(true);
 		
 		/* Name: (code in newNamePanel()) */
 		_namePanel = newNamePanel(template_name);
@@ -142,16 +136,11 @@ public class TemplateWizardView extends JPanel {
 
 		/* "Submit/Update template" button */
 		// Boolean show indicates whether starting on 'Custom' template
-//		_submitTemplateBtn.setText(custom ? submit_new_template : submit_updated_template);
-//		_submitTemplateBtn.setForeground(custom ? submitNewColor : submitUpdatedColor);
 		_submitTemplateBtn.setFocusPainted(false);
 		_submitTemplateBtn.setPreferredSize(new Dimension(300, 30));
 		_submitTemplateBtn.setVisible(false);
 		
-		// Sets visibility true if _templatePicker starts on 'Custom'
-		// toggleVisibility(custom);
-		// TODO: Keep or delete this? If you keep (true), delete (custom)
-//		toggleVisibility(true);
+		// Start on 'New Template' option
 		toggleCustom(true);
 		
 		// ====== End of Instantiating Elements ======
@@ -210,13 +199,12 @@ public class TemplateWizardView extends JPanel {
 			}
 		});
 		
-//////////	TODO
+
 		/* --- 'Delete' Listener --- */
 		_deleteBtn.addActionListener(new ActionListener() {
 
 			@Override
 			public void actionPerformed(ActionEvent e) {
-/////			// TODO Remove template from JComboBox and StorageService
 				ITemplate t = _templatePicker.getItemAt(_templatePicker.getSelectedIndex());
 				_templatePicker.removeItem(t);
 				TemplateDelegate.removeTemplate(t);
@@ -233,26 +221,8 @@ public class TemplateWizardView extends JPanel {
 				final ITemplate t = (ITemplate) _templatePicker.getSelectedItem();
 				// Populate fields data based on current selected item
 				populateFields();
-				
 				// Set element states if 'New Template' or not
-				toggleCustom(t.getName().equals(new_template));
-				
-/////			// TODO Delete commented out code; factored out to toggleCustom
-/*				// 'Custom' Item listener
-				if (t.getName().equals(new_template)) {
-					// Text: "Submit new template", for custom template
-					_submitTemplateBtn.setText(submit_new_template);
-					_submitTemplateBtn.setForeground(submitNewColor);
-					// Display all elements
-					toggleVisibility(true);
-					// Cannot delete a "New Template" object
-					_deleteBtn.setEnabled(false);
-				} else {
-					// Text: "Submit updated template", for existing template
-					_submitTemplateBtn.setText(submit_updated_template);
-					_submitTemplateBtn.setForeground(submitUpdatedColor);
-				}*/
-				
+				toggleCustom(t.getName().equals(new_template));		
 				// Repaint wizard panel
 				TemplateWizardView.this.repaint();
 			}
@@ -632,7 +602,6 @@ public class TemplateWizardView extends JPanel {
 		boolean validHours = false;
 		// Check name
 		if (_inputMap.containsKey(template_name)) {
-			// TODO: Check that String contains characters
 			final String name = _inputMap.get(template_name).getText();
 			// Is not empty string
 			if (!name.isEmpty()) {
@@ -643,7 +612,6 @@ public class TemplateWizardView extends JPanel {
 		}
 		// Check consecutive hours
 		if (_inputMap.containsKey(template_hours)) {
-			// TODO: Check that String contains characters
 			final String hours = _inputMap.get(template_hours).getText();
 			if (!hours.isEmpty()) {
 				// Is valid format; can be parsed as double
@@ -680,9 +648,7 @@ public class TemplateWizardView extends JPanel {
 			alertUser("Invalid Input: Please add Steps to this Template");
 			return false;
 		}
-		
-		// TODO: Check that fields contain characters (i.e. full of spaces)
-		
+				
 		// Check that % of totals add up to 100%
 		final List<ITemplateStep> currSteps = getStepsFromTable();
 		double total = 0;
