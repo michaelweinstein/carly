@@ -33,7 +33,7 @@ public class TimeBlockStorage {
 		blockCols.add(StorageService.concatColumn("BLOCK_START", "BIGINT"));
 		blockCols.add(StorageService.concatColumn("BLOCK_END", "BIGINT"));
 		blockCols.add(StorageService.concatColumn("BLOCK_MOVABLE", "BOOLEAN"));
-		blockCols.add(StorageService.concatColumn("BLOCK_DEFAULT", "BOOLEAN"));
+		blockCols.add(StorageService.concatColumn("BLOCK_DEFAULT", "BOOLEAN DEFAULT FALSE"));
 		queries.add(Utilities.buildCreateString("TIME_BLOCK", blockCols));
 	}
 	
@@ -452,12 +452,13 @@ public class TimeBlockStorage {
 				}
 			}
 			
+			blockStatement = con.prepareStatement(Utilities.MERGE_TIME_BLOCK);
 			for (final ITimeBlockable block : blocksToAdd) {
-				blockStatement = con.prepareStatement(Utilities.MERGE_TIME_BLOCK);
 				Utilities.setValues(blockStatement, block.getId(), block.getTaskId(), block.getStart().getTime(), block
-						.getEnd().getTime(), block.isMovable(), false);
-				blockStatement.execute();
+						.getEnd().getTime(), block.isMovable());
+				blockStatement.addBatch();
 			}
+			blockStatement.executeBatch();
 			
 			// commit to the database
 			con.commit();
