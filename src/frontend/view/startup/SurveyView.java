@@ -29,7 +29,7 @@ public class SurveyView extends JDialog {
 	private static final long			serialVersionUID	= -3311099840458252581L;
 	
 	/* Styling vars */
-	private static final Dimension		minimum_size		= new Dimension(625, 670);
+	private static final Dimension		minimum_size		= new Dimension(675, 670);
 	private static final Insets			insets				= new Insets(6, 2, 6, 2);
 	private static final Insets			leftInsets			= new Insets(8, 30, 8, 0);
 	private static final Insets			rightInsets			= new Insets(8, 0, 8, 30);
