@@ -46,7 +46,7 @@ public class HubController {
 			public void run() {
 				final String tempId = a.getTemplate().getID();
 				
-				// TODO: Make learner act on this
+				Learner.optimizeTasks(a);
 				
 				try {
 					// Make sure the template and assignment are in the DB
@@ -80,13 +80,10 @@ public class HubController {
 	 * @param newStart the new start time
 	 * @param newEnd the new end time
 	 */
-	public static void changeTimeBlock(final ITimeBlockable oldBlock, final Date newStart, final Date newEnd) {
-		final Date oldStart = new Date(oldBlock.getStart().getTime());
-		final Date oldEnd = new Date(oldBlock.getEnd().getTime());
-		
+	public static void changeTimeBlock(final ITimeBlockable oldBlock, final Date newStart, final Date newEnd) {		
 		// Time modifier updates old block with newStart and newEnd so by the time the learner acts on it, it's "new"
 		if (TimeModifier.updateBlock(oldBlock, newStart, newEnd)) {
-			Learner.considerBlockUpdate(oldBlock, oldStart, oldEnd);
+			Learner.considerBlockUpdate(oldBlock);
 		}
 		reloadApp();
 	}
@@ -98,9 +95,10 @@ public class HubController {
 	 * @param newCompletion a double between 0 and 1 inclusive to represent percent complete
 	 */
 	public static void changeTask(final ITask oldTask, final double newCompletion) {
+		double magnitudeChange = newCompletion - oldTask.getPercentComplete(); 
 		TimeModifier.updateBlocksInTask(oldTask, newCompletion);
-		
-		// TODO: Update learner using old percent and new percent
+		Learner.considerTaskUpdate(oldTask, new Date(System.currentTimeMillis()), magnitudeChange);
+
 		oldTask.setPercentComplete(newCompletion);
 		StorageService.updateTask(oldTask);
 		reloadApp();

@@ -152,7 +152,8 @@ public class StorageService {
 	}
 	
 	/*
-	 * ================================================ CRUD and dynamic queries for Assignments & Tasks
+	 * ================================================ 
+	 * CRUD and dynamic queries for Assignments & Tasks
 	 * ================================================
 	 */
 	
@@ -243,7 +244,8 @@ public class StorageService {
 	}
 	
 	/*
-	 * ======================================= CRUD and dynamic queries for TimeBlocks
+	 * ======================================= 
+	 * CRUD and dynamic queries for TimeBlocks
 	 * =======================================
 	 */
 	
@@ -352,7 +354,8 @@ public class StorageService {
 	}
 	
 	/*
-	 * ================================================ CRUD and dynamic queries for Templates and Steps
+	 * ================================================ 
+	 * CRUD and dynamic queries for Templates and Steps
 	 * ================================================
 	 */
 	
@@ -363,7 +366,18 @@ public class StorageService {
 	 * @return Found template
 	 */
 	public static ITemplate getTemplate(final String id) {
-		return TemplateStepStorage.getTemplate(id, _templates, _pool);
+		return TemplateStepStorage.getTemplate(id, _templates, _pool, false);
+	}
+	
+	/**
+	 * Get Template corresponding to the provided Id
+	 * Option to forceUpdate for use by learning functions in TemplateStepStorage
+	 * 
+	 * @param id Id of the template to be found
+	 * @return Found template
+	 */
+	protected static ITemplate getTemplate(final String id, boolean forceUpdate) {
+		return TemplateStepStorage.getTemplate(id, _templates, _pool, forceUpdate);
 	}
 	
 	/**
@@ -417,18 +431,31 @@ public class StorageService {
 		return TemplateStepStorage.removeTemplate(temp, _pool);
 	}
 	
-	// TODO: finish and comment!
-	public static void learnTemplateStepTimeOfDay(final ITask task, final String todKey, final double todIncrement) {
-		TemplateStepStorage.learnTemplateStepTimeOfDay(task, todKey, todIncrement, _pool);
+	/**
+	 * Learn from and set the appropriate TimeOfDay for a TemplateStep corresponding to the Task
+	 * 
+	 * @param task Task corresponding to the TemplateStep we will update
+	 * @param todKey String name of the TimeOfDay enum we will apply the deltaTod to
+	 * @param deltaTod How much we will change the counter by
+	 */
+	public static void learnTemplateStepTimeOfDay(final ITask task, final String todKey, final double deltaTod) {
+		TemplateStepStorage.learnTemplateStepTimeOfDay(task, todKey, deltaTod, _templates, _pool);
 	}
 	
-	// TODO: finish and comment!
+	/**
+	 * Learn from and set the consecutiveHours for the Template corresponding to the Task
+	 * 
+	 * @param task Task corresponding to the Template we will update
+	 * @param consecutiveHours Consecutive hours we will add to the running average
+	 */
 	public static void learnTemplateConsecutiveHours(final ITask task, final double consecutiveHours) {
-		TemplateStepStorage.learnTemplateConsecutiveHours(task, consecutiveHours, _pool);
+		TemplateStepStorage.learnTemplateConsecutiveHours(task, consecutiveHours, _templates, _pool);
 	}
 	
 	/*
-	 * ===================================== CRUD and dynamic queries for Settings =====================================
+	 * ===================================== 
+	 * CRUD and dynamic queries for Settings 
+	 * =====================================
 	 */
 	
 	/**
@@ -471,7 +498,9 @@ public class StorageService {
 	}
 	
 	/*
-	 * ============== Helper methods ==============
+	 * ============== 
+	 * Helper methods 
+	 * ==============
 	 */
 	
 	protected static String concatColumn(final String columnName, final String dataType) {

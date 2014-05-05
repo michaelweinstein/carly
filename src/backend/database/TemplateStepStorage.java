@@ -59,8 +59,8 @@ public class TemplateStepStorage {
 	 * @return Found template
 	 */
 	protected static ITemplate getTemplate(final String id, final Cache<ITemplate> templates,
-			final JdbcConnectionPool pool) {
-		if (templates.contains(id)) {
+			final JdbcConnectionPool pool, boolean forceUpdate) {
+		if (templates.contains(id) && !forceUpdate) {
 			return templates.get(id);
 		}
 		
@@ -569,12 +569,26 @@ public class TemplateStepStorage {
 		return results;
 	}
 	
-	//TODO: need to test
+	/**
+	 * Learn from and set the appropriate TimeOfDay for a TemplateStep corresponding to the Task
+	 * 
+	 * @param task Task corresponding to the TemplateStep we will update
+	 * @param todKey String name of the TimeOfDay enum we will apply the deltaTod to
+	 * @param deltaTod How much we will change the counter by
+	 * @param templates Cache of templates recently searched for
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
+	 */
 	protected static void learnTemplateStepTimeOfDay(ITask task, String todKey, double deltaTod, 
-			final JdbcConnectionPool pool) {
+			final Cache<ITemplate> templates, final JdbcConnectionPool pool) {
+		//Can't learn when the todKey is a valid time of day 
+		if (todKey.equals("")) {
+			return; 
+		}
+		
 		PreparedStatement retrieveStatement = null;
 		PreparedStatement storeStatement = null;
 		Connection con = null;
+		String templateId = ""; 
 		
 		try {
 			Class.forName("org.h2.Driver");
@@ -588,7 +602,9 @@ public class TemplateStepStorage {
 			//Skip the column headings
 			templateStepResult.next(); 
 			
-			//Recreate the necessary fields from the results 
+			//Recreate the necessary fields from the results
+			templateId = templateStepResult.getString("TEMPLATE_ID");
+			String stepName = templateStepResult.getString("STEP_NAME");
 			String highestTodKey = templateStepResult.getString("STEP_TIME_OF_DAY");
 			Array array = templateStepResult.getArray("STEP_TOD_COUNTERS"); 
 			Object[] objArray = (Object[])array.getArray(); 
@@ -607,16 +623,10 @@ public class TemplateStepStorage {
 						+ "Could not resolve passed in todKey: " + todKey);
 			}
 			
-			
-//			protected static final String UPDATE_TEMPLATE_STEP_TOD =  
-//					"UPDATE TEMPLATE_STEP " +
-//					"SET STEP_TIME_OF_DAY = ?, STEP_TOD_COUNTERS = ? " + 
-//					"WHERE TEMPLATE_STEP = ? AND STEP_NAME = ? ";
-			
 			//Update the db with the new learnings
-//			storeStatement = con.prepareStatement(Utilities.UPDATE_TEMPLATE_STEP_TOD);
-//			Utilities.setValues(storeStatement, highestTodKey, todCounters, 
-//					);
+			storeStatement = con.prepareStatement(Utilities.UPDATE_TEMPLATE_STEP_TOD);
+			Utilities.setValues(storeStatement, highestTodKey, todCounters, 
+					templateId, stepName);
 			storeStatement.execute(); 
 			
 			// commit to the database
@@ -652,14 +662,28 @@ public class TemplateStepStorage {
 						+ "could not close resource", x);
 			}
 		}
+		
+		//Update the cache
+		if (!templateId.equals("")) {
+			ITemplate template = StorageService.getTemplate(templateId, true);
+			templates.insert(templateId, template); 
+		}
 	}
 	
-	//TODO: need to test
+	/**
+	 * Learn from and set the consecutiveHours for the Template corresponding to the Task
+	 * 
+	 * @param task Task corresponding to the Template we will update
+	 * @param consecutiveHours Consecutive hours we will add to the running average
+	 * @param templates Cache of templates recently searched for
+	 * @param pool JdbcConnectionPool for retrieving connection to the database
+	 */
 	protected static void learnTemplateConsecutiveHours(ITask task, double consecutiveHours, 
-			final JdbcConnectionPool pool) {
+			final Cache<ITemplate> templates, final JdbcConnectionPool pool) {
 		PreparedStatement retrieveStatement = null;
 		PreparedStatement storeStatement = null;
 		Connection con = null;
+		String templateId = "";
 		
 		try {
 			Class.forName("org.h2.Driver");
@@ -667,13 +691,14 @@ public class TemplateStepStorage {
 			
 			con.setAutoCommit(false);
 			retrieveStatement = con.prepareStatement(Utilities.SELECT_TEMPLATE_BY_ASGN_ID);
-			Utilities.setValues(retrieveStatement, task.getAssignmentID(), task.getTaskNumber());
+			Utilities.setValues(retrieveStatement, task.getAssignmentID());
 			ResultSet templateResult = retrieveStatement.executeQuery();
 			
 			//Skip the column headings
 			templateResult.next(); 
 			
 			//Recreate the necessary fields from the results 
+			templateId = templateResult.getString("TEMPLATE_ID");
 			double templateConsecutiveHours = templateResult.getDouble("TEMPLATE_CONSECUTIVE_HOURS");
 			int templateNumConsecutive= templateResult.getInt("TEMPLATE_NUM_CONSECUTIVE");
 			
@@ -682,22 +707,22 @@ public class TemplateStepStorage {
 			templateNumConsecutive++; 
 			
 			//Update the db with the new learnings
-			storeStatement = con.prepareStatement(Utilities.UPDATE_TEMPLATE_STEP_TOD);
-//			Utilities.setValues(storeStatement, highestTodKey, todCounters);
+			storeStatement = con.prepareStatement(Utilities.UPDATE_TEMPLATE_CONSECUTIVE_HOURS);
+			Utilities.setValues(storeStatement, templateConsecutiveHours, templateNumConsecutive, templateId);
 			storeStatement.execute(); 			
 			
 			// commit to the database
 			con.commit();
 		} catch (final ClassNotFoundException e) {
-			Utilities.printException("TimeBlockStorage: learnTemplateStepTimeOfDay: db drive class not found", e);
+			Utilities.printException("TimeBlockStorage: learnTemplateConsecutiveHours: db drive class not found", e);
 		} catch (final SQLException e) {
-			Utilities.printSQLException("TemplateStepStorage: learnTemplateStepTimeOfDay: " + 
+			Utilities.printSQLException("TemplateStepStorage: learnTemplateConsecutiveHours: " + 
 							"attempting to roll back transaction", e);
 			if (con != null) {
 				try {
 					con.rollback();
 				} catch (final SQLException x) {
-					Utilities.printSQLException("TemplateStepStorage: learnTemplateStepTimeOfDay: "
+					Utilities.printSQLException("TemplateStepStorage: learnTemplateConsecutiveHours: "
 						+ "could not roll back transaction", x);
 				}
 			}
@@ -715,9 +740,15 @@ public class TemplateStepStorage {
 					con.close();
 				}
 			} catch (final SQLException x) {
-				Utilities.printSQLException("TemplateStepStorage: learnTemplateStepTimeOfDay: "
+				Utilities.printSQLException("TemplateStepStorage: learnTemplateConsecutiveHours: "
 						+ "could not close resource", x);
 			}
+		}
+		
+		//Update the cache
+		if (!templateId.equals("")) {
+			ITemplate template = StorageService.getTemplate(templateId, true); 
+			templates.insert(templateId, template); 
 		}
 	}
 	

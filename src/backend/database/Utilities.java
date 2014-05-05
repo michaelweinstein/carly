@@ -178,7 +178,7 @@ public abstract class Utilities {
 	
 	protected static final String SELECT_TEMPLATE_BY_ASGN_ID = 
 			"SELECT * FROM TEMPLATE " +
-			"WHERE TEMPLATE_ID = (SELECT ASGN_TEMPLATE_ID FROM ASSIGNMENT WHERE ASGN_ID = ?) ";
+			"WHERE TEMPLATE_ID = (SELECT ASGN_TEMPLATE_ID FROM ASSIGNMENT WHERE ASSIGNMENT.ASGN_ID = ?) ";
 	
 	protected static final String SELECT_TEMPLATES_AND_STEPS_BY_ID = 
 			"SELECT * FROM TEMPLATE " +
@@ -212,7 +212,7 @@ public abstract class Utilities {
 	protected static final String UPDATE_TEMPLATE_STEP_TOD =  
 			"UPDATE TEMPLATE_STEP " +
 			"SET STEP_TIME_OF_DAY = ?, STEP_TOD_COUNTERS = ? " + 
-			"WHERE TEMPLATE_STEP = ? AND STEP_NAME = ? ";
+			"WHERE TEMPLATE_ID = ? AND STEP_NAME = ? ";
 	
 	protected static final String MERGE_TEMPLATE_STEP = 
 			"MERGE INTO TEMPLATE_STEP " +
@@ -225,8 +225,8 @@ public abstract class Utilities {
 	
 	protected static final String SELECT_TEMPLATE_STEP_BY_ASGN_ID_AND_STEP_NUM = 
 			"SELECT * FROM TEMPLATE_STEP " +
-			"WHERE TEMPLATE_ID = (SELECT ASGN_TEMPLATE_ID FROM ASSIGNMENT WHERE ASGN_ID = ?) AND " +
-			"STEP_NAME = ? ";
+			"WHERE TEMPLATE_ID = (SELECT ASGN_TEMPLATE_ID FROM ASSIGNMENT WHERE ASSIGNMENT.ASGN_ID = ?) AND " +
+			"STEP_STEP_NUMBER = ? ";
 	
 	protected static final String DELETE_TEMPLATE_STEPS_BY_ID = 
 			"DELETE FROM TEMPLATE_STEP " +
