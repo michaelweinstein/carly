@@ -3,6 +3,7 @@ package frontend.view.startup.timepicker;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.Rectangle;
 import java.awt.geom.Line2D;
 import java.awt.geom.Rectangle2D;
 import java.util.Calendar;
@@ -16,10 +17,10 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	private static final long		serialVersionUID	= -4648292002477697311L;
 	
 	/* Styling vals */
-	public static final Color		SELECTED_COLOR		= Utils.COLOR_ACCENT;
-	public static final Color		BORDER_COLOR		= Color.LIGHT_GRAY;
+	public static final Color		SELECTED_COLOR		= Utils.COLOR_LIGHT_BG;
+	public static final Color		BORDER_COLOR		= Utils.COLOR_LIGHT_BG.darker();
 	public static final BasicStroke	BORDER_STROKE		= new BasicStroke(1f);
-	public static final Color		HOVER_COLOR			= Color.LIGHT_GRAY.darker();
+	public static final Color		HOVER_COLOR			= Utils.COLOR_LIGHT_BG.brighter();
 	
 	/* Boolean vars */
 	private boolean					_isSelected;
@@ -111,14 +112,9 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	 * only because the rest is dealt with by the other blocks). If on half an hour, doesn't draw the top
 	 * 
 	 * @param g the graphics object to use in drawing
+	 * @param full the full area to use to draw
 	 */
-	public void draw(final Graphics2D g) {
-		// Draws fill for selected or hovering block
-		if (_isSelected || _isHovering) {
-			g.setColor(_isHovering ? HOVER_COLOR : SELECTED_COLOR);
-			g.fill(this);
-		}
-		
+	public void draw(final Graphics2D g, final Rectangle full) {
 		// Draws line for left, only drawing top if not on half hour
 		g.setColor(BORDER_COLOR);
 		g.setStroke(BORDER_STROKE);
@@ -126,5 +122,19 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 		if (!_isOnHalfHour) {
 			g.draw(new Line2D.Double(getMinX(), getMinY(), getMaxX(), getMinY()));
 		}
+		
+		// Draws striped fill for selected or hovering block
+		if (_isSelected || _isHovering) {
+			g.setPaint(_isHovering ? HOVER_COLOR : SELECTED_COLOR);
+			g.setClip(this);
+			g.setStroke(new BasicStroke(1));
+			
+			// Draws stripes
+			for (double x = this.x, y2 = y; y2 - height < (y * 2 + height * 2 + width * 2);) {
+				g.draw(new Line2D.Double(x, y2, x + width, y2 - width));
+				y2 += 6;
+			}
+		}
+		g.setClip(full);
 	}
 }

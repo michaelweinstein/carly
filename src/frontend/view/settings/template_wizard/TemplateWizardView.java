@@ -2,9 +2,6 @@ package frontend.view.settings.template_wizard;
 
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -14,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -47,7 +45,7 @@ public class TemplateWizardView extends ScrollablePanel {
 	
 	private static final long					serialVersionUID		= 4215933185975151935L;
 	
-	private 									SettingsView 			_settingsView;
+	private final SettingsView					_settingsView;
 	
 	/* Styling Vars */
 	// private static final int title_size = 19;
@@ -75,10 +73,11 @@ public class TemplateWizardView extends ScrollablePanel {
 	/* Input Elements */
 	private final JComboBox<ITemplate>			_templatePicker;
 	private StepModel							_tableModel;
+	private StepViewTable						_stepTable;
 	// Top Buttons ('Hide', 'Show')
 	private final CButton						_editBtn				= new CButton(edit_template);
 	private final CButton						_hideBtn				= new CButton(hide_template);
-	private final CButton						_deleteBtn 				= new CButton(delete_template);
+	private final CButton						_deleteBtn				= new CButton(delete_template);
 	// Panels (Show/Hide block)
 	private JPanel								_namePanel				= new JPanel();
 	private JPanel								_hoursPanel				= new JPanel();
@@ -92,7 +91,7 @@ public class TemplateWizardView extends ScrollablePanel {
 	 * 
 	 * @param settings
 	 */
-	public TemplateWizardView(JScrollPane scroller, SettingsView sview) {
+	public TemplateWizardView(final JScrollPane scroller, final SettingsView sview) {
 		super(scroller);
 		// Set theme and layout of wizard
 		Utils.themeComponent(this);
@@ -116,11 +115,10 @@ public class TemplateWizardView extends ScrollablePanel {
 		
 		/* 'Delete' button (Listener below) */
 		_deleteBtn.setFocusPainted(false);
-		_deleteBtn.setPreferredSize(new Dimension(btnSize.width+8, btnSize.height));
+		_deleteBtn.setPreferredSize(new Dimension(btnSize.width + 8, btnSize.height));
 		_deleteBtn.setEnabled(false);
 		_deleteBtn.setVisible(true);
-		_deleteBtn.setForeground(Color.RED);
-
+		
 		/* JComboBox TemplatePicker (ItemListener below) */
 		// Populate with any existing templates
 		_templatePicker = new JComboBox<>(TemplateDelegate.getExistingTemplates());
@@ -129,7 +127,6 @@ public class TemplateWizardView extends ScrollablePanel {
 		final int numItems = _templatePicker.getItemCount();
 		_templatePicker.setSelectedIndex(numItems > 0 ? numItems - 1 : 0);
 		
-
 		/* Name: (code in newNamePanel()) */
 		_namePanel = newNamePanel(template_name);
 		
@@ -139,7 +136,7 @@ public class TemplateWizardView extends ScrollablePanel {
 		/* Steps table (code in createStepsPanel()) */
 		_stepPanel = createStepsPanel();
 		_stepPanel.setVisible(false);
-
+		
 		/* "Submit/Update template" button */
 		// Boolean show indicates whether starting on 'Custom' template
 		_submitTemplateBtn.setFocusPainted(false);
@@ -205,13 +202,12 @@ public class TemplateWizardView extends ScrollablePanel {
 			}
 		});
 		
-
 		/* --- 'Delete' Listener --- */
 		_deleteBtn.addActionListener(new ActionListener() {
-
+			
 			@Override
-			public void actionPerformed(ActionEvent e) {
-				ITemplate t = _templatePicker.getItemAt(_templatePicker.getSelectedIndex());
+			public void actionPerformed(final ActionEvent e) {
+				final ITemplate t = _templatePicker.getItemAt(_templatePicker.getSelectedIndex());
 				_templatePicker.removeItem(t);
 				TemplateDelegate.removeTemplate(t);
 				TemplateWizardView.this.repaint();
@@ -230,7 +226,7 @@ public class TemplateWizardView extends ScrollablePanel {
 					// Populate fields data based on current selected item
 					populateFields();
 					// Set element states if 'New Template' or not
-					toggleCustom(t.getName().equals(new_template));		
+					toggleCustom(t.getName().equals(new_template));
 					// Repaint wizard panel
 					TemplateWizardView.this.repaint();
 				}
@@ -238,7 +234,7 @@ public class TemplateWizardView extends ScrollablePanel {
 		});
 		
 		// ============= End of Listeners =============
-
+		
 		// === Adding Elements ===
 		this.add(_editBtn);
 		this.add(_hideBtn);
@@ -273,16 +269,16 @@ public class TemplateWizardView extends ScrollablePanel {
 	}
 	
 	/**
-	 * Called when JComboBox's selected item is 'New Template.'
-	 * The Submit/Update Button's text gets set to 'Submit', changes
-	 * color also. Panels must be visible, and 'Delete' is disabled.
+	 * Called when JComboBox's selected item is 'New Template.' The Submit/Update Button's text gets set to 'Submit',
+	 * changes color also. Panels must be visible, and 'Delete' is disabled.
 	 * 
 	 * @param show whether 'New Template' is currently selected
 	 */
 	private void toggleCustom(final boolean show) {
 		// Don't set visibility false for all non-custom templates
-		if (show)
+		if (show) {
 			toggleVisibility(true);
+		}
 		_submitTemplateBtn.setText(show ? submit_new_template : submit_updated_template);
 		_submitTemplateBtn.setForeground(show ? submitNewColor : submitUpdatedColor);
 		_deleteBtn.setEnabled(!show);
@@ -300,12 +296,7 @@ public class TemplateWizardView extends ScrollablePanel {
 	private JPanel createStepsPanel() {
 		final JPanel innerPanel = new JPanel();
 		// Create Layout and Constraints, main components
-		final GridBagConstraints c = new GridBagConstraints();
-		innerPanel.setLayout(new GridBagLayout());
-		c.fill = GridBagConstraints.HORIZONTAL;
-		c.weightx = 1;
-		c.weighty = 0;
-		c.insets = new Insets(0, 0, 10, 0);
+		innerPanel.setLayout(new BoxLayout(innerPanel, BoxLayout.Y_AXIS));
 		Utils.themeComponent(innerPanel);
 		
 		// Create TableModel
@@ -319,7 +310,7 @@ public class TemplateWizardView extends ScrollablePanel {
 			// --- Step Table Listener ---
 			@Override
 			public void tableChanged(final TableModelEvent e) {
-				int numRows = model.getRowCount();
+				final int numRows = model.getRowCount();
 				// Steps capped
 				if (numRows < max_steps) {
 					// Create new row if last row is entirely filled
@@ -331,10 +322,11 @@ public class TemplateWizardView extends ScrollablePanel {
 					// Remove any empty rows
 					model.deleteRowsIfEmpty(e.getFirstRow(), e.getLastRow());
 					// TemplateWizardView panel calls
-					revalidate();
+					
+					innerPanel.setPreferredSize(new Dimension(300, (numRows + 1) * _stepTable.getRowHeight()));
+					TemplateWizardView.this.revalidate();
 					TemplateWizardView.this.repaint();
-				}
-				else {
+				} else {
 					alertUser("Number of steps capped at " + max_steps);
 				}
 			}
@@ -343,32 +335,14 @@ public class TemplateWizardView extends ScrollablePanel {
 		// Assign _tableModel
 		_tableModel = model;
 		
-		// 'Steps: ' label
-		final JLabel stepLabel = new JLabel(steps_list + ": ");
-		Utils.themeComponent(stepLabel);
-		Utils.padComponent(stepLabel, 11, 5);
-		c.gridx = 0;
-		c.gridy = 0;
-		c.gridwidth = 1;
-		innerPanel.add(stepLabel, c);
-				
 		// Instantiate StepViewTable
-		final StepViewTable stepTable = new StepViewTable(model, false);
+		_stepTable = new StepViewTable(model, false);
 		// Create Header
-		final JTableHeader header = stepTable.getTableHeader();
-		// Style Header
-		c.gridx = 1;
-		c.gridy = 0;
-		c.gridheight = 1;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		innerPanel.add(header, c);
-		// Style StepViewTable list
-		Utils.padComponent(stepTable, 10, 30);
-		c.gridx = 1;
-		c.gridy = 1;
-		c.gridheight = GridBagConstraints.REMAINDER;
-		c.gridwidth = GridBagConstraints.REMAINDER;
-		innerPanel.add(stepTable, c);
+		final JTableHeader header = _stepTable.getTableHeader();
+		innerPanel.add(header);
+		innerPanel.add(_stepTable);
+		
+		innerPanel.setPreferredSize(new Dimension(300, 30));
 		
 		return innerPanel;
 	}
@@ -397,8 +371,7 @@ public class TemplateWizardView extends ScrollablePanel {
 	}
 	
 	/**
-	 * Factored out code from constructor to create a panel
-	 * with a JLabel and JTextField. 
+	 * Factored out code from constructor to create a panel with a JLabel and JTextField.
 	 * 
 	 * @param name String to label number input field
 	 * @return JPanel for hours input
@@ -600,8 +573,7 @@ public class TemplateWizardView extends ScrollablePanel {
 	}
 	
 	/**
-	 * Resets JComboBox _templatePicker according
-	 * to what is in the database. 
+	 * Resets JComboBox _templatePicker according to what is in the database.
 	 */
 	public void updateTemplatesInPicker() {
 		// Clear JComboBox
@@ -609,8 +581,8 @@ public class TemplateWizardView extends ScrollablePanel {
 		// Add back 'New Template' template
 		_templatePicker.addItem(new Template(new_template));
 		// Add all new Templates from database
-		for (ITemplate t: TemplateDelegate.getExistingTemplates()) {
-			this.addTemplateToPicker(t);
+		for (final ITemplate t : TemplateDelegate.getExistingTemplates()) {
+			addTemplateToPicker(t);
 		}
 		// Set selected to 'New template'
 		final int numItems = _templatePicker.getItemCount();
@@ -622,10 +594,8 @@ public class TemplateWizardView extends ScrollablePanel {
 	// ============ START Verify Data Methods ==================
 	
 	/**
-	 * Alerts the user of a message or error in console.
-	 * Calls SettingsView container's method to set 
-	 * a label at the bottom of the screen, to alert
-	 * user in GUI
+	 * Alerts the user of a message or error in console. Calls SettingsView container's method to set a label at the
+	 * bottom of the screen, to alert user in GUI
 	 * 
 	 * @param message String to print
 	 */
@@ -673,7 +643,7 @@ public class TemplateWizardView extends ScrollablePanel {
 					alertUser("Invalid Input: Please enter valid number of consecutive hours.");
 				}
 			} else {
-				alertUser("Invalid Input: Please entera number of consecutive hours.");
+				alertUser("Invalid Input: Please enter a number of consecutive hours.");
 			}
 		}
 		return validName && validHours;
@@ -692,7 +662,7 @@ public class TemplateWizardView extends ScrollablePanel {
 			alertUser("Invalid Input: Please add Steps to this Template");
 			return false;
 		}
-				
+		
 		// Check that % of totals add up to 100%
 		final List<ITemplateStep> currSteps = getStepsFromTable();
 		double total = 0;
@@ -715,4 +685,20 @@ public class TemplateWizardView extends ScrollablePanel {
 	}
 	
 	// ============ END Verify Data Methods ==================
+	
+	@Override
+	public void revalidate() {
+		if (_stepTable != null) {
+			_stepTable.revalidate();
+		}
+		super.revalidate();
+	}
+	
+	@Override
+	public void repaint() {
+		if (_stepTable != null) {
+			_stepTable.repaint();
+		}
+		super.repaint();
+	}
 }

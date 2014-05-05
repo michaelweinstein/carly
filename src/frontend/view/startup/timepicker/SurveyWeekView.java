@@ -146,7 +146,7 @@ public class SurveyWeekView extends JPanel {
 		g2.setBackground(Utils.COLOR_BACKGROUND);
 		g2.clearRect(0, 0, getWidth(), getHeight());
 		g2.setColor(SurveyTimeBlock.BORDER_COLOR);
-		g2.drawRect(X_INSET, Y_INSET / 2, getWidth() - X_INSET - 1, getHeight() - Y_INSET);
+		g2.drawRect(X_INSET, Y_INSET / 2, getWidth() - X_INSET - 1, getHeight() - Y_INSET - 1);
 		
 		// Draws num on left
 		g2.setFont(Utils.getFont(Font.BOLD, 10));
@@ -164,7 +164,7 @@ public class SurveyWeekView extends JPanel {
 		
 		// Draw all blocks
 		for (final SurveyTimeBlock b : _blocks) {
-			b.draw(g2);
+			b.draw(g2, getVisibleRect());
 		}
 	}
 	

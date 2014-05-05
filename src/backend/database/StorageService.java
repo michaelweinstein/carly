@@ -1,7 +1,9 @@
 package backend.database;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -20,7 +22,10 @@ import data.AssignmentBlock;
 import data.IAssignment;
 import data.ITask;
 import data.ITemplate;
+import data.ITemplateStep;
 import data.ITimeBlockable;
+import data.Template;
+import data.TemplateStep;
 import data.UnavailableBlock;
 
 /**
@@ -93,6 +98,32 @@ public class StorageService {
 		} catch (final SQLException e) {
 			throw new StorageServiceException("StorageService: initialize: could not create all tables: "
 				+ e.getMessage());
+		}
+		
+		// Add default templates
+		if (firstStart) {
+			try {
+				final BufferedReader reader = new BufferedReader(new FileReader("config/templates.txt"));
+				String line;
+				Template currTemplate = null;
+				final List<ITemplateStep> steps = new ArrayList<>();
+				while ((line = reader.readLine()) != null) {
+					if (line.startsWith("START")) {
+						final String[] arr = line.split(";");
+						steps.clear();
+						currTemplate = new Template(arr[1], Double.parseDouble(arr[2]));
+					} else if (line.startsWith("END") && currTemplate != null) {
+						StorageService.addTemplate(currTemplate);
+					} else if (currTemplate != null) {
+						final String[] arr = line.split(";");
+						currTemplate.addStep(new TemplateStep(arr[0], Double.parseDouble(arr[1]), steps.size()));
+					}
+				}
+				reader.close();
+				
+			} catch (final IOException | NumberFormatException | IndexOutOfBoundsException e) {
+				throw new StorageServiceException("Template file couldn't be parsed: " + e.getMessage());
+			}
 		}
 		return firstStart;
 	}

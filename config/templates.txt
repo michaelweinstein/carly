@@ -1,0 +1,32 @@
+START;Essay;3
+Thesis;0.05
+Outline;0.1
+Draft;0.7
+Revise;0.15
+END
+START;Website;6
+Design;0.2
+Code;0.6
+Edits + Hosting;0.2
+END
+START;CS Project;8
+Design;0.2
+Code;0.6
+Debugging;0.1
+Tests/Comments;0.1
+END
+START;Problem Set;5
+Work;1
+END
+START;Reading;2
+Read;0.9
+Summarize;0.1
+END
+START;Research;4
+Find Sources;0.2
+Read;0.6
+Document;0.2
+END
+START;Art/Studio;8
+Work;1
+END

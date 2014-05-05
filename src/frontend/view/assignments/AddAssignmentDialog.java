@@ -247,6 +247,7 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 	 */
 	private void updateSteps(final ITemplate t) {
 		t.clearSteps();
+		double total = 0;
 		for (int i = 0; i < _stepModel.getRowCount() - 1; i++) { // -1 handles last blank row
 			final String stepName = _stepModel.getValueAt(i, 0).toString();
 			
@@ -264,7 +265,11 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 			} catch (final NumberFormatException e) {
 				throw new IllegalArgumentException("percent of total not a number");
 			}
+			total += stepPercent;
 			t.addStep(new TemplateStep(stepName, stepPercent / 100.0, i));
+		}
+		if (total < 0.999999999 || total > 1.0000000001) {
+			throw new IllegalArgumentException("total percent doesn't sum to 100");
 		}
 	}
 	
@@ -338,6 +343,9 @@ public class AddAssignmentDialog extends JDialog implements TableModelListener {
 		
 		// Get the ID of the template and make a series of steps
 		ITemplate t = StorageService.getTemplate(((ITemplate) _templatePicker.getSelectedItem()).getID());
+		if (t == null && _lastTemplateAdded != null) {
+			t = StorageService.getTemplate(_lastTemplateAdded);
+		}
 		if (t == null) {
 			t = new Template("Custom");
 			final Set<String> stepNames = new HashSet<>();

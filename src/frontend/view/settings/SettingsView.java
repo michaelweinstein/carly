@@ -50,8 +50,8 @@ public class SettingsView extends JDialog {
 	/* Data Structure vars */
 	private static JComboBox<TimeOfDay>	_todPicker;
 	private static JCheckBox			_learnerToggle;
-	private TemplateWizardView			_templateWizard;
-	private JLabel						_alertLabel;
+	private final TemplateWizardView	_templateWizard;
+	private final JLabel				_alertLabel;
 	
 	public SettingsView() {
 		super();
@@ -60,7 +60,7 @@ public class SettingsView extends JDialog {
 		setMinimumSize(minimum_size);
 		setResizable(false);
 		Utils.themeComponent(getRootPane());
-		Utils.padComponent(getRootPane(), 15, 15);	
+		Utils.padComponent(getRootPane(), 15, 15);
 		// Keyboard shortcut
 		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke("ESCAPE"), "escape");
 		getRootPane().getActionMap().put("escape", new AbstractAction() {
@@ -74,25 +74,23 @@ public class SettingsView extends JDialog {
 			}
 			
 		});
-		this.setLayout(new BorderLayout());
+		setLayout(new BorderLayout());
 		
 		/* === Main Panel === */
 		
-		JPanel mainPanel = new JPanel();		
+		final JPanel mainPanel = new JPanel();
 		// Main stylings
 		Utils.themeComponent(mainPanel);
 		mainPanel.setLayout(new BorderLayout());
-		mainPanel.setVisible(true);
 		
 		final JLabel titlePanel = createSettingsTitle();
 		final JPanel inputPanel = createInputPanel();
 		
-		JScrollPane scrollPane = new JScrollPane();
+		final JScrollPane scrollPane = new JScrollPane();
 		_templateWizard = new TemplateWizardView(scrollPane, this);
 		scrollPane.setViewportView(_templateWizard);
-		scrollPane.setVisible(true);
-		_templateWizard.setPreferredSize(new Dimension(250, 1000));
-				
+		_templateWizard.setPreferredSize(new Dimension(250, 800));
+		
 		/* Adding Elements to MainPanel */
 		mainPanel.add(titlePanel, BorderLayout.NORTH);
 		mainPanel.add(scrollPane, BorderLayout.CENTER);
@@ -100,7 +98,7 @@ public class SettingsView extends JDialog {
 		
 		/* === Alert Panel === */
 		
-		JPanel alertPanel = new JPanel();
+		final JPanel alertPanel = new JPanel();
 		Utils.themeComponent(alertPanel);
 		alertPanel.setPreferredSize(new Dimension(0, 30));
 		
@@ -110,43 +108,54 @@ public class SettingsView extends JDialog {
 		
 		alertPanel.add(_alertLabel);
 		
-		this.setLayout(new BorderLayout());
+		setLayout(new BorderLayout());
 		this.add(mainPanel, BorderLayout.CENTER);
 		this.add(alertPanel, BorderLayout.SOUTH);
 		
 		/* Dialog Window Listener */
 		addWindowListener(new WindowListener() {
+			
 			@Override
 			public void windowOpened(final WindowEvent e) {
 				// Populates settings whenever Settings Dialog is opened
 				populateSettings();
-			}		
-			public void windowClosing(final WindowEvent e) {}		
-			public void windowClosed(final WindowEvent e) {}		
-			public void windowIconified(final WindowEvent e) {}			
-			public void windowDeiconified(final WindowEvent e) {}			
+			}
+			
+			@Override
+			public void windowClosing(final WindowEvent e) {}
+			
+			@Override
+			public void windowClosed(final WindowEvent e) {}
+			
+			@Override
+			public void windowIconified(final WindowEvent e) {}
+			
+			@Override
+			public void windowDeiconified(final WindowEvent e) {}
+			
+			@Override
 			public void windowActivated(final WindowEvent e) {}
+			
+			@Override
 			public void windowDeactivated(final WindowEvent e) {}
-		});		
+		});
 	}
 	
 	/**
-	 * Displays a message to user in the alertPanel
-	 * using setText _alertLabel. Prints in small font
-	 * at the bottom of the SettingsView. 
+	 * Displays a message to user in the alertPanel using setText _alertLabel. Prints in small font at the bottom of the
+	 * SettingsView.
 	 * 
 	 * @param message to display to user in GUI
 	 */
-	public void alertUser(String message) {
+	public void alertUser(final String message) {
 		_alertLabel.setText(message);
 	}
 	
 	/**
-	 * Partial override. Calls super.setVisible,
-	 * and then reloads JComboBox in TemplateWizardView.
+	 * Partial override. Calls super.setVisible, and then reloads JComboBox in TemplateWizardView.
 	 */
 	@Override
-	public void setVisible(boolean visible) {
+	public void setVisible(final boolean visible) {
 		super.setVisible(visible);
 		reloadData();
 	}
@@ -155,8 +164,11 @@ public class SettingsView extends JDialog {
 	 * Reloads all data from Database.
 	 */
 	private void reloadData() {
+		_templateWizard.revalidate();
+		_templateWizard.repaint();
 		_templateWizard.updateTemplatesInPicker();
 		populateSettings();
+		revalidate();
 		repaint();
 	}
 	
