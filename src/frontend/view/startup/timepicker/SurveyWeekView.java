@@ -192,8 +192,8 @@ public class SurveyWeekView extends JPanel {
 				
 				// Deals with movements that pass through blocks accidentally
 				if (Math.abs(block.y - _currBlock.y) > 1) {
-					double start = block.y;
-					double end = _currBlock.y;
+					double start = block.y + 1;
+					double end = _currBlock.y + 1;
 					if (start > end) {
 						start = end;
 						end = block.y;
