@@ -9,6 +9,7 @@ import java.awt.RenderingHints;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -87,12 +88,12 @@ public class SurveyWeekView extends JPanel {
 	 * Finds the SurveyTimeBlock in _blocks that contains the specified point, stored as a Vec2d. <br>
 	 * Runs in O(n)
 	 * 
-	 * @param loc location of cursor/point
+	 * @param double1 location of cursor/point
 	 * @return block containing loc
 	 */
-	private SurveyTimeBlock findBlockAt(final Point loc) {
+	private SurveyTimeBlock findBlockAt(final Point2D.Double double1) {
 		for (final SurveyTimeBlock block : _blocks) {
-			if (block.contains(loc)) {
+			if (block.contains(double1)) {
 				return block;
 			}
 		}
@@ -180,13 +181,30 @@ public class SurveyWeekView extends JPanel {
 	 * 
 	 * @param p point of mouse click
 	 */
-	private void handleMouse(final Point p) {
+	private void handleMouse(final Point2D.Double p) {
 		final SurveyTimeBlock block = findBlockAt(p);
 		if (block != null) {
 			if (_currBlock == null) {
 				_currBlock = block;
 				_currSelectedVal = !_currBlock.isSelected();
 				_currBlock.hover(false);
+			} else {
+				
+				// Deals with movements that pass through blocks accidentally
+				if (Math.abs(block.y - _currBlock.y) > 1) {
+					double start = block.y;
+					double end = _currBlock.y;
+					if (start > end) {
+						start = end;
+						end = block.y;
+					}
+					for (double i = start; i <= end; i += ROW_HEIGHT) {
+						final SurveyTimeBlock b = findBlockAt(new Point2D.Double(_currBlock.x + 1, i));
+						if (b != null) {
+							b.setSelected(_currSelectedVal);
+						}
+					}
+				}
 			}
 			block.setSelected(_currSelectedVal);
 			_currBlock = block;
@@ -219,7 +237,7 @@ public class SurveyWeekView extends JPanel {
 		
 		@Override
 		public void mouseDragged(final MouseEvent e) {
-			handleMouse(e.getPoint());
+			handleMouse(new Point2D.Double(e.getX(), e.getY()));
 		}
 		
 		@Override
@@ -237,7 +255,7 @@ public class SurveyWeekView extends JPanel {
 		public void mousePressed(final MouseEvent e) {
 			_currSelectedVal = null;
 			_currBlock = null;
-			handleMouse(e.getPoint());
+			handleMouse(new Point2D.Double(e.getX(), e.getY()));
 		}
 		
 		@Override
