@@ -46,7 +46,7 @@ public class HubController {
 			public void run() {
 				final String tempId = a.getTemplate().getID();
 				
-				// TODO: Make learner act on this
+				Learner.optimizeTasks(a);
 				
 				try {
 					// Make sure the template and assignment are in the DB
