@@ -25,6 +25,7 @@ public class ErrorDialog extends JDialog {
 	
 	private static final long	serialVersionUID	= 1L;
 	private final JTextArea		_text;
+	private final JButton		_button;
 	
 	/**
 	 * Constructor sets up defaults and look and feel
@@ -58,9 +59,9 @@ public class ErrorDialog extends JDialog {
 		Utils.themeComponent(_text);
 		
 		// Create button
-		final JButton cancel = new CButton("Close");
-		cancel.setAlignmentX(RIGHT_ALIGNMENT);
-		cancel.addActionListener(new ActionListener() {
+		_button = new CButton("Close");
+		_button.setAlignmentX(RIGHT_ALIGNMENT);
+		_button.addActionListener(new ActionListener() {
 			
 			@Override
 			public void actionPerformed(final ActionEvent e) {
@@ -70,7 +71,7 @@ public class ErrorDialog extends JDialog {
 		final JPanel buttonPanel = new JPanel();
 		buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.X_AXIS));
 		buttonPanel.add(Box.createHorizontalGlue());
-		buttonPanel.add(cancel);
+		buttonPanel.add(_button);
 		buttonPanel.setAlignmentX(LEFT_ALIGNMENT);
 		Utils.themeComponent(buttonPanel);
 		
@@ -91,5 +92,14 @@ public class ErrorDialog extends JDialog {
 	 */
 	public void setText(final String newText) {
 		_text.setText(newText);
+	}
+	
+	/**
+	 * Updates the button text
+	 * 
+	 * @param buttonText the new text
+	 */
+	public void setButtonText(final String buttonText) {
+		_button.setText(buttonText);
 	}
 }

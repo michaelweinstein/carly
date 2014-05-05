@@ -34,8 +34,7 @@ public class TemplateDelegate {
 		try {
 			StorageService.addTemplate(t);
 		} catch (final StorageServiceException e) {
-			System.out.println("ERROR: StorageServiceException for template " + t + " (TemplateDelegate.addTemplate)");
-			e.printStackTrace();
+			Utils.printError("StorageServiceException for template " + t + " (TemplateDelegate.addTemplate)");
 		}
 	}
 	
@@ -63,7 +62,6 @@ public class TemplateDelegate {
 		} catch (final StorageServiceException e) {
 			Utils.printError("Template update failed! Make sure updatedTemplate, " + updatedTemplate.fullString()
 				+ ", has same ID as Template to database!");
-			e.printStackTrace();
 		}
 	}
 	

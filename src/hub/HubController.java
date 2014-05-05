@@ -68,7 +68,7 @@ public class HubController {
 						
 						@Override
 						public void run() {
-							_app.presentErrorDialog(err);
+							_app.presentErrorDialog(err, "Close");
 						}
 					});
 				}
