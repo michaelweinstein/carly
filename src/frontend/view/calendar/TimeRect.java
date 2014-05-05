@@ -60,7 +60,7 @@ public class TimeRect extends Rectangle2D.Double {
 	 */
 	public Color getColor() {
 		if (!_t.isMovable()) {
-			return new Color(30, 30, 30);
+			return new Color(60, 60, 60);
 		} else if (equalsMovingBlock()) {
 			return new Color(_c.getRed(), _c.getGreen(), _c.getBlue(), 100);
 		} else if (_t.getEnd().before(new Date())) {
