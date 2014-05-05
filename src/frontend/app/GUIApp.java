@@ -31,8 +31,8 @@ public class GUIApp extends App {
 	public GUIApp(final boolean debug, final boolean runStartUp) {
 		super(debug);
 		_runStartUp = runStartUp;
-		_window = new MainFrame(this);
 		_error = new ErrorDialog();
+		_window = new MainFrame(this);
 	}
 	
 	/**
@@ -126,10 +126,12 @@ public class GUIApp extends App {
 	 * specific and thus can't be shown from the MainFrame
 	 * 
 	 * @param e the exception that should be shown to the user
+	 * @param buttonText the text to toss on the button
 	 */
-	public void presentErrorDialog(final Exception e) {
+	public void presentErrorDialog(final Exception e, final String buttonText) {
 		_error.setTitle("Error");
 		_error.setText(e.getMessage() == null ? "Something went wrong" : e.getMessage());
+		_error.setButtonText(buttonText);
 		_error.setLocationRelativeTo(_window);
 		_error.setVisible(true);
 	}

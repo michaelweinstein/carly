@@ -5,7 +5,7 @@ import java.util.Objects;
 
 public class UnavailableBlock implements ITimeBlockable {
 	
-	private final String	m_uniqueId;
+	private String			m_uniqueId;
 	private Date			m_start;
 	private Date			m_end;
 	private ITask			m_task;
@@ -120,6 +120,11 @@ public class UnavailableBlock implements ITimeBlockable {
 	@Override
 	public int hashCode() {
 		return Objects.hash(m_start, m_end, m_task);
+	}
+	
+	@Override
+	public void renewID() {
+		m_uniqueId = DataUtil.generateID() + getStart().getTime() / 100000;
 	}
 	
 }

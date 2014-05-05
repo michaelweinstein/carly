@@ -92,9 +92,7 @@ public class TemplateWizardView extends JPanel {
 		Utils.themeComponent(this);
 		// // // TODO: Get rid of border if I can get it to look similar for entire SettingsView
 		Utils.padComponent(this, padding, padding);
-		
-		// TODO: Removing Templates -- user needs a way to delete an existing Template!
-		
+				
 		// ====== Instantiating Elements ======
 		
 		// Size of Edit/Hide buttons
@@ -111,17 +109,20 @@ public class TemplateWizardView extends JPanel {
 		_hideBtn.setEnabled(false);
 		_hideBtn.setVisible(true);
 		
+		/* 'Delete' button (Listener below) */
+		_deleteBtn.setFocusPainted(false);
+		_deleteBtn.setPreferredSize(new Dimension(btnSize.width+8, btnSize.height));
+		_deleteBtn.setEnabled(false);
+		_deleteBtn.setVisible(true);
+		_deleteBtn.setForeground(Color.RED);
+
 		/* JComboBox TemplatePicker (ItemListener below) */
 		// Populate with any existing templates
 		_templatePicker = new JComboBox<>(TemplateDelegate.getExistingTemplates());
-		// If no existing Templates in database, _templatePicker starts on 'Custom'
-		final boolean custom = (_templatePicker.getItemCount() == 0);
 		// Add empty Template with name 'Custom' (never actually submitted)
 		_templatePicker.addItem(new Template(new_template));
-		// TODO: Starts on 'Custom' and visible no matter what
 		final int numItems = _templatePicker.getItemCount();
 		_templatePicker.setSelectedIndex(numItems > 0 ? numItems - 1 : 0);
-		toggleVisibility(true);
 		
 		/* Name: (code in newNamePanel()) */
 		_namePanel = newNamePanel(template_name);
@@ -132,19 +133,15 @@ public class TemplateWizardView extends JPanel {
 		/* Steps table (code in createStepsPanel()) */
 		_stepPanel = createStepsPanel();
 		_stepPanel.setVisible(false);
-		
+
 		/* "Submit/Update template" button */
 		// Boolean show indicates whether starting on 'Custom' template
-		_submitTemplateBtn.setText(custom ? submit_new_template : submit_updated_template);
-		_submitTemplateBtn.setForeground(custom ? submitNewColor : submitUpdatedColor);
 		_submitTemplateBtn.setFocusPainted(false);
 		_submitTemplateBtn.setPreferredSize(new Dimension(300, 30));
 		_submitTemplateBtn.setVisible(false);
 		
-		// Sets visibility true if _templatePicker starts on 'Custom'
-		// toggleVisibility(custom);
-		// TODO: Keep or delete this? If you keep (true), delete (custom)
-		toggleVisibility(true);
+		// Start on 'New Template' option
+		toggleCustom(true);
 		
 		// ====== End of Instantiating Elements ======
 		
@@ -202,6 +199,19 @@ public class TemplateWizardView extends JPanel {
 			}
 		});
 		
+
+		/* --- 'Delete' Listener --- */
+		_deleteBtn.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				ITemplate t = _templatePicker.getItemAt(_templatePicker.getSelectedIndex());
+				_templatePicker.removeItem(t);
+				TemplateDelegate.removeTemplate(t);
+				TemplateWizardView.this.repaint();
+			}
+		});
+		
 		/* --- JComboBox Listener --- */
 		_templatePicker.addItemListener(new ItemListener() {
 			
@@ -211,18 +221,8 @@ public class TemplateWizardView extends JPanel {
 				final ITemplate t = (ITemplate) _templatePicker.getSelectedItem();
 				// Populate fields data based on current selected item
 				populateFields();
-				// 'Custom' Item listener
-				if (t.getName().equals(new_template)) {
-					// Text: "Submit new template", for custom template
-					_submitTemplateBtn.setText(submit_new_template);
-					_submitTemplateBtn.setForeground(submitNewColor);
-					// Display all elements
-					toggleVisibility(true);
-				} else {
-					// Text: "Submit updated template", for existing template
-					_submitTemplateBtn.setText(submit_updated_template);
-					_submitTemplateBtn.setForeground(submitUpdatedColor);
-				}
+				// Set element states if 'New Template' or not
+				toggleCustom(t.getName().equals(new_template));		
 				// Repaint wizard panel
 				TemplateWizardView.this.repaint();
 			}
@@ -233,6 +233,7 @@ public class TemplateWizardView extends JPanel {
 		// === Adding Elements ===
 		this.add(_editBtn);
 		this.add(_hideBtn);
+		this.add(_deleteBtn);
 		this.add(_templatePicker);
 		/* Panels */
 		this.add(_namePanel);
@@ -260,6 +261,20 @@ public class TemplateWizardView extends JPanel {
 		// Disable 'Edit' when showing, enable when hidden
 		_editBtn.setEnabled(!show);
 		_hideBtn.setEnabled(show);
+	}
+	
+	/**
+	 * Called when JComboBox's selected item is 'New Template.'
+	 * The Submit/Update Button's text gets set to 'Submit', changes
+	 * color also. Panels must be visible, and 'Delete' is disabled.
+	 * 
+	 * @param show whether 'New Template' is currently selected
+	 */
+	private void toggleCustom(final boolean show) {
+		toggleVisibility(show);
+		_submitTemplateBtn.setText(show ? submit_new_template : submit_updated_template);
+		_submitTemplateBtn.setForeground(show ? submitNewColor : submitUpdatedColor);
+		_deleteBtn.setEnabled(!show);
 	}
 	
 	// ============ END Visibility Methods ====================
@@ -587,7 +602,6 @@ public class TemplateWizardView extends JPanel {
 		boolean validHours = false;
 		// Check name
 		if (_inputMap.containsKey(template_name)) {
-			// TODO: Check that String contains characters
 			final String name = _inputMap.get(template_name).getText();
 			// Is not empty string
 			if (!name.isEmpty()) {
@@ -598,7 +612,6 @@ public class TemplateWizardView extends JPanel {
 		}
 		// Check consecutive hours
 		if (_inputMap.containsKey(template_hours)) {
-			// TODO: Check that String contains characters
 			final String hours = _inputMap.get(template_hours).getText();
 			if (!hours.isEmpty()) {
 				// Is valid format; can be parsed as double
@@ -635,9 +648,7 @@ public class TemplateWizardView extends JPanel {
 			alertUser("Invalid Input: Please add Steps to this Template");
 			return false;
 		}
-		
-		// TODO: Check that fields contain characters (i.e. full of spaces)
-		
+				
 		// Check that % of totals add up to 100%
 		final List<ITemplateStep> currSteps = getStepsFromTable();
 		double total = 0;

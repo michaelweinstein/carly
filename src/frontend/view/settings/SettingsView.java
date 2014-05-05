@@ -28,24 +28,24 @@ import frontend.view.settings.template_wizard.TemplateWizardView;
 
 public class SettingsView extends JDialog {
 	
-	private static final long		serialVersionUID	= 836555231204678487L;
+	private static final long			serialVersionUID	= 836555231204678487L;
 	
 	/* Styling vars */
-	private static final Dimension	minimum_size		= new Dimension(400, 500);
-	private static final int		title_padding		= 10;
-	private static final int		padding				= 15;
-	private static final int		title_font_size		= 30;
+	private static final Dimension		minimum_size		= new Dimension(400, 500);
+	private static final int			title_padding		= 10;
+	private static final int			padding				= 15;
+	private static final int			title_font_size		= 30;
 	
 	/* Strings */
-	private static final String		page_title			= "Settings";
-	private static final String		toggle_learning		= "Toggle Learning Algorithm";
-	private static final String		preferred_timeofday	= "When do you prefer to work?";
+	private static final String			page_title			= "Settings";
+	private static final String			toggle_learning		= "Toggle Learning Algorithm";
+	private static final String			preferred_timeofday	= "When do you prefer to work?";
 	
 	// private static final String template_wizard = "Template Wizard";
 	
 	/* Data Structure vars */
-	private static JComboBox<TimeOfDay> _todPicker;
-	private static JCheckBox _learnerToggle;
+	private static JComboBox<TimeOfDay>	_todPicker;
+	private static JCheckBox			_learnerToggle;
 	
 	public SettingsView() {
 		super();
@@ -68,7 +68,6 @@ public class SettingsView extends JDialog {
 			
 		});
 		
-		// TODO: Switch back to BorderLayout
 		setLayout(new BorderLayout());
 		
 		final JLabel titlePanel = createSettingsTitle();
@@ -83,35 +82,45 @@ public class SettingsView extends JDialog {
 		this.add(inputPanel, BorderLayout.SOUTH);
 		
 		/* Window Listener */
-		this.addWindowListener(new WindowListener() {
-			public void windowOpened(WindowEvent e) {
+		addWindowListener(new WindowListener() {
+			
+			@Override
+			public void windowOpened(final WindowEvent e) {
 				// Populates settings whenever Settings Dialog is opened
 				populateSettings();
 			}
-			public void windowClosing(WindowEvent e) {}
-			public void windowClosed(WindowEvent e) {}
-			public void windowIconified(WindowEvent e) {}
-			public void windowDeiconified(WindowEvent e) {}
-			public void windowActivated(WindowEvent e) {}
-			public void windowDeactivated(WindowEvent e) {}
+			
+			@Override
+			public void windowClosing(final WindowEvent e) {}
+			
+			@Override
+			public void windowClosed(final WindowEvent e) {}
+			
+			@Override
+			public void windowIconified(final WindowEvent e) {}
+			
+			@Override
+			public void windowDeiconified(final WindowEvent e) {}
+			
+			@Override
+			public void windowActivated(final WindowEvent e) {}
+			
+			@Override
+			public void windowDeactivated(final WindowEvent e) {}
 		});
 		
 		// TODO: Add scroll pane (using CScrollPane)
 	}
 	
 	/**
-	 * Creates small input panel with GridBagLayout to 
-	 * be added after TemplateWizardView. <br>
-	 * Consists of the 'Toggle Learning Algorithm' JCheckBox
-	 * and the 'TimeOfDay Preference' JComboBox.
-	 * Input field listeners trigger data submission
-	 * to StorageService. <br>
-	 * Fields are initialized to the values stored in database
-	 * from previous settings and/or startup survey.
+	 * Creates small input panel with GridBagLayout to be added after TemplateWizardView. <br>
+	 * Consists of the 'Toggle Learning Algorithm' JCheckBox and the 'TimeOfDay Preference' JComboBox. Input field
+	 * listeners trigger data submission to StorageService. <br>
+	 * Fields are initialized to the values stored in database from previous settings and/or startup survey.
 	 * 
 	 * @return input JPanel with user input fields included
 	 */
-	private JPanel createInputPanel() {
+	private static JPanel createInputPanel() {
 		final JPanel inputPanel = new JPanel();
 		/* Styling */
 		Utils.themeComponent(inputPanel);
@@ -126,7 +135,7 @@ public class SettingsView extends JDialog {
 		c.weighty = 0;
 		c.insets = new Insets(5, 0, 5, 0); // top left bottom right
 		
-		/* User Input Elements */			
+		/* User Input Elements */
 		// TimeOfDay: Label, JComboBox
 		final JLabel timeOfDayLabel = new JLabel(preferred_timeofday);
 		Utils.themeComponent(timeOfDayLabel);
@@ -136,11 +145,11 @@ public class SettingsView extends JDialog {
 		inputPanel.add(timeOfDayLabel);
 		_todPicker = new JComboBox<>(getTimesOfDay());
 		_todPicker.addItemListener(new ItemListener() {
-
+			
 			@Override
-			public void itemStateChanged(ItemEvent e) {
+			public void itemStateChanged(final ItemEvent e) {
 				// TODO Test StorageService submission
-				TimeOfDay item = (TimeOfDay) _todPicker.getSelectedItem();
+				final TimeOfDay item = (TimeOfDay) _todPicker.getSelectedItem();
 				StorageService.mergeSetting(SettingsConstants.TIMEOFDAY_SETTING, item.name());
 			}
 		});
@@ -161,13 +170,13 @@ public class SettingsView extends JDialog {
 		Utils.themeComponent(_learnerToggle);
 		Utils.padComponent(_learnerToggle, 5, 5);
 		_learnerToggle.addItemListener(new ItemListener() {
-
+			
 			@Override
-			public void itemStateChanged(ItemEvent e) {
+			public void itemStateChanged(final ItemEvent e) {
 				// TODO Test StorageService submission
-				Boolean sel = _learnerToggle.isSelected();
+				final Boolean sel = _learnerToggle.isSelected();
 				StorageService.mergeSetting(SettingsConstants.LEARNER_SETTING, sel.toString());
-			}	
+			}
 		});
 		c.gridx = 1;
 		c.gridy = 3;
@@ -178,30 +187,26 @@ public class SettingsView extends JDialog {
 	}
 	
 	/**
-	 * Populates TimeOfDay JComboBox and Learner's on/off checkbox
-	 * with the values previously stored in database. Ensures
-	 * persistence of Settings, and data retrieval from initial
-	 * start-up survey. Called at end of constructor.
+	 * Populates TimeOfDay JComboBox and Learner's on/off checkbox with the values previously stored in database.
+	 * Ensures persistence of Settings, and data retrieval from initial start-up survey. Called at end of constructor.
 	 * 
 	 * @param todPicker TimeOfDay JComboBox
 	 * @param learningToggle JCheckBox
 	 */
-	private void populateSettings() {
+	private static void populateSettings() {
 		// Set TimeOfDay item
 		// TODO
-		String todString = StorageService.getSetting(SettingsConstants.TIMEOFDAY_SETTING);
-		TimeOfDay tod = TimeOfDay.valueOf(todString);
+		final String todString = StorageService.getSetting(SettingsConstants.TIMEOFDAY_SETTING);
+		final TimeOfDay tod = TimeOfDay.valueOf(todString);
 		_todPicker.setSelectedItem(tod);
 		// Set Learning Toggle state
-		String learningString = StorageService.getSetting(SettingsConstants.LEARNER_SETTING);
+		final String learningString = StorageService.getSetting(SettingsConstants.LEARNER_SETTING);
 		_learnerToggle.setSelected(Boolean.parseBoolean(learningString));
 	}
 	
 	/**
-	 * Returns the formatted JLabel of the title
-	 * 'Settings' at top of Settings dialog box.
-	 * Includes border on bottom, custom size
-	 * and bold font. <br>
+	 * Returns the formatted JLabel of the title 'Settings' at top of Settings dialog box. Includes border on bottom,
+	 * custom size and bold font. <br>
 	 * Values set as constants in class.
 	 * 
 	 * @return Settings title JLabel
@@ -216,9 +221,8 @@ public class SettingsView extends JDialog {
 		return title;
 	}
 	
-	/**	 
-	 * @return array of all possible values of 
-	 * 		the <code>TimeOfDay</code> enum.
+	/**
+	 * @return array of all possible values of the <code>TimeOfDay</code> enum.
 	 */
 	private static TimeOfDay[] getTimesOfDay() {
 		return TimeOfDay.values();

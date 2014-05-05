@@ -19,6 +19,12 @@ import frontend.Utils;
 
 public class TemplateDelegate {
 	
+	public static void removeTemplate(final ITemplate t) {
+		ITemplate returned = StorageService.removeTemplate(t);
+/////	TODO printline
+		System.out.println("removeTemplate returned: " + returned);
+	}
+	
 	/**
 	 * Add Template to the database via StorageService. In case of StorageServiceException, prints error message.
 	 * 
@@ -28,8 +34,7 @@ public class TemplateDelegate {
 		try {
 			StorageService.addTemplate(t);
 		} catch (final StorageServiceException e) {
-			System.out.println("ERROR: StorageServiceException for template " + t + " (TemplateDelegate.addTemplate)");
-			e.printStackTrace();
+			Utils.printError("StorageServiceException for template " + t + " (TemplateDelegate.addTemplate)");
 		}
 	}
 	
@@ -57,7 +62,6 @@ public class TemplateDelegate {
 		} catch (final StorageServiceException e) {
 			Utils.printError("Template update failed! Make sure updatedTemplate, " + updatedTemplate.fullString()
 				+ ", has same ID as Template to database!");
-			e.printStackTrace();
 		}
 	}
 	

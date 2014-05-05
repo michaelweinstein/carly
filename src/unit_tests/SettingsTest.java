@@ -5,7 +5,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import backend.database.StorageService;
-
 import frontend.view.startup.SurveyView;
 
 /**
@@ -34,7 +33,7 @@ public class SettingsTest {
 		surveyDialog.setVisible(true);
 		while(true);
 	}
-	
+
 /*	@Test
 	public void runSettings()
 	{

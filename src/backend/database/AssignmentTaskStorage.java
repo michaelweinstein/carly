@@ -5,6 +5,8 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -443,6 +445,9 @@ public class AssignmentTaskStorage {
 			}
 		}
 		
+		if (result != null) {
+			AssignmentTaskStorage.sortTasks(result);
+		}
 		return result;
 	}
 	
@@ -594,6 +599,10 @@ public class AssignmentTaskStorage {
 		}
 		
 		results.addAll(idToAssignment.values());
+		for (IAssignment asgn : results) {
+			AssignmentTaskStorage.sortTasks(asgn);
+		}
+		
 		return results;
 	}
 	
@@ -752,6 +761,10 @@ public class AssignmentTaskStorage {
 		}
 		
 		results.addAll(idToAssignment.values());
+		for (IAssignment asgn : results) {
+			AssignmentTaskStorage.sortTasks(asgn);
+		}
+		
 		return results;
 	}
 	
@@ -877,5 +890,27 @@ public class AssignmentTaskStorage {
 		}
 		
 		return results;
+	}
+	
+	/*
+	 * Helper methods
+	 */
+	
+	private static void sortTasks(IAssignment assignment) {
+		Collections.sort(assignment.getTasks(), new Comparator<ITask>() {
+			@Override
+			public int compare(ITask arg0, ITask arg1) {
+				final int taskNum1 = arg0.getTaskNumber();
+				final int taskNum2 = arg1.getTaskNumber();
+				
+				if (taskNum1 > taskNum2) {
+					return 1;
+				} else if (taskNum1 < taskNum2) {
+					return -1;
+				} else {
+					return 0;
+				}
+			}
+		});;
 	}
 }

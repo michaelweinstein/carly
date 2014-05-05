@@ -349,14 +349,15 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		final double dayWidth = (getWidth() - X_OFFSET) / DAYS;
 		final Calendar c = CalendarView.getCalendarInstance();
 		c.setTime(t.getStart());
+		
 		Date startDate = adjustForDaylightSavings(c.getTime(), c);
 		int startDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
 		c.setTime(t.getEnd());
 		Date endDate = adjustForDaylightSavings(c.getTime(), c);
-		int endDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);
-		
+		int endDay = (int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS);	
 		// Sets correct start bounds
 		c.setTime(startDate);
+	
 		int startX = getXPos(startDay);
 		int startY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
 		if (moving != null && moving.first.equals(t)) {
@@ -690,11 +691,11 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 				} else {
 					final List<ITimeBlockable> unavailable = new ArrayList<>();
 					for (final ITimeBlockable t : getAllBlocks().keySet()) {
-						if (!t.isMovable()) {
+						if (t != null && !t.isMovable()) {
 							unavailable.add(t);
 						}
 					}
-					HubController.replaceUnavailableBlocks(start, end, unavailable);
+					HubController.replaceUnavailableBlocks(_weekStartDate, _weekEndDate, unavailable);
 				}
 			}
 		}
