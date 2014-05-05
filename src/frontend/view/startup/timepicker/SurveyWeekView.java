@@ -1,5 +1,6 @@
 package frontend.view.startup.timepicker;
 
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -136,7 +137,7 @@ public class SurveyWeekView extends JPanel {
 	 * <code>draw(Graphics2D)</code>.
 	 */
 	@Override
-	public void paintComponent(final Graphics g) {
+	public void paintComponent(final Graphics g) {		
 		final Graphics2D g2 = (Graphics2D) g;
 		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
 		g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
@@ -166,6 +167,13 @@ public class SurveyWeekView extends JPanel {
 		for (final SurveyTimeBlock b : _blocks) {
 			b.draw(g2);
 		}
+		
+/////	TODO printlines
+		System.out.println("SurveyWeekView.paintComponent called");
+		System.out.println();
+//////	// TODO delete, for testing
+		this.setBackground(Color.RED);
+		
 	}
 	
 	/* Handle user input methods */
