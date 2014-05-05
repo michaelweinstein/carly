@@ -46,8 +46,9 @@ public class CButton extends JButton implements MouseListener {
 		
 		// Draw the background
 		final RoundRectangle2D.Double back = new RoundRectangle2D.Double(3, 3, getWidth() - 4, getHeight() - 4, 10, 10);
-		canvas.setColor(_pressed ? Utils.COLOR_ALTERNATE.brighter() : _hovered ? new Color(50, 50, 50) : new Color(30,
-				30, 30));
+		final Color def = new Color(30, 30, 30);
+		canvas.setColor(!isEnabled() ? def : _pressed ? Utils.COLOR_ALTERNATE.brighter() : _hovered ? new Color(50, 50,
+				50) : def);
 		canvas.fill(back);
 		canvas.setColor(isEnabled() ? Utils.COLOR_ACCENT : Utils.COLOR_ALTERNATE);
 		canvas.draw(back);
