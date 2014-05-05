@@ -18,8 +18,9 @@ import frontend.view.startup.SurveyView;
  */
 public class GUIApp extends App {
 	
-	private final MainFrame	_window;
-	private final boolean	_runStartUp;
+	private final MainFrame		_window;
+	private final boolean		_runStartUp;
+	private final ErrorDialog	_error;
 	
 	/**
 	 * Uses the App constructor plus gui specific stuff
@@ -31,6 +32,7 @@ public class GUIApp extends App {
 		super(debug);
 		_runStartUp = runStartUp;
 		_window = new MainFrame(this);
+		_error = new ErrorDialog();
 	}
 	
 	/**
@@ -117,5 +119,17 @@ public class GUIApp extends App {
 			public void windowDeactivated(final WindowEvent e) {}
 		});
 		survey.setVisible(true);
+	}
+	
+	/**
+	 * Shows a dialog when there's an error - present here rather than somewhere else because it may be application
+	 * specific and thus can't be shown from the MainFrame
+	 * 
+	 * @param e the exception that should be shown to the user
+	 */
+	public void presentErrorDialog(final Exception e) {
+		_error.setTitle("Error");
+		_error.setText(e.getMessage() == null ? "Something went wrong" : e.getMessage());
+		_error.setVisible(true);
 	}
 }
