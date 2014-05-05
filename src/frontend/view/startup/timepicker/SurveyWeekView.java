@@ -1,6 +1,5 @@
 package frontend.view.startup.timepicker;
 
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -167,13 +166,6 @@ public class SurveyWeekView extends JPanel {
 		for (final SurveyTimeBlock b : _blocks) {
 			b.draw(g2);
 		}
-		
-/////	TODO printlines
-		System.out.println("SurveyWeekView.paintComponent called");
-		System.out.println();
-//////	// TODO delete, for testing
-		this.setBackground(Color.RED);
-		
 	}
 	
 	/* Handle user input methods */

@@ -113,10 +113,6 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 	 * @param g the graphics object to use in drawing
 	 */
 	public void draw(final Graphics2D g) {
-		
-////	TODO printlines
-		System.out.println("SurveyTimeBlock.draw");
-		
 		// Draws fill for selected or hovering block
 		if (_isSelected || _isHovering) {
 			g.setColor(_isHovering ? HOVER_COLOR : SELECTED_COLOR);

@@ -55,6 +55,7 @@ public class TemplateWizardView extends JPanel {
 	private static final String					new_template			= "New template";
 	private static final String					edit_template			= "Edit";
 	private static final String					hide_template			= "Hide";
+	private static final String					delete_template			= "Delete";
 	private static final String					template_name			= "Name";
 	private static final String					template_hours			= "Consecutive hours you want to work";
 	private static final String					submit_new_template		= "Submit template";
@@ -70,6 +71,7 @@ public class TemplateWizardView extends JPanel {
 	// Top Buttons ('Hide', 'Show')
 	private final CButton						_editBtn				= new CButton(edit_template);
 	private final CButton						_hideBtn				= new CButton(hide_template);
+	private final CButton						_deleteBtn 				= new CButton(delete_template);
 	// Panels (Show/Hide block)
 	private JPanel								_namePanel				= new JPanel();
 	private JPanel								_hoursPanel				= new JPanel();
