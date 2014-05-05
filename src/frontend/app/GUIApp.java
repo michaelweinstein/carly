@@ -6,7 +6,10 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 
 import javax.swing.SwingUtilities;
+import javax.swing.WindowConstants;
 
+import backend.database.StorageService;
+import backend.database.StorageServiceException;
 import frontend.view.MainFrame;
 import frontend.view.calendar.CalendarView;
 import frontend.view.startup.SurveyView;
@@ -18,21 +21,26 @@ import frontend.view.startup.SurveyView;
  */
 public class GUIApp extends App {
 	
-	private final MainFrame		_window;
-	private final boolean		_runStartUp;
+	private MainFrame			_window;
+	private boolean				_runStartUp;
 	private final ErrorDialog	_error;
 	
 	/**
 	 * Uses the App constructor plus gui specific stuff
 	 * 
 	 * @param debug if we should be in debug mode
-	 * @param runStartUp if the startup survey should be run
 	 */
-	public GUIApp(final boolean debug, final boolean runStartUp) {
+	public GUIApp(final boolean debug) {
 		super(debug);
-		_runStartUp = runStartUp;
+		HubController.initialize(GUIApp.this);
 		_error = new ErrorDialog();
-		_window = new MainFrame(this);
+		try {
+			_runStartUp = StorageService.initialize(false);
+			_window = new MainFrame(this);
+		} catch (final StorageServiceException e) {
+			_error.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+			presentErrorDialog(e, "Quit");
+		}
 	}
 	
 	/**
@@ -55,10 +63,11 @@ public class GUIApp extends App {
 			
 			@Override
 			public void run() {
-				HubController.initialize(GUIApp.this);
 				reload();
-				_window.pack();
-				_window.setVisible(true);
+				if (_window != null) {
+					_window.pack();
+					_window.setVisible(true);
+				}
 			}
 		});
 	}
@@ -133,6 +142,7 @@ public class GUIApp extends App {
 		_error.setText(e.getMessage() == null ? "Something went wrong" : e.getMessage());
 		_error.setButtonText(buttonText);
 		_error.setLocationRelativeTo(_window);
+		_error.pack();
 		_error.setVisible(true);
 	}
 }

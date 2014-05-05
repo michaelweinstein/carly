@@ -3,7 +3,6 @@ package frontend;
 import java.util.HashMap;
 import java.util.Map;
 
-import backend.database.StorageService;
 import frontend.app.App;
 import frontend.app.GUIApp;
 
@@ -46,10 +45,7 @@ public class Main {
 		}
 		
 		// Create an App
-		final boolean runStartUp = StorageService.initialize(false);
-		final boolean debug = parser.existsFlag(Utils.DEBUG);
-
-		a = new GUIApp(debug, runStartUp);
+		a = new GUIApp(parser.existsFlag(Utils.DEBUG));
 		a.start();
 	}
 }
