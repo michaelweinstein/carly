@@ -658,7 +658,6 @@ public class TimeBlockStorage {
 			
 			con.setAutoCommit(false);
 			
-			// TODO: make sure test accounts for this change
 			blockStatement = con.prepareStatement(Utilities.INSERT_TIME_BLOCK);
 			for (final ITimeBlockable block : blockList) {
 				Utilities.setValues(blockStatement, block.getId(), block.getTaskId(), block.getStart().getTime(), block
@@ -707,7 +706,7 @@ public class TimeBlockStorage {
 	 * @param pool JdbcConnectionPool for retrieving connection to the database
 	 */
 	public static void replaceUnavailableBlocks(final Date startDate, final Date endDate,
-			final List<ITimeBlockable> blockList, final JdbcConnectionPool pool) {
+			final List<? extends ITimeBlockable> blockList, final JdbcConnectionPool pool) {
 		PreparedStatement deleteBlockStatement = null;
 		PreparedStatement blockStatement = null;
 		Connection con = null;
