@@ -118,7 +118,6 @@ public class HubController {
 	 * @param newCompletion a double between 0 and 1 inclusive to represent percent complete
 	 */
 	public static void changeTask(final ITask oldTask, final double newCompletion) {
-		final double oldCompletion = oldTask.getPercentComplete();
 		TimeModifier.updateBlocksInTask(oldTask, newCompletion);
 		
 		// TODO: Update learner using old percent and new percent
