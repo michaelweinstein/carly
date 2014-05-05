@@ -55,11 +55,11 @@ public class SurveyTimeBlock extends Rectangle2D.Double {
 		final Calendar c = Calendar.getInstance();
 		c.setTime(new Date(0));
 		c.add(Calendar.DAY_OF_YEAR, 3); // move to January 4, 1970
-
+		
 		// Set start time in minutes
 		final Date[] startAndEnd = new Date[2];
-		final int day = (int) (_loc.x / _dim.x);
-		final int timeStart = (int) (_loc.y / _dim.y) * 30; // half hour number --> minutes
+		final int day = (int) Math.floor(_loc.x / _dim.x);
+		final int timeStart = (int) (_loc.y / _dim.y) * 30 - 60; // half hour number --> minutes
 		
 		// Start time
 		c.add(Calendar.DAY_OF_YEAR, day);

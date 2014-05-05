@@ -47,7 +47,7 @@ public class SurveyView extends JDialog {
 	private final SurveyWeekView		_timeView;
 	
 	/* Boolean vars */
-	private boolean 					_submitted 			= false;
+	private boolean						_submitted			= false;
 	
 	public SurveyView() {
 		super();
@@ -127,7 +127,7 @@ public class SurveyView extends JDialog {
 		c.gridheight = 2;
 		c.anchor = GridBagConstraints.CENTER;
 		this.add(_timeView, c);
-
+		
 		/* 'Submit survey' button */
 		final CButton submitBtn = new CButton(submit_label);
 		submitBtn.setPreferredSize(new Dimension(300, 30));
@@ -147,22 +147,36 @@ public class SurveyView extends JDialog {
 		
 		/* === WindowListener: Handles case in which user closes without submitting === */
 		
-		this.addWindowListener(new WindowListener() {
-			public void windowOpened(WindowEvent e) { }
+		addWindowListener(new WindowListener() {
+			
+			@Override
+			public void windowOpened(final WindowEvent e) {}
+			
 			// Triggered on 'close' or on 'submit' (submitSurvey's dispose() call)
-			public void windowClosing(WindowEvent e) { 
+			@Override
+			public void windowClosing(final WindowEvent e) {
 				// User closes without submitting
 				if (!_submitted) {
 					// Delete database and quit program
 					StorageService.dropTables();
 					System.exit(0);
-				} 
+				}
 			}
-			public void windowClosed(WindowEvent e) { }
-			public void windowIconified(WindowEvent e) { }
-			public void windowDeiconified(WindowEvent e) { }
-			public void windowActivated(WindowEvent e) { }
-			public void windowDeactivated(WindowEvent e) { }
+			
+			@Override
+			public void windowClosed(final WindowEvent e) {}
+			
+			@Override
+			public void windowIconified(final WindowEvent e) {}
+			
+			@Override
+			public void windowDeiconified(final WindowEvent e) {}
+			
+			@Override
+			public void windowActivated(final WindowEvent e) {}
+			
+			@Override
+			public void windowDeactivated(final WindowEvent e) {}
 		});
 	}
 	

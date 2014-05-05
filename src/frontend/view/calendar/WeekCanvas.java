@@ -322,7 +322,7 @@ public class WeekCanvas extends JPanel implements MouseListener, MouseMotionList
 		
 		// Sets correct start bounds
 		c.setTime(t.getStart());
-		int startX = getXPos((int) ((c.get(Calendar.DAY_OF_WEEK) - 1) % DAYS));
+		int startX = getXPos(startDay);
 		int startY = getYPos(c.get(Calendar.HOUR_OF_DAY) + (c.get(Calendar.MINUTE) / 60.0));
 		if (moving != null && moving.first.equals(t)) {
 			final int set = (int) Math.min(Math.max(_dragCurrPoint.getY(), Y_PAD + 1), getHeight() - Y_PAD);
