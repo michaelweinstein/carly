@@ -5,7 +5,7 @@ import java.util.Objects;
 
 public class AssignmentBlock implements ITimeBlockable {
 	
-	private final String	m_uniqueId;
+	private String			m_uniqueId;
 	private Date			m_start;
 	private Date			m_end;
 	private ITask			m_task;
@@ -120,5 +120,10 @@ public class AssignmentBlock implements ITimeBlockable {
 	@Override
 	public int hashCode() {
 		return Objects.hash(m_start, m_end, m_task, m_uniqueId);
+	}
+	
+	@Override
+	public void renewID() {
+		m_uniqueId = DataUtil.generateID() + getStart().getTime() / 100000;
 	}
 }

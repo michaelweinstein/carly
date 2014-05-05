@@ -121,8 +121,10 @@ public class HubController {
 	 */
 	public static void replaceUnavailableBlocks(final Date startDate, final Date endDate,
 			final List<ITimeBlockable> blockList) {
-		
-		// TODO: actually update all in backend
+		for (final ITimeBlockable t : blockList) {
+			t.renewID();
+		}
+		StorageService.replaceUnavailableBlocks(startDate, endDate, blockList);
 		reloadApp();
 	}
 	
