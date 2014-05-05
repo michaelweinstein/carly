@@ -25,7 +25,7 @@ public class SurveyWeekView extends JPanel {
 	private static final long			serialVersionUID	= 888327935955233878L;
 	
 	/* Dimensional vals */
-	private static final Dimension		size				= new Dimension(500, 200);
+	private static final Dimension		size				= new Dimension(540, 380);
 	private static final int			X_INSET				= 35;
 	private static final int			Y_INSET				= 40;
 	private static final double			NUM_COLS			= 7.0;
