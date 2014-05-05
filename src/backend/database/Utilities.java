@@ -37,7 +37,7 @@ public abstract class Utilities {
 			"WHERE BLOCK_ID = ? "; 
 	
 	/*
-	 * AssignmentBlock and UnavailableBlock SQL retrieval statements
+	 * AssignmentBlock and UnavailableBlock SQL statements
 	 */
 	
 	protected static final String SELECT_ASSIGNMENT_BLOCK_BY_ID = 
@@ -72,6 +72,13 @@ public abstract class Utilities {
 			"SELECT * FROM TIME_BLOCK " + 
 			"WHERE BLOCK_DEFAULT = TRUE AND BLOCK_MOVABLE = FALSE " +
 			"ORDER BY TIME_BLOCK.BLOCK_START";
+	
+	protected static final String DELETE_UNAVAILABLE_BLOCKS_BY_DATE = 
+			"DELETE FROM TIME_BLOCK " + 
+			"WHERE ((BLOCK_END BETWEEN ? AND ?) OR " + 	//block ends in the range, OR 
+			"(BLOCK_START BETWEEN ? AND ?) OR " +		//block start in the range, OR
+			"(BLOCK_START <= ? AND BLOCK_END >= ?)) " +	//block contains the range
+			"AND BLOCK_MOVABLE = FALSE  AND BLOCK_DEFAULT = FALSE ";
 	
 	/*
 	 * Assignment SQL statements

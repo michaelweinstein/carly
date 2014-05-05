@@ -140,7 +140,7 @@ public class HubController {
 	 * @param endDate the end of the list of blocks
 	 * @param blockList the actual blocks to save
 	 */
-	public static void updateUnavailableBlocks(final Date startDate, final Date endDate,
+	public static void replaceUnavailableBlocks(final Date startDate, final Date endDate,
 			final List<ITimeBlockable> blockList) {
 		
 		// TODO: actually update all in backend
