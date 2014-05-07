@@ -417,8 +417,10 @@ public class TimeBlockStorage {
 	}
 	
 	/**
-	 * Adds VALID TimeBlocks if they don't already exist in the database Updates any TimeBlocks that already have been
+	 * Adds VALID AvailableBlocks if they don't already exist in the database Updates any TimeBlocks that already have been
 	 * stored in the database
+	 * 
+	 * All unavailable blocks passed in will be ignored. 
 	 * 
 	 * @param blockList List of blocks to to be added to or updated in the database
 	 * @param pool JdbcConnectionPool for retrieving connection to the database

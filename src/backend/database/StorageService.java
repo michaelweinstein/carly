@@ -298,8 +298,10 @@ public class StorageService {
 	}
 	
 	/**
-	 * Adds VALID TimeBlocks if they don't already exist in the database Updates any TimeBlocks that already have been
+	 * Adds VALID Available Blocks if they don't already exist in the database Updates any TimeBlocks that already have been
 	 * stored in the database
+	 * 
+	 * All unavailable blocks passed in will be ignored. 
 	 * 
 	 * @param blockList
 	 * @return A list of INVALID TimeBlocks (that is, those whose associated Task cannot be found in the database) that

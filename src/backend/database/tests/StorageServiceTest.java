@@ -131,10 +131,11 @@ public class StorageServiceTest {
 			}
 		}
 		
-		assertTrue(taskCol.size() == 7);
+		assertTrue(taskCol.size() == 8);
 		assertEquals("VARCHAR(255)", taskCol.get("ASGN_ID"));
 		assertEquals("VARCHAR(255)", taskCol.get("TASK_ID"));
 		assertEquals("VARCHAR(255)", taskCol.get("TASK_NAME"));
+		assertEquals("INTEGER(10)", taskCol.get("TASK_TASK_NUMBER"));
 		assertEquals("DOUBLE(17)", taskCol.get("TASK_PERCENT_TOTAL"));
 		assertEquals("DOUBLE(17)", taskCol.get("TASK_PERCENT_COMPLETE"));
 		assertEquals("VARCHAR(255)", taskCol.get("TASK_TIME_OF_DAY"));
@@ -150,10 +151,11 @@ public class StorageServiceTest {
 			}
 		}
 		
-		assertTrue(templateCol.size() == 3);
+		assertTrue(templateCol.size() == 4);
 		assertEquals("VARCHAR(255)", templateCol.get("TEMPLATE_ID"));
 		assertEquals("VARCHAR(255)", templateCol.get("TEMPLATE_NAME"));
 		assertEquals("DOUBLE(17)", templateCol.get("TEMPLATE_CONSECUTIVE_HOURS"));
+		assertEquals("INTEGER(10)", templateCol.get("TEMPLATE_NUM_CONSECUTIVE"));
 		
 		// Make sure TemplateStep table is correct
 		final HashMap<String, String> stepCol = new HashMap<>();
@@ -165,12 +167,13 @@ public class StorageServiceTest {
 			}
 		}
 		
-		assertTrue(stepCol.size() == 5);
+		assertTrue(stepCol.size() == 6);
 		assertEquals("VARCHAR(255)", stepCol.get("TEMPLATE_ID"));
 		assertEquals("VARCHAR(255)", stepCol.get("STEP_NAME"));
 		assertEquals("DOUBLE(17)", stepCol.get("STEP_PERCENT_TOTAL"));
 		assertEquals("INTEGER(10)", stepCol.get("STEP_STEP_NUMBER"));
 		assertEquals("VARCHAR(255)", stepCol.get("STEP_TIME_OF_DAY"));
+		assertEquals("ARRAY(0)", stepCol.get("STEP_TOD_COUNTERS"));
 		
 		// Make sure TimeBlock table is correct
 		final HashMap<String, String> blockCol = new HashMap<>();
@@ -182,12 +185,13 @@ public class StorageServiceTest {
 			}
 		}
 		
-		assertTrue(blockCol.size() == 5);
+		assertTrue(blockCol.size() == 6);
 		assertEquals("VARCHAR(255)", blockCol.get("BLOCK_ID"));
 		assertEquals("VARCHAR(255)", blockCol.get("TASK_ID"));
 		assertEquals("BIGINT(19)", blockCol.get("BLOCK_START"));
 		assertEquals("BIGINT(19)", blockCol.get("BLOCK_END"));
 		assertEquals("BOOLEAN(1)", blockCol.get("BLOCK_MOVABLE"));
+		assertEquals("BOOLEAN(1)", blockCol.get("BLOCK_DEFAULT"));
 		
 		// Make sure Setting table is correct
 		final HashMap<String, String> settingCol = new HashMap<>();
