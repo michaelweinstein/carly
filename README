@@ -38,9 +38,9 @@ Eric was responsible for writing the database functions, which act as the centra
 
 Evan was responsible for developing and implementing the scheduler algorithm, which represents some of the key functionality of the program, and is called by the "Controller" in order to produce interactions between the front and back end.
 
-Dylan was responsible for designing and implementing the user interface, which is a key part of the "View" portion of the program.  All interactions through buttons, scrolling, clicking, and dragging are handled by the event dispatch thread, then forwarded to the appropriate functions in the "Controller".
+Michael was responsible for creating data types shared by front- and back-end and implementing schedule templates, the user's custom preferences, and settings.  He also created the first-time startup survey.  All of his responsibilities are part of the "View" part of the program, and also use the "Controller" to back information up to the database.
 
-Michael was responsible for implementing the user's custom preferences, settings, and template portfolio.  He also implemented the first-time startup survey.  All of his responsiblities are part of the "View" part of the program, and also use the "Controller" to back information up to the database.
+Dylan was responsible for designing and implementing the user interface, which is part of the "View" portion of the program.  All interactions through buttons, scrolling, clicking, and dragging are handled by the event dispatch thread, then forwarded to the appropriate functions in the "Controller".
 
 
 ---------------
